@@ -16,6 +16,7 @@ import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
 import CajeroFacturacion from "./pages/CajeroFacturacion";
 import CrearOrden from "./pages/CrearOrden";
+import CrearUsuariosPrueba from "./pages/CrearUsuariosPrueba";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ const App = () => (
               <CrearOrden />
             </ProtectedRoute>
           } />
+          <Route path="/setup/test-users" element={<CrearUsuariosPrueba />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
