@@ -7,6 +7,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProductos from "./pages/AdminProductos";
 import MeseroDashboard from "./pages/MeseroDashboard";
 import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
@@ -31,6 +32,11 @@ const App = () => (
           <Route path="/admin" element={
             <ProtectedRoute>
               <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/productos" element={
+            <ProtectedRoute>
+              <AdminProductos />
             </ProtectedRoute>
           } />
           <Route path="/mesero" element={

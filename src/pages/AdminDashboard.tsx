@@ -1,15 +1,18 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen } from "lucide-react";
 import { toast } from "sonner";
+import { GestionProductos } from "@/components/admin/GestionProductos";
+import { GestionCategorias } from "@/components/admin/GestionCategorias";
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
   const { data: roles, isLoading } = useUserRole(user?.id);
+  const navigate = useNavigate();
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
@@ -112,13 +115,16 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="productos">
-            <Card>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/productos')}>
               <CardHeader>
                 <CardTitle>Gestión de Productos</CardTitle>
                 <CardDescription>Administra el menú del restaurante</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Módulo en desarrollo...</p>
+                <Button className="w-full">
+                  <UtensilsCrossed className="w-4 h-4 mr-2" />
+                  Ir a Productos
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
