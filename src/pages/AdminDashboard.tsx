@@ -9,6 +9,11 @@ import { toast } from "sonner";
 import { GestionProductos } from "@/components/admin/GestionProductos";
 import { GestionCategorias } from "@/components/admin/GestionCategorias";
 import { GestionUsuarios } from "@/components/admin/GestionUsuarios";
+import { EstadisticasVentas } from "@/components/admin/EstadisticasVentas";
+import { GraficoVentasPorDia } from "@/components/admin/GraficoVentasPorDia";
+import { ProductosMasVendidos } from "@/components/admin/ProductosMasVendidos";
+import { VentasPorCategoria } from "@/components/admin/VentasPorCategoria";
+import { OrdenesEnTiempoReal } from "@/components/admin/OrdenesEnTiempoReal";
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
@@ -75,44 +80,17 @@ export default function AdminDashboard() {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="bg-gradient-card">
-                <CardHeader className="pb-3">
-                  <CardDescription>Ventas Hoy</CardDescription>
-                  <CardTitle className="text-3xl">$0</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card className="bg-gradient-card">
-                <CardHeader className="pb-3">
-                  <CardDescription>Órdenes Activas</CardDescription>
-                  <CardTitle className="text-3xl">0</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card className="bg-gradient-card">
-                <CardHeader className="pb-3">
-                  <CardDescription>Productos</CardDescription>
-                  <CardTitle className="text-3xl">0</CardTitle>
-                </CardHeader>
-              </Card>
-              <Card className="bg-gradient-card">
-                <CardHeader className="pb-3">
-                  <CardDescription>Usuarios</CardDescription>
-                  <CardTitle className="text-3xl">0</CardTitle>
-                </CardHeader>
-              </Card>
+            <EstadisticasVentas />
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <GraficoVentasPorDia />
+              <ProductosMasVendidos />
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Productos Más Vendidos</CardTitle>
-                <CardDescription>Top 5 productos del mes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  No hay datos disponibles aún
-                </p>
-              </CardContent>
-            </Card>
+            <div className="grid gap-4 md:grid-cols-2">
+              <VentasPorCategoria />
+              <OrdenesEnTiempoReal />
+            </div>
           </TabsContent>
 
           <TabsContent value="productos">
