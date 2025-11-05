@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminProductos from "./pages/AdminProductos";
 import AdminMesasSalones from "./pages/AdminMesasSalones";
 import AdminSedes from "./pages/AdminSedes";
+import AdminReportes from "./pages/AdminReportes";
 import MeseroDashboard from "./pages/MeseroDashboard";
 import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
@@ -50,6 +51,11 @@ const App = () => (
           <Route path="/admin/sedes" element={
             <ProtectedRoute>
               <AdminSedes />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/reportes" element={
+            <ProtectedRoute>
+              <AdminReportes />
             </ProtectedRoute>
           } />
           <Route path="/mesero" element={
