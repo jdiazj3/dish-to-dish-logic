@@ -430,26 +430,47 @@ export type Database = {
       }
       sedes: {
         Row: {
+          activa: boolean | null
+          correo: string | null
           created_at: string
+          dias_operacion: string[] | null
           direccion: string | null
+          horario_apertura: string | null
+          horario_cierre: string | null
           id: string
+          logo_url: string | null
           nombre: string
+          notas: string | null
           telefono: string | null
           updated_at: string
         }
         Insert: {
+          activa?: boolean | null
+          correo?: string | null
           created_at?: string
+          dias_operacion?: string[] | null
           direccion?: string | null
+          horario_apertura?: string | null
+          horario_cierre?: string | null
           id?: string
+          logo_url?: string | null
           nombre: string
+          notas?: string | null
           telefono?: string | null
           updated_at?: string
         }
         Update: {
+          activa?: boolean | null
+          correo?: string | null
           created_at?: string
+          dias_operacion?: string[] | null
           direccion?: string | null
+          horario_apertura?: string | null
+          horario_cierre?: string | null
           id?: string
+          logo_url?: string | null
           nombre?: string
+          notas?: string | null
           telefono?: string | null
           updated_at?: string
         }

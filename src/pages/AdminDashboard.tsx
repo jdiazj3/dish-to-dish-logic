@@ -128,13 +128,16 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="config">
-            <Card>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/sedes')}>
               <CardHeader>
-                <CardTitle>Configuración del Restaurante</CardTitle>
-                <CardDescription>Información general y contacto</CardDescription>
+                <CardTitle>Gestión de Sedes</CardTitle>
+                <CardDescription>Configura las sedes del restaurante</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Módulo en desarrollo...</p>
+                <Button className="w-full">
+                  <DoorOpen className="w-4 h-4 mr-2" />
+                  Ir a Sedes
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
