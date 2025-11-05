@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, Receipt, DollarSign } from "lucide-react";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 export default function CajeroDashboard() {
   const { user, signOut } = useAuth();
   const { data: roles, isLoading } = useUserRole(user?.id);
+  const navigate = useNavigate();
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
@@ -57,15 +58,16 @@ export default function CajeroDashboard() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/facturacion')}>
           <CardHeader>
-            <CardTitle>Órdenes Listas para Facturar</CardTitle>
-            <CardDescription>Órdenes entregadas pendientes de pago</CardDescription>
+            <CardTitle>Facturación</CardTitle>
+            <CardDescription>Gestiona órdenes y emite facturas</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground text-center py-8">
-              No hay órdenes pendientes de facturación
-            </p>
+            <Button className="w-full">
+              <Receipt className="w-4 h-4 mr-2" />
+              Ir a Facturación
+            </Button>
           </CardContent>
         </Card>
       </div>
