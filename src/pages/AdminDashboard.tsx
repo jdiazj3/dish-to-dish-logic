@@ -142,13 +142,16 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="mesas">
-            <Card>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/mesas-salones')}>
               <CardHeader>
                 <CardTitle>Gestión de Mesas y Salones</CardTitle>
                 <CardDescription>Configura la distribución del restaurante</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Módulo en desarrollo...</p>
+                <Button className="w-full">
+                  <DoorOpen className="w-4 h-4 mr-2" />
+                  Ir a Mesas y Salones
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProductos from "./pages/AdminProductos";
+import AdminMesasSalones from "./pages/AdminMesasSalones";
 import MeseroDashboard from "./pages/MeseroDashboard";
 import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
@@ -37,6 +38,11 @@ const App = () => (
           <Route path="/admin/productos" element={
             <ProtectedRoute>
               <AdminProductos />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/mesas-salones" element={
+            <ProtectedRoute>
+              <AdminMesasSalones />
             </ProtectedRoute>
           } />
           <Route path="/mesero" element={
