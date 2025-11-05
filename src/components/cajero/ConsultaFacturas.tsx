@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,13 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Search, Eye, Receipt } from "lucide-react";
+import { Search, Eye, Receipt, Download, Mail } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export function ConsultaFacturas() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFactura, setSelectedFactura] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [correoEnvio, setCorreoEnvio] = useState("");
+  const [dialogEnvio, setDialogEnvio] = useState(false);
 
   const { data: facturas, isLoading } = useQuery({
     queryKey: ['facturas'],
@@ -64,6 +67,66 @@ export function ConsultaFacturas() {
   const handleVerDetalle = (factura: any) => {
     setSelectedFactura(factura);
     setDialogOpen(true);
+  };
+
+  const generarPDFMutation = useMutation({
+    mutationFn: async ({ facturaId, enviarCorreo, correo }: { facturaId: string; enviarCorreo: boolean; correo?: string }) => {
+      const { data, error } = await supabase.functions.invoke('generar-factura-pdf', {
+        body: {
+          facturaId,
+          enviarCorreo,
+          correoDestino: correo,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      if (variables.enviarCorreo) {
+        toast.success("Factura enviada por correo exitosamente");
+        setDialogEnvio(false);
+        setCorreoEnvio("");
+      } else {
+        // Abrir en nueva ventana para imprimir
+        const ventana = window.open('', '_blank');
+        if (ventana) {
+          ventana.document.write(data.html);
+          ventana.document.close();
+          setTimeout(() => {
+            ventana.print();
+          }, 500);
+        }
+        toast.success("Factura lista para imprimir");
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Error al procesar la factura");
+    },
+  });
+
+  const handleDescargarPDF = () => {
+    if (selectedFactura) {
+      generarPDFMutation.mutate({
+        facturaId: selectedFactura.id,
+        enviarCorreo: false,
+      });
+    }
+  };
+
+  const handleEnviarCorreo = () => {
+    if (!correoEnvio) {
+      toast.error("Ingresa un correo electrónico");
+      return;
+    }
+
+    if (selectedFactura) {
+      generarPDFMutation.mutate({
+        facturaId: selectedFactura.id,
+        enviarCorreo: true,
+        correo: correoEnvio,
+      });
+    }
   };
 
   const facturasFiltradas = facturas?.filter(factura => 
@@ -131,14 +194,42 @@ export function ConsultaFacturas() {
                       ${Number(factura.total).toLocaleString('es-CO', { minimumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleVerDetalle(factura)}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Ver Detalle
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleVerDetalle(factura)}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Detalle
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedFactura(factura);
+                            generarPDFMutation.mutate({
+                              facturaId: factura.id,
+                              enviarCorreo: false,
+                            });
+                          }}
+                          disabled={generarPDFMutation.isPending}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Imprimir
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedFactura(factura);
+                            setDialogEnvio(true);
+                          }}
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          Enviar
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -241,6 +332,44 @@ export function ConsultaFacturas() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={dialogEnvio} onOpenChange={setDialogEnvio}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar Factura por Correo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="correo">Correo Electrónico</Label>
+              <Input
+                id="correo"
+                type="email"
+                placeholder="cliente@ejemplo.com"
+                value={correoEnvio}
+                onChange={(e) => setCorreoEnvio(e.target.value)}
+              />
+            </div>
+            {selectedFactura && (
+              <div className="text-sm text-muted-foreground">
+                <p>Factura: #{selectedFactura.consecutivo}</p>
+                <p>Total: ${Number(selectedFactura.total).toLocaleString('es-CO', { minimumFractionDigits: 2 })}</p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDialogEnvio(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleEnviarCorreo}
+              disabled={generarPDFMutation.isPending}
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              {generarPDFMutation.isPending ? "Enviando..." : "Enviar Factura"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

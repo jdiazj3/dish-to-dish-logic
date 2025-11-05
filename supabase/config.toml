@@ -1,1 +1,4 @@
 project_id = "wtleadyouiznwpfztstz"
+
+[functions.generar-factura-pdf]
+verify_jwt = true
