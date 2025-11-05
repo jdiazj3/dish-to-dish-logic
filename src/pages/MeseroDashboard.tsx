@@ -1,14 +1,33 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { LogOut, Plus, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 
 export default function MeseroDashboard() {
   const { user, signOut } = useAuth();
   const { data: roles, isLoading } = useUserRole(user?.id);
+  const navigate = useNavigate();
+
+  const { data: ordenesActivas } = useQuery({
+    queryKey: ['ordenes-mesero', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ordenes')
+        .select('*, mesas(numero, salones(nombre)), orden_productos(cantidad)')
+        .eq('mesero_id', user?.id)
+        .in('estado', ['recibida', 'tomada'])
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
@@ -47,7 +66,7 @@ export default function MeseroDashboard() {
               <CardDescription>Crear un nuevo pedido para una mesa</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-gradient-primary">
+              <Button onClick={() => navigate('/orden/nueva')} className="w-full bg-gradient-primary">
                 Crear Orden
               </Button>
             </CardContent>
@@ -73,7 +92,28 @@ export default function MeseroDashboard() {
             <CardDescription>Órdenes en proceso</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">No hay órdenes activas</p>
+            {!ordenesActivas || ordenesActivas.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No hay órdenes activas</p>
+            ) : (
+              <div className="space-y-3">
+                {ordenesActivas.map(orden => (
+                  <div key={orden.id} className="p-4 bg-muted rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold">Mesa {orden.mesas?.numero}</p>
+                        <p className="text-sm text-muted-foreground">{orden.mesas?.salones?.nombre}</p>
+                      </div>
+                      <Badge variant={orden.estado === 'recibida' ? 'destructive' : 'secondary'}>
+                        {orden.estado === 'recibida' ? 'En espera' : 'En preparación'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm">
+                      {orden.orden_productos?.reduce((sum: number, p: any) => sum + p.cantidad, 0)} productos • ${Number(orden.total).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

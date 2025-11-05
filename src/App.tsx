@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import MeseroDashboard from "./pages/MeseroDashboard";
 import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
+import CrearOrden from "./pages/CrearOrden";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,11 @@ const App = () => (
           <Route path="/cajero" element={
             <ProtectedRoute>
               <CajeroDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/orden/nueva" element={
+            <ProtectedRoute>
+              <CrearOrden />
             </ProtectedRoute>
           } />
           <Route path="*" element={<NotFound />} />

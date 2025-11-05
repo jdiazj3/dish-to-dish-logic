@@ -1,16 +1,128 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LogOut, Clock, CheckCircle2, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { OrdenCard } from "@/components/OrdenCard";
 
 export default function CocinaDashboard() {
   const { user, signOut } = useAuth();
   const { data: roles, isLoading } = useUserRole(user?.id);
+  const queryClient = useQueryClient();
+  const [turnoActual, setTurnoActual] = useState<'manana' | 'tarde' | 'noche'>('manana');
+
+  useEffect(() => {
+    const hora = new Date().getHours();
+    if (hora < 12) setTurnoActual('manana');
+    else if (hora < 18) setTurnoActual('tarde');
+    else setTurnoActual('noche');
+  }, []);
+
+  const { data: ordenesRecibidas } = useQuery({
+    queryKey: ['ordenes-recibidas', turnoActual],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ordenes')
+        .select('*, mesas(numero, salones(nombre)), profiles(nombre, apellido), orden_productos(*, productos(nombre))')
+        .eq('estado', 'recibida')
+        .eq('turno', turnoActual)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: ordenesTomadas } = useQuery({
+    queryKey: ['ordenes-tomadas', turnoActual],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ordenes')
+        .select('*, mesas(numero, salones(nombre)), profiles(nombre, apellido), orden_productos(*, productos(nombre))')
+        .eq('estado', 'tomada')
+        .eq('turno', turnoActual)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: ordenesEntregadas } = useQuery({
+    queryKey: ['ordenes-entregadas', turnoActual],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ordenes')
+        .select('*, mesas(numero, salones(nombre)), profiles(nombre, apellido), orden_productos(*, productos(nombre))')
+        .eq('estado', 'entregada')
+        .eq('turno', turnoActual)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('ordenes-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ordenes'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['ordenes-recibidas'] });
+          queryClient.invalidateQueries({ queryKey: ['ordenes-tomadas'] });
+          queryClient.invalidateQueries({ queryKey: ['ordenes-entregadas'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  const tomarOrdenMutation = useMutation({
+    mutationFn: async (ordenId: string) => {
+      const { error } = await supabase
+        .from('ordenes')
+        .update({ 
+          estado: 'tomada',
+          cocinero_id: user?.id 
+        })
+        .eq('id', ordenId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ordenes-recibidas'] });
+      queryClient.invalidateQueries({ queryKey: ['ordenes-tomadas'] });
+      toast.success("Orden tomada");
+    },
+  });
+
+  const entregarOrdenMutation = useMutation({
+    mutationFn: async (ordenId: string) => {
+      const { error } = await supabase
+        .from('ordenes')
+        .update({ estado: 'entregada' })
+        .eq('id', ordenId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ordenes-tomadas'] });
+      queryClient.invalidateQueries({ queryKey: ['ordenes-entregadas'] });
+      toast.success("Orden entregada");
+    },
+  });
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
@@ -61,42 +173,73 @@ export default function CocinaDashboard() {
           </TabsList>
 
           <TabsContent value="recibidas" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Órdenes Recibidas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No hay órdenes recibidas
-                </p>
-              </CardContent>
-            </Card>
+            {!ordenesRecibidas || ordenesRecibidas.length === 0 ? (
+              <Card>
+                <CardContent className="py-8">
+                  <p className="text-sm text-muted-foreground text-center">
+                    No hay órdenes recibidas
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {ordenesRecibidas.map(orden => (
+                  <OrdenCard
+                    key={orden.id}
+                    orden={orden as any}
+                    estado="recibida"
+                    onTomarOrden={tomarOrdenMutation.mutate}
+                    loading={tomarOrdenMutation.isPending}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="tomadas" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Órdenes en Preparación</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No hay órdenes en preparación
-                </p>
-              </CardContent>
-            </Card>
+            {!ordenesTomadas || ordenesTomadas.length === 0 ? (
+              <Card>
+                <CardContent className="py-8">
+                  <p className="text-sm text-muted-foreground text-center">
+                    No hay órdenes en preparación
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {ordenesTomadas.map(orden => (
+                  <OrdenCard
+                    key={orden.id}
+                    orden={orden as any}
+                    estado="tomada"
+                    onEntregarOrden={entregarOrdenMutation.mutate}
+                    loading={entregarOrdenMutation.isPending}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="entregadas" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Órdenes Entregadas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No hay órdenes entregadas
-                </p>
-              </CardContent>
-            </Card>
+            {!ordenesEntregadas || ordenesEntregadas.length === 0 ? (
+              <Card>
+                <CardContent className="py-8">
+                  <p className="text-sm text-muted-foreground text-center">
+                    No hay órdenes entregadas
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {ordenesEntregadas.map(orden => (
+                  <OrdenCard
+                    key={orden.id}
+                    orden={orden as any}
+                    estado="entregada"
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
