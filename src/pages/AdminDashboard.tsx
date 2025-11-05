@@ -8,6 +8,7 @@ import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen } f
 import { toast } from "sonner";
 import { GestionProductos } from "@/components/admin/GestionProductos";
 import { GestionCategorias } from "@/components/admin/GestionCategorias";
+import { GestionUsuarios } from "@/components/admin/GestionUsuarios";
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
@@ -130,15 +131,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="usuarios">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestión de Usuarios</CardTitle>
-                <CardDescription>Administra el personal del restaurante</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Módulo en desarrollo...</p>
-              </CardContent>
-            </Card>
+            <GestionUsuarios />
           </TabsContent>
 
           <TabsContent value="mesas">

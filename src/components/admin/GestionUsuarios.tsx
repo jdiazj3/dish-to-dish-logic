@@ -106,7 +106,7 @@ export function GestionUsuarios() {
           telefono: data.telefono || null,
           direccion: data.direccion || null,
           sede_id: data.sede_id || null,
-          turno: data.turno || null,
+          turno: (data.turno as any) || null,
         })
         .eq('id', authData.user.id);
 
@@ -171,7 +171,7 @@ export function GestionUsuarios() {
           telefono: data.telefono || null,
           direccion: data.direccion || null,
           sede_id: data.sede_id || null,
-          turno: data.turno || null,
+          turno: (data.turno as any) || null,
         })
         .eq('id', userId);
 
