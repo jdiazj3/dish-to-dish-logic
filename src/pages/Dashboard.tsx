@@ -3,8 +3,9 @@ import { useUserRole, useProfile } from "@/hooks/useUserRole";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, ChefHat } from "lucide-react";
+import { LogOut, ChefHat, User } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -63,10 +64,18 @@ export default function Dashboard() {
                   <strong>Email:</strong> {user?.email}
                 </p>
               </div>
-              <Button onClick={handleSignOut} variant="outline" className="w-full">
-                <LogOut className="w-4 h-4 mr-2" />
-                Cerrar sesión
-              </Button>
+              <div className="flex gap-2">
+                <Button asChild variant="outline" className="flex-1">
+                  <Link to="/perfil">
+                    <User className="w-4 h-4 mr-2" />
+                    Ver Perfil
+                  </Link>
+                </Button>
+                <Button onClick={handleSignOut} variant="outline" className="flex-1">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Cerrar sesión
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
