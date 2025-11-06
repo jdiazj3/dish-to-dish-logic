@@ -18,6 +18,7 @@ import CajeroFacturacion from "./pages/CajeroFacturacion";
 import CrearOrden from "./pages/CrearOrden";
 import CrearUsuariosPrueba from "./pages/CrearUsuariosPrueba";
 import UserProfile from "./pages/UserProfile";
+import Logout from "./pages/Logout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -90,6 +91,7 @@ const App = () => (
               <UserProfile />
             </ProtectedRoute>
           } />
+          <Route path="/logout" element={<Logout />} />
           <Route path="/setup/test-users" element={<CrearUsuariosPrueba />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
