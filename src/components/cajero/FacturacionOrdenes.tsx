@@ -24,29 +24,42 @@ export function FacturacionOrdenes() {
   const [propinaPorcentaje, setPropinaPorcentaje] = useState(10);
   const queryClient = useQueryClient();
 
-  const { data: ordenesEntregadas, isLoading } = useQuery({
+  const { data: ordenesEntregadas, isLoading, error } = useQuery({
     queryKey: ['ordenes-entregadas'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ordenes')
-        .select(`
-          *,
-          mesas(numero, salones(nombre)),
-          orden_productos(*, productos(nombre))
-        `)
-        .eq('estado', 'entregada')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Filtrar solo las órdenes que no han sido facturadas
-      const { data: facturas } = await supabase
-        .from('facturas')
-        .select('orden_id');
-      
-      const ordenesFacturadas = new Set(facturas?.map(f => f.orden_id) || []);
-      return data?.filter(orden => !ordenesFacturadas.has(orden.id)) || [];
+      try {
+        const { data, error } = await supabase
+          .from('ordenes')
+          .select(`
+            *,
+            mesas(numero, salones(nombre)),
+            orden_productos(*, productos(nombre))
+          `)
+          .eq('estado', 'entregada')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error al cargar órdenes:', error);
+          throw error;
+        }
+        
+        // Filtrar solo las órdenes que no han sido facturadas
+        const { data: facturas, error: facturasError } = await supabase
+          .from('facturas')
+          .select('orden_id');
+        
+        if (facturasError) {
+          console.error('Error al cargar facturas:', facturasError);
+        }
+        
+        const ordenesFacturadas = new Set(facturas?.map(f => f.orden_id) || []);
+        return data?.filter(orden => !ordenesFacturadas.has(orden.id)) || [];
+      } catch (err) {
+        console.error('Error en queryFn:', err);
+        throw err;
+      }
     },
+    retry: 1,
   });
 
   const facturarMutation = useMutation({
@@ -166,7 +179,12 @@ export function FacturacionOrdenes() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-muted-foreground">Cargando...</p>
+            <p className="text-muted-foreground">Cargando órdenes...</p>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-destructive mb-2">Error al cargar las órdenes</p>
+              <p className="text-sm text-muted-foreground">{error.message}</p>
+            </div>
           ) : ordenesEntregadas && ordenesEntregadas.length > 0 ? (
             <Table>
               <TableHeader>

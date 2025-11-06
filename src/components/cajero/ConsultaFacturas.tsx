@@ -19,33 +19,51 @@ export function ConsultaFacturas() {
   const [correoEnvio, setCorreoEnvio] = useState("");
   const [dialogEnvio, setDialogEnvio] = useState(false);
 
-  const { data: facturas, isLoading } = useQuery({
+  const { data: facturas, isLoading, error } = useQuery({
     queryKey: ['facturas'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('facturas')
-        .select(`
-          *,
-          ordenes(mesas(numero, salones(nombre)))
-        `)
-        .order('consecutivo', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Obtener información de los cajeros
-      const cajeroIds = Array.from(new Set(data?.map(f => f.cajero_id).filter(Boolean)));
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, nombre, apellido')
-        .in('id', cajeroIds);
-      
-      const profilesMap = new Map(profiles?.map(p => [p.id, p]));
-      
-      return data?.map(factura => ({
-        ...factura,
-        cajero: factura.cajero_id ? profilesMap.get(factura.cajero_id) : null
-      }));
+      try {
+        const { data, error } = await supabase
+          .from('facturas')
+          .select(`
+            *,
+            ordenes(mesas(numero, salones(nombre)))
+          `)
+          .order('consecutivo', { ascending: false });
+        
+        if (error) {
+          console.error('Error al cargar facturas:', error);
+          throw error;
+        }
+        
+        // Obtener información de los cajeros
+        const cajeroIds = Array.from(new Set(data?.map(f => f.cajero_id).filter(Boolean)));
+        
+        if (cajeroIds.length > 0) {
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, nombre, apellido')
+            .in('id', cajeroIds);
+          
+          if (profilesError) {
+            console.error('Error al cargar perfiles:', profilesError);
+          }
+          
+          const profilesMap = new Map(profiles?.map(p => [p.id, p]));
+          
+          return data?.map(factura => ({
+            ...factura,
+            cajero: factura.cajero_id ? profilesMap.get(factura.cajero_id) : null
+          }));
+        }
+        
+        return data?.map(factura => ({ ...factura, cajero: null }));
+      } catch (err) {
+        console.error('Error en queryFn facturas:', err);
+        throw err;
+      }
     },
+    retry: 1,
   });
 
   const { data: facturaItems } = useQuery({
@@ -164,7 +182,12 @@ export function ConsultaFacturas() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-muted-foreground">Cargando...</p>
+            <p className="text-muted-foreground">Cargando facturas...</p>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-destructive mb-2">Error al cargar las facturas</p>
+              <p className="text-sm text-muted-foreground">{error.message}</p>
+            </div>
           ) : facturasFiltradas && facturasFiltradas.length > 0 ? (
             <Table>
               <TableHeader>
