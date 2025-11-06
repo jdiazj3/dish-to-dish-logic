@@ -9,17 +9,8 @@ import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
-  const { data: roles, isLoading: rolesLoading, error: rolesError } = useUserRole(user?.id);
+  const { data: roles, isLoading: rolesLoading } = useUserRole(user?.id);
   const { data: profile } = useProfile(user?.id);
-
-  // Debug logging
-  console.log('Dashboard Debug:', { 
-    userId: user?.id, 
-    roles, 
-    rolesLoading, 
-    rolesError,
-    hasRoles: roles && roles.length > 0 
-  });
 
   const handleSignOut = async () => {
     const { error } = await signOut();
