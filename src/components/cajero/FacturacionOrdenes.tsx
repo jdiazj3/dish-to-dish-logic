@@ -24,10 +24,14 @@ export function FacturacionOrdenes() {
   const [propinaPorcentaje, setPropinaPorcentaje] = useState(10);
   const queryClient = useQueryClient();
 
+  console.log('FacturacionOrdenes - Starting component render');
+  console.log('FacturacionOrdenes - user:', user?.id);
+
   const { data: ordenesEntregadas, isLoading, error } = useQuery({
     queryKey: ['ordenes-entregadas'],
     queryFn: async () => {
       try {
+        console.log('FacturacionOrdenes - Starting query for ordenes-entregadas');
         const { data, error } = await supabase
           .from('ordenes')
           .select(`
@@ -43,7 +47,10 @@ export function FacturacionOrdenes() {
           throw error;
         }
         
+        console.log('FacturacionOrdenes - Ordenes loaded:', data?.length);
+        
         // Filtrar solo las órdenes que no han sido facturadas
+        console.log('FacturacionOrdenes - Querying facturas');
         const { data: facturas, error: facturasError } = await supabase
           .from('facturas')
           .select('orden_id');
@@ -52,8 +59,13 @@ export function FacturacionOrdenes() {
           console.error('Error al cargar facturas:', facturasError);
         }
         
+        console.log('FacturacionOrdenes - Facturas loaded:', facturas?.length);
+        
         const ordenesFacturadas = new Set(facturas?.map(f => f.orden_id) || []);
-        return data?.filter(orden => !ordenesFacturadas.has(orden.id)) || [];
+        const result = data?.filter(orden => !ordenesFacturadas.has(orden.id)) || [];
+        
+        console.log('FacturacionOrdenes - Query complete. Filtered ordenes:', result.length);
+        return result;
       } catch (err) {
         console.error('Error en queryFn:', err);
         throw err;
