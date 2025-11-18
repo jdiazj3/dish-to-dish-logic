@@ -12,20 +12,14 @@ export default function CajeroFacturacion() {
   const { data: roles, isLoading } = useUserRole(user?.id);
   const navigate = useNavigate();
 
-  console.log('CajeroFacturacion - user:', user?.id);
-  console.log('CajeroFacturacion - roles:', roles);
-  console.log('CajeroFacturacion - isLoading:', isLoading);
-
-  if (isLoading) {
-    console.log('CajeroFacturacion - Showing loading state');
+  // Esperar a que tanto el usuario como los roles estén cargados
+  if (isLoading || !user || !roles) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 
-  const isCajeroOrAdmin = roles?.includes('cajero') || roles?.includes('admin_total') || roles?.includes('admin_sede');
-  console.log('CajeroFacturacion - isCajeroOrAdmin:', isCajeroOrAdmin);
+  const isCajeroOrAdmin = roles.includes('cajero') || roles.includes('admin_total') || roles.includes('admin_sede');
   
   if (!isCajeroOrAdmin) {
-    console.log('CajeroFacturacion - Redirecting to /');
     return <Navigate to="/" replace />;
   }
 
