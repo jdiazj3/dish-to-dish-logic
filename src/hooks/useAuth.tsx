@@ -8,9 +8,11 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('useAuth effect starting');
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, 'session:', !!session);
         // Si hay un error de token, limpiar la sesión
         if (event === 'TOKEN_REFRESHED' && !session) {
           await supabase.auth.signOut();
