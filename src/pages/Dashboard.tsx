@@ -12,13 +12,6 @@ export default function Dashboard() {
   const { data: roles, isLoading: rolesLoading } = useUserRole(user?.id);
   const { data: profile } = useProfile(user?.id);
 
-  console.log('Dashboard render:', { 
-    userId: user?.id, 
-    rolesLoading, 
-    roles,
-    hasRoles: roles?.length 
-  });
-
   const handleSignOut = async () => {
     const { error } = await signOut();
     if (error) {
