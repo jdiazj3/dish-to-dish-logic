@@ -59,14 +59,17 @@ export default function MeseroDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-shadow border-2 border-primary"
+            onClick={() => navigate('/orden/nueva')}
+          >
             <CardHeader>
               <Plus className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Nueva Orden</CardTitle>
               <CardDescription>Crear un nuevo pedido para una mesa</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => navigate('/orden/nueva')} className="w-full bg-gradient-primary">
+              <Button className="w-full bg-gradient-primary pointer-events-none">
                 Crear Orden
               </Button>
             </CardContent>
@@ -79,7 +82,7 @@ export default function MeseroDashboard() {
               <CardDescription>Ver órdenes activas y pendientes</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full pointer-events-none">
                 Ver Órdenes
               </Button>
             </CardContent>
