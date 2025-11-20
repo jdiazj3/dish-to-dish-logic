@@ -8,7 +8,6 @@ type Orden = {
   created_at: string;
   total: number;
   mesas: { numero: number; salones: { nombre: string } } | null;
-  profiles: { nombre: string; apellido: string } | null;
   orden_productos: Array<{
     cantidad: number;
     numero_silla: number;
@@ -47,9 +46,6 @@ export function OrdenCard({ orden, estado, onTomarOrden, onEntregarOrden, loadin
           <div>
             <p className="text-lg font-bold">Mesa {orden.mesas?.numero}</p>
             <p className="text-sm text-muted-foreground">{orden.mesas?.salones?.nombre}</p>
-            <p className="text-xs text-muted-foreground">
-              Mesero: {orden.profiles?.nombre} {orden.profiles?.apellido}
-            </p>
           </div>
           <div className="text-right">
             <Badge variant={

@@ -30,7 +30,7 @@ export default function CocinaDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ordenes')
-        .select('*, mesas(numero, salones(nombre)), profiles(nombre, apellido), orden_productos(*, productos(nombre))')
+        .select('*, mesas(numero, salones(nombre)), orden_productos(*, productos(nombre))')
         .eq('estado', 'recibida')
         .eq('turno', turnoActual)
         .order('created_at', { ascending: true });
@@ -44,7 +44,7 @@ export default function CocinaDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ordenes')
-        .select('*, mesas(numero, salones(nombre)), profiles(nombre, apellido), orden_productos(*, productos(nombre))')
+        .select('*, mesas(numero, salones(nombre)), orden_productos(*, productos(nombre))')
         .eq('estado', 'tomada')
         .eq('turno', turnoActual)
         .order('created_at', { ascending: true });
@@ -58,7 +58,7 @@ export default function CocinaDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ordenes')
-        .select('*, mesas(numero, salones(nombre)), profiles(nombre, apellido), orden_productos(*, productos(nombre))')
+        .select('*, mesas(numero, salones(nombre)), orden_productos(*, productos(nombre))')
         .eq('estado', 'entregada')
         .eq('turno', turnoActual)
         .order('created_at', { ascending: false });
@@ -158,17 +158,23 @@ export default function CocinaDashboard() {
             <TabsTrigger value="recibidas">
               <Clock className="w-4 h-4 mr-2" />
               Recibidas
-              <Badge className="ml-2" variant="destructive">0</Badge>
+              <Badge className="ml-2" variant="destructive">
+                {ordenesRecibidas?.length || 0}
+              </Badge>
             </TabsTrigger>
             <TabsTrigger value="tomadas">
               <Package className="w-4 h-4 mr-2" />
               En Preparación
-              <Badge className="ml-2" variant="secondary">0</Badge>
+              <Badge className="ml-2" variant="secondary">
+                {ordenesTomadas?.length || 0}
+              </Badge>
             </TabsTrigger>
             <TabsTrigger value="entregadas">
               <CheckCircle2 className="w-4 h-4 mr-2" />
               Entregadas
-              <Badge className="ml-2" variant="outline">0</Badge>
+              <Badge className="ml-2" variant="outline">
+                {ordenesEntregadas?.length || 0}
+              </Badge>
             </TabsTrigger>
           </TabsList>
 
