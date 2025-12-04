@@ -4,7 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Receipt, DollarSign } from "lucide-react";
+import { LogOut, Receipt, DollarSign, TrendingUp, Coins } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,16 +26,18 @@ export default function CajeroDashboard() {
 
       const { data, error } = await supabase
         .from('facturas')
-        .select('total')
+        .select('total, propina')
         .gte('created_at', inicio)
         .lte('created_at', fin);
 
       if (error) throw error;
 
       const totalVentas = data?.reduce((sum, f) => sum + parseFloat(String(f.total)), 0) || 0;
+      const totalPropinas = data?.reduce((sum, f) => sum + parseFloat(String(f.propina || 0)), 0) || 0;
       const totalFacturas = data?.length || 0;
+      const ticketPromedio = totalFacturas > 0 ? totalVentas / totalFacturas : 0;
 
-      return { totalVentas, totalFacturas };
+      return { totalVentas, totalFacturas, totalPropinas, ticketPromedio };
     },
   });
 
@@ -90,7 +92,7 @@ export default function CajeroDashboard() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
           <Card className="bg-gradient-card">
             <CardHeader>
               <DollarSign className="w-10 h-10 text-primary mb-2" />
@@ -107,6 +109,26 @@ export default function CajeroDashboard() {
               <CardTitle>Facturas Emitidas</CardTitle>
               <CardDescription className="text-3xl font-bold text-foreground">
                 {estadisticas?.totalFacturas || 0}
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-gradient-card">
+            <CardHeader>
+              <TrendingUp className="w-10 h-10 text-primary mb-2" />
+              <CardTitle>Ticket Promedio</CardTitle>
+              <CardDescription className="text-3xl font-bold text-foreground">
+                ${estadisticas?.ticketPromedio.toLocaleString('es-CO', { maximumFractionDigits: 0 }) || '0'}
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="bg-gradient-card">
+            <CardHeader>
+              <Coins className="w-10 h-10 text-primary mb-2" />
+              <CardTitle>Total Propinas</CardTitle>
+              <CardDescription className="text-3xl font-bold text-foreground">
+                ${estadisticas?.totalPropinas.toLocaleString('es-CO') || '0'}
               </CardDescription>
             </CardHeader>
           </Card>
