@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay } from "date-fns";
+import { GraficoVentasPorHora } from "@/components/cajero/GraficoVentasPorHora";
 
 export default function CajeroDashboard() {
   const { user, signOut } = useAuth();
@@ -111,18 +112,22 @@ export default function CajeroDashboard() {
           </Card>
         </div>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/facturacion')}>
-          <CardHeader>
-            <CardTitle>Facturación</CardTitle>
-            <CardDescription>Gestiona órdenes y emite facturas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full">
-              <Receipt className="w-4 h-4 mr-2" />
-              Ir a Facturación
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="grid gap-6 md:grid-cols-2 mb-6">
+          <GraficoVentasPorHora />
+          
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/facturacion')}>
+            <CardHeader>
+              <CardTitle>Facturación</CardTitle>
+              <CardDescription>Gestiona órdenes y emite facturas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full">
+                <Receipt className="w-4 h-4 mr-2" />
+                Ir a Facturación
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
