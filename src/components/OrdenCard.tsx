@@ -11,6 +11,7 @@ type Orden = {
   orden_productos: Array<{
     cantidad: number;
     numero_silla: number;
+    notas?: string | null;
     productos: { nombre: string } | null;
   }>;
 };
@@ -65,9 +66,14 @@ export function OrdenCard({ orden, estado, onTomarOrden, onEntregarOrden, loadin
             <p className="font-semibold text-sm mb-1">Silla {silla}</p>
             <div className="space-y-1">
               {productos.map((p, idx) => (
-                <p key={idx} className="text-sm">
-                  • {p.cantidad}x {p.productos?.nombre}
-                </p>
+                <div key={idx}>
+                  <p className="text-sm">
+                    • {p.cantidad}x {p.productos?.nombre}
+                  </p>
+                  {p.notas && (
+                    <p className="text-xs text-amber-600 ml-3 italic">📝 {p.notas}</p>
+                  )}
+                </div>
               ))}
             </div>
           </div>

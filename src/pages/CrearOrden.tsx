@@ -18,6 +18,7 @@ type ProductoSilla = {
   producto_nombre: string;
   cantidad: number;
   precio: number;
+  notas?: string;
 };
 
 export default function CrearOrden() {
@@ -30,6 +31,7 @@ export default function CrearOrden() {
   const [sillaActual, setSillaActual] = useState(1);
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
   const [cantidad, setCantidad] = useState(1);
+  const [notas, setNotas] = useState("");
 
   const { data: mesas } = useQuery({
     queryKey: ['mesas'],
@@ -92,7 +94,8 @@ export default function CrearOrden() {
         numero_silla: p.silla,
         cantidad: p.cantidad,
         precio_unitario: p.precio,
-        subtotal: p.precio * p.cantidad
+        subtotal: p.precio * p.cantidad,
+        notas: p.notas || null
       }));
 
       const { error: productosError } = await supabase
@@ -131,11 +134,13 @@ export default function CrearOrden() {
       producto_id: producto.id,
       producto_nombre: producto.nombre,
       cantidad,
-      precio: Number(producto.precio)
+      precio: Number(producto.precio),
+      notas: notas.trim() || undefined
     }]);
 
     setProductoSeleccionado("");
     setCantidad(1);
+    setNotas("");
     toast.success(`${producto.nombre} agregado a la orden`);
   };
 
@@ -220,6 +225,16 @@ export default function CrearOrden() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label>Notas especiales (opcional)</Label>
+                <Input
+                  placeholder="Ej: sin cebolla, extra picante..."
+                  value={notas}
+                  onChange={(e) => setNotas(e.target.value)}
+                  maxLength={200}
+                />
+              </div>
+
               <Button onClick={agregarProducto} className="w-full bg-gradient-primary">
                 <Plus className="w-4 h-4 mr-2" />
                 Agregar a la Orden
@@ -262,6 +277,9 @@ export default function CrearOrden() {
                         <p className="text-sm text-muted-foreground">
                           Silla {producto.silla} • Cant: {producto.cantidad} • ${producto.precio.toFixed(2)} c/u
                         </p>
+                        {producto.notas && (
+                          <p className="text-xs text-amber-600 mt-1 italic">📝 {producto.notas}</p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold">${(producto.precio * producto.cantidad).toFixed(2)}</span>

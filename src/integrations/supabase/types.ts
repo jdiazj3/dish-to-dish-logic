@@ -215,6 +215,7 @@ export type Database = {
           cantidad: number
           created_at: string
           id: string
+          notas: string | null
           numero_silla: number
           orden_id: string
           precio_unitario: number
@@ -225,6 +226,7 @@ export type Database = {
           cantidad?: number
           created_at?: string
           id?: string
+          notas?: string | null
           numero_silla: number
           orden_id: string
           precio_unitario: number
@@ -235,6 +237,7 @@ export type Database = {
           cantidad?: number
           created_at?: string
           id?: string
+          notas?: string | null
           numero_silla?: number
           orden_id?: string
           precio_unitario?: number
