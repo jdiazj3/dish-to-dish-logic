@@ -10,10 +10,118 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, CreditCard, Banknote, Calculator, CheckCircle, Smartphone } from "lucide-react";
+import { Wallet, CreditCard, Banknote, Calculator, CheckCircle, Smartphone, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
+
+const printCierreReport = (cierre: any, fecha: string) => {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    toast.error("No se pudo abrir la ventana de impresión");
+    return;
+  }
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Cierre de Caja - ${fecha}</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; max-width: 400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        .header h1 { font-size: 18px; margin-bottom: 5px; }
+        .header p { font-size: 12px; color: #666; }
+        .section { margin-bottom: 15px; }
+        .section-title { font-size: 14px; font-weight: bold; border-bottom: 1px dashed #ccc; padding-bottom: 5px; margin-bottom: 10px; }
+        .row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+        .row.total { font-weight: bold; font-size: 14px; border-top: 1px solid #000; padding-top: 8px; margin-top: 8px; }
+        .row.diferencia { font-size: 16px; }
+        .positive { color: #059669; }
+        .negative { color: #dc2626; }
+        .neutral { color: #2563eb; }
+        .footer { text-align: center; margin-top: 20px; font-size: 10px; color: #999; border-top: 1px dashed #ccc; padding-top: 10px; }
+        @media print { body { padding: 10px; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>CIERRE DE CAJA</h1>
+        <p>${fecha}</p>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Ventas por Método de Pago</div>
+        <div class="row">
+          <span>Efectivo:</span>
+          <span>$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row">
+          <span>Tarjeta Débito:</span>
+          <span>$${parseFloat(cierre.total_tarjeta_debito).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row">
+          <span>Tarjeta Crédito:</span>
+          <span>$${parseFloat(cierre.total_tarjeta_credito).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row">
+          <span>Nequi:</span>
+          <span>$${parseFloat(cierre.total_nequi || 0).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row">
+          <span>Daviplata:</span>
+          <span>$${parseFloat(cierre.total_daviplata || 0).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row total">
+          <span>TOTAL VENTAS:</span>
+          <span>$${parseFloat(cierre.total_ventas).toLocaleString('es-CO')}</span>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Arqueo de Caja</div>
+        <div class="row">
+          <span>Efectivo Inicial:</span>
+          <span>$${parseFloat(cierre.efectivo_inicial).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row">
+          <span>Efectivo Final:</span>
+          <span>$${parseFloat(cierre.efectivo_final).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row">
+          <span>Efectivo Esperado:</span>
+          <span>$${(parseFloat(cierre.efectivo_inicial) + parseFloat(cierre.total_efectivo)).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row total diferencia">
+          <span>DIFERENCIA:</span>
+          <span class="${parseFloat(cierre.diferencia) === 0 ? 'neutral' : parseFloat(cierre.diferencia) > 0 ? 'positive' : 'negative'}">
+            $${parseFloat(cierre.diferencia).toLocaleString('es-CO')}
+            ${parseFloat(cierre.diferencia) > 0 ? ' (Sobrante)' : parseFloat(cierre.diferencia) < 0 ? ' (Faltante)' : ''}
+          </span>
+        </div>
+      </div>
+      
+      ${cierre.notas ? `
+      <div class="section">
+        <div class="section-title">Notas</div>
+        <p style="font-size: 12px;">${cierre.notas}</p>
+      </div>
+      ` : ''}
+      
+      <div class="footer">
+        Impreso el ${format(new Date(), "d 'de' MMMM, yyyy HH:mm", { locale: es })}
+      </div>
+    </body>
+    </html>
+  `;
+
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.onload = () => {
+    printWindow.print();
+  };
+};
 
 export function CierreCaja() {
   const { user } = useAuth();
@@ -211,10 +319,21 @@ export function CierreCaja() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {cierreHoy ? (
-            <div className="flex items-center gap-2 text-green-600">
-              <CheckCircle className="w-5 h-5" />
-              <span>Cierre registrado - Diferencia: ${cierreHoy.diferencia.toLocaleString('es-CO')}</span>
+        {cierreHoy ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle className="w-5 h-5" />
+                <span>Cierre registrado - Diferencia: ${cierreHoy.diferencia.toLocaleString('es-CO')}</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => printCierreReport(cierreHoy, format(new Date(cierreHoy.fecha), "d 'de' MMMM, yyyy", { locale: es }))}
+              >
+                <Printer className="w-4 h-4" />
+                Imprimir
+              </Button>
             </div>
           ) : (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -344,6 +463,7 @@ export function CierreCaja() {
                   <TableHead>Daviplata</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Diferencia</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -360,6 +480,15 @@ export function CierreCaja() {
                       <Badge variant={cierre.diferencia === 0 ? 'default' : cierre.diferencia > 0 ? 'secondary' : 'destructive'}>
                         ${parseFloat(cierre.diferencia).toLocaleString('es-CO')}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => printCierreReport(cierre, format(new Date(cierre.fecha), "d 'de' MMMM, yyyy", { locale: es }))}
+                      >
+                        <Printer className="w-4 h-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
