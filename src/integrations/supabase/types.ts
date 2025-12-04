@@ -35,6 +35,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cierres_caja: {
+        Row: {
+          cajero_id: string | null
+          created_at: string
+          diferencia: number
+          efectivo_final: number
+          efectivo_inicial: number
+          fecha: string
+          id: string
+          notas: string | null
+          total_efectivo: number
+          total_tarjeta_credito: number
+          total_tarjeta_debito: number
+          total_ventas: number
+        }
+        Insert: {
+          cajero_id?: string | null
+          created_at?: string
+          diferencia?: number
+          efectivo_final?: number
+          efectivo_inicial?: number
+          fecha?: string
+          id?: string
+          notas?: string | null
+          total_efectivo?: number
+          total_tarjeta_credito?: number
+          total_tarjeta_debito?: number
+          total_ventas?: number
+        }
+        Update: {
+          cajero_id?: string | null
+          created_at?: string
+          diferencia?: number
+          efectivo_final?: number
+          efectivo_inicial?: number
+          fecha?: string
+          id?: string
+          notas?: string | null
+          total_efectivo?: number
+          total_tarjeta_credito?: number
+          total_tarjeta_debito?: number
+          total_ventas?: number
+        }
+        Relationships: []
+      }
       configuracion_restaurante: {
         Row: {
           created_at: string
@@ -135,6 +180,7 @@ export type Database = {
           created_at: string
           id: string
           impuestos: number
+          metodo_pago: string | null
           nombre_cliente: string
           orden_id: string | null
           propina: number | null
@@ -147,6 +193,7 @@ export type Database = {
           created_at?: string
           id?: string
           impuestos: number
+          metodo_pago?: string | null
           nombre_cliente: string
           orden_id?: string | null
           propina?: number | null
@@ -159,6 +206,7 @@ export type Database = {
           created_at?: string
           id?: string
           impuestos?: number
+          metodo_pago?: string | null
           nombre_cliente?: string
           orden_id?: string | null
           propina?: number | null

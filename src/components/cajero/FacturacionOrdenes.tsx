@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileText, DollarSign, Users, Printer, Check } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FileText, DollarSign, Users, Printer, Check, CreditCard, Banknote } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -22,6 +23,7 @@ export function FacturacionOrdenes() {
   const [tipoFacturacion, setTipoFacturacion] = useState<"completa" | "silla">("completa");
   const [sillasSeleccionadas, setSillasSeleccionadas] = useState<number[]>([]);
   const [propinaPorcentaje, setPropinaPorcentaje] = useState(10);
+  const [metodoPago, setMetodoPago] = useState<"efectivo" | "debito" | "credito">("efectivo");
   const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
   const [dialogExito, setDialogExito] = useState(false);
   const queryClient = useQueryClient();
@@ -130,7 +132,7 @@ export function FacturacionOrdenes() {
   }, [queryClient]);
 
   const facturarMutation = useMutation({
-    mutationFn: async ({ ordenId, items, totales }: any) => {
+    mutationFn: async ({ ordenId, items, totales, metodoPago }: any) => {
       // Crear la factura
       const { data: factura, error: facturaError } = await supabase
         .from('facturas')
@@ -142,6 +144,7 @@ export function FacturacionOrdenes() {
           impuestos: totales.impuestos,
           propina: totales.propina,
           total: totales.total,
+          metodo_pago: metodoPago,
         })
         .select()
         .single();
@@ -231,6 +234,7 @@ export function FacturacionOrdenes() {
     setTipoFacturacion("completa");
     setSillasSeleccionadas([]);
     setPropinaPorcentaje(10);
+    setMetodoPago("efectivo");
   };
 
   const handleFacturar = (orden: any) => {
@@ -290,6 +294,7 @@ export function FacturacionOrdenes() {
         propina: totales.propina,
         total: totales.total,
       },
+      metodoPago,
     });
   };
 
@@ -506,6 +511,35 @@ export function FacturacionOrdenes() {
                 value={propinaPorcentaje}
                 onChange={(e) => setPropinaPorcentaje(Number(e.target.value))}
               />
+            </div>
+
+            <div className="space-y-3">
+              <Label>Método de Pago</Label>
+              <Select value={metodoPago} onValueChange={(value: any) => setMetodoPago(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="efectivo">
+                    <div className="flex items-center gap-2">
+                      <Banknote className="w-4 h-4" />
+                      Efectivo
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="debito">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Tarjeta Débito
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="credito">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Tarjeta Crédito
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="border rounded-lg p-4 space-y-2 bg-muted/50">
