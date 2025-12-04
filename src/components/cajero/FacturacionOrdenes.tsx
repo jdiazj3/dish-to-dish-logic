@@ -6,12 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileText, DollarSign, Users } from "lucide-react";
+import { FileText, DollarSign, Users, Printer, Check } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -22,6 +22,8 @@ export function FacturacionOrdenes() {
   const [tipoFacturacion, setTipoFacturacion] = useState<"completa" | "silla">("completa");
   const [sillasSeleccionadas, setSillasSeleccionadas] = useState<number[]>([]);
   const [propinaPorcentaje, setPropinaPorcentaje] = useState(10);
+  const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
+  const [dialogExito, setDialogExito] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: ordenesEntregadas, isLoading, error } = useQuery({
@@ -122,13 +124,36 @@ export function FacturacionOrdenes() {
     onSuccess: (factura) => {
       queryClient.invalidateQueries({ queryKey: ['ordenes-entregadas'] });
       queryClient.invalidateQueries({ queryKey: ['facturas'] });
-      toast.success(`Factura #${factura.consecutivo} generada exitosamente`);
+      setFacturaGenerada(factura);
       setDialogOpen(false);
+      setDialogExito(true);
       resetForm();
     },
     onError: (error) => {
       console.error('Error al facturar:', error);
       toast.error("Error al generar la factura");
+    },
+  });
+
+  const imprimirPDFMutation = useMutation({
+    mutationFn: async (facturaId: string) => {
+      const { data, error } = await supabase.functions.invoke('generar-factura-pdf', {
+        body: { facturaId, enviarCorreo: false },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      const ventana = window.open('', '_blank');
+      if (ventana) {
+        ventana.document.write(data.html);
+        ventana.document.close();
+        setTimeout(() => ventana.print(), 500);
+      }
+      toast.success("Factura lista para imprimir");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Error al generar PDF");
     },
   });
 
@@ -442,6 +467,49 @@ export function FacturacionOrdenes() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de éxito con opción de imprimir */}
+      <Dialog open={dialogExito} onOpenChange={setDialogExito}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Check className="w-6 h-6" />
+              Factura Generada
+            </DialogTitle>
+            <DialogDescription>
+              La factura #{facturaGenerada?.consecutivo} se generó exitosamente
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 text-center">
+            <p className="text-2xl font-bold text-primary mb-2">
+              ${Number(facturaGenerada?.total || 0).toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-sm text-muted-foreground">Total facturado</p>
+          </div>
+
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDialogExito(false)}
+            >
+              Cerrar
+            </Button>
+            <Button
+              onClick={() => {
+                if (facturaGenerada) {
+                  imprimirPDFMutation.mutate(facturaGenerada.id);
+                }
+              }}
+              disabled={imprimirPDFMutation.isPending}
+              className="bg-gradient-primary"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              {imprimirPDFMutation.isPending ? "Generando..." : "Imprimir Factura"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

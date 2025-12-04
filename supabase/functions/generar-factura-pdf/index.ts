@@ -14,14 +14,57 @@ interface FacturaRequest {
 }
 
 const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any, qrUrl: string) => {
-  const itemsHtml = items?.map(item => `
-    <tr>
-      <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.producto_nombre}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.cantidad}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.precio_unitario).toLocaleString('es-CO')}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.subtotal).toLocaleString('es-CO')}</td>
-    </tr>
-  `).join('') || '';
+  // Agrupar items por silla
+  const itemsPorSilla = items?.reduce((acc: any, item: any) => {
+    const silla = item.numero_silla || 0;
+    if (!acc[silla]) acc[silla] = [];
+    acc[silla].push(item);
+    return acc;
+  }, {}) || {};
+
+  const generarItemsHTML = () => {
+    const sillas = Object.keys(itemsPorSilla).sort((a, b) => Number(a) - Number(b));
+    
+    if (sillas.length === 1 && sillas[0] === '0') {
+      // Sin agrupación por sillas
+      return items?.map(item => `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">
+            ${item.producto_nombre}
+            ${item.notas ? `<br><small style="color: #f59e0b; font-style: italic;">📝 ${item.notas}</small>` : ''}
+          </td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.cantidad}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.precio_unitario).toLocaleString('es-CO')}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.subtotal).toLocaleString('es-CO')}</td>
+        </tr>
+      `).join('') || '';
+    }
+
+    // Con agrupación por sillas
+    return sillas.map(silla => {
+      const sillaItems = itemsPorSilla[silla];
+      const subtotalSilla = sillaItems.reduce((sum: number, item: any) => sum + Number(item.subtotal), 0);
+      
+      return `
+        <tr>
+          <td colspan="4" style="padding: 10px 8px 5px; background: #f5f5f5; font-weight: bold; border-bottom: 1px solid #ddd;">
+            🪑 Silla ${silla} - Subtotal: $${subtotalSilla.toLocaleString('es-CO')}
+          </td>
+        </tr>
+        ${sillaItems.map((item: any) => `
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; padding-left: 20px;">
+              ${item.producto_nombre}
+              ${item.notas ? `<br><small style="color: #f59e0b; font-style: italic;">📝 ${item.notas}</small>` : ''}
+            </td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.cantidad}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.precio_unitario).toLocaleString('es-CO')}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.subtotal).toLocaleString('es-CO')}</td>
+          </tr>
+        `).join('')}
+      `;
+    }).join('');
+  };
 
   return `
     <!DOCTYPE html>
@@ -39,7 +82,7 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
         .factura-info td { padding: 5px 0; }
         .factura-info td:first-child { font-weight: bold; width: 150px; }
         table.items { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        table.items th { background: #f5f5f5; padding: 10px; text-align: left; border-bottom: 2px solid #333; }
+        table.items th { background: #333; color: white; padding: 10px; text-align: left; }
         table.items th:nth-child(2), table.items th:nth-child(3), table.items th:nth-child(4) { text-align: right; }
         .totales { margin-top: 20px; float: right; width: 300px; }
         .totales table { width: 100%; }
@@ -49,7 +92,7 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
         .totales .total-final { border-top: 2px solid #333; font-size: 16px; padding-top: 10px; }
         .footer { clear: both; text-align: center; margin-top: 60px; padding-top: 20px; border-top: 1px solid #eee; }
         .qr-section { text-align: center; margin: 30px 0; }
-        .qr-section img { width: 150px; height: 150px; }
+        .qr-section img { width: 120px; height: 120px; }
         @media print {
           body { margin: 0; padding: 10mm; }
           .no-print { display: none; }
@@ -58,12 +101,13 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
     </head>
     <body>
       <div class="header">
+        ${config?.logo_url ? `<img src="${config.logo_url}" alt="Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
         <h1>${config?.nombre || 'ANCESTRALE'}</h1>
-        ${config?.direccion ? `<p>${config.direccion}</p>` : ''}
-        ${config?.telefono ? `<p>Tel: ${config.telefono}</p>` : ''}
+        ${config?.direccion ? `<p>📍 ${config.direccion}</p>` : ''}
+        ${config?.telefono ? `<p>📞 ${config.telefono}</p>` : ''}
       </div>
 
-      <h2 style="text-align: center; margin: 20px 0;">FACTURA DE VENTA</h2>
+      <h2 style="text-align: center; margin: 20px 0; background: #f5f5f5; padding: 10px;">FACTURA DE VENTA</h2>
 
       <div class="factura-info">
         <table>
@@ -100,7 +144,7 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
           </tr>
         </thead>
         <tbody>
-          ${itemsHtml}
+          ${generarItemsHTML()}
         </tbody>
       </table>
 
@@ -127,12 +171,13 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
 
       <div class="qr-section">
         <img src="${qrUrl}" alt="Código QR"/>
-        <p style="font-size: 12px; margin-top: 10px;">Escanea para consultar en línea</p>
+        <p style="font-size: 11px; margin-top: 8px; color: #666;">Escanea para consultar</p>
       </div>
 
       <div class="footer">
-        <p style="font-size: 16px; margin: 10px 0;"><strong>¡Gracias por su compra!</strong></p>
-        ${config?.pagina_web ? `<p style="font-size: 12px;">${config.pagina_web}</p>` : ''}
+        <p style="font-size: 18px; margin: 10px 0;"><strong>¡Gracias por su visita!</strong></p>
+        ${config?.instagram ? `<p style="font-size: 12px;">📷 @${config.instagram.replace('@', '')}</p>` : ''}
+        ${config?.pagina_web ? `<p style="font-size: 12px;">🌐 ${config.pagina_web}</p>` : ''}
       </div>
     </body>
     </html>
@@ -178,11 +223,18 @@ serve(async (req) => {
       .eq('id', factura.cajero_id)
       .single();
 
-    // Obtener items de la factura
+    // Obtener items de la factura con notas y número de silla
     const { data: items } = await supabase
       .from('factura_items')
-      .select('*')
+      .select('*, orden_productos(numero_silla, notas)')
       .eq('factura_id', facturaId);
+
+    // Formatear items para incluir notas y número de silla
+    const itemsFormateados = items?.map(item => ({
+      ...item,
+      numero_silla: item.orden_productos?.numero_silla || 0,
+      notas: item.orden_productos?.notas || null
+    })) || [];
 
     // Obtener configuración del restaurante
     const { data: config } = await supabase
@@ -196,7 +248,7 @@ serve(async (req) => {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(urlConsulta)}`;
 
     // Generar HTML de la factura
-    const htmlFactura = generarHTMLFactura(factura, cajero, items || [], config, qrUrl);
+    const htmlFactura = generarHTMLFactura(factura, cajero, itemsFormateados, config, qrUrl);
 
     // Enviar por correo si se solicitó
     if (enviarCorreo && correoDestino) {
