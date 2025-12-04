@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, CreditCard, Banknote, Calculator, CheckCircle } from "lucide-react";
+import { Wallet, CreditCard, Banknote, Calculator, CheckCircle, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
@@ -45,9 +45,13 @@ export function CierreCaja() {
         .reduce((sum, f) => sum + parseFloat(String(f.total)), 0) || 0;
       const credito = data?.filter(f => f.metodo_pago === 'credito')
         .reduce((sum, f) => sum + parseFloat(String(f.total)), 0) || 0;
-      const total = efectivo + debito + credito;
+      const nequi = data?.filter(f => f.metodo_pago === 'nequi')
+        .reduce((sum, f) => sum + parseFloat(String(f.total)), 0) || 0;
+      const daviplata = data?.filter(f => f.metodo_pago === 'daviplata')
+        .reduce((sum, f) => sum + parseFloat(String(f.total)), 0) || 0;
+      const total = efectivo + debito + credito + nequi + daviplata;
 
-      return { efectivo, debito, credito, total, facturas: data?.length || 0 };
+      return { efectivo, debito, credito, nequi, daviplata, total, facturas: data?.length || 0 };
     },
   });
 
@@ -97,6 +101,8 @@ export function CierreCaja() {
           total_efectivo: resumenDia?.efectivo || 0,
           total_tarjeta_debito: resumenDia?.debito || 0,
           total_tarjeta_credito: resumenDia?.credito || 0,
+          total_nequi: resumenDia?.nequi || 0,
+          total_daviplata: resumenDia?.daviplata || 0,
           total_ventas: resumenDia?.total || 0,
           diferencia,
           notas,
@@ -128,7 +134,7 @@ export function CierreCaja() {
   return (
     <div className="space-y-6">
       {/* Resumen del día */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <Card>
           <CardHeader className="pb-2">
             <Banknote className="w-8 h-8 text-green-500 mb-2" />
@@ -156,6 +162,26 @@ export function CierreCaja() {
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">${resumenDia?.credito.toLocaleString('es-CO') || '0'}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <Smartphone className="w-8 h-8 text-[#E6007E] mb-2" />
+            <CardTitle className="text-sm font-medium">Nequi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">${resumenDia?.nequi.toLocaleString('es-CO') || '0'}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <Smartphone className="w-8 h-8 text-[#ED1C24] mb-2" />
+            <CardTitle className="text-sm font-medium">Daviplata</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">${resumenDia?.daviplata.toLocaleString('es-CO') || '0'}</p>
           </CardContent>
         </Card>
 
@@ -245,6 +271,14 @@ export function CierreCaja() {
                       <span>Ventas Tarjeta Crédito:</span>
                       <span className="font-medium">${resumenDia?.credito.toLocaleString('es-CO') || '0'}</span>
                     </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Ventas Nequi:</span>
+                      <span className="font-medium">${resumenDia?.nequi.toLocaleString('es-CO') || '0'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Ventas Daviplata:</span>
+                      <span className="font-medium">${resumenDia?.daviplata.toLocaleString('es-CO') || '0'}</span>
+                    </div>
                     <div className="border-t pt-2 mt-2">
                       <div className="flex justify-between text-sm">
                         <span>Efectivo esperado:</span>
@@ -306,6 +340,8 @@ export function CierreCaja() {
                   <TableHead>Efectivo</TableHead>
                   <TableHead>Débito</TableHead>
                   <TableHead>Crédito</TableHead>
+                  <TableHead>Nequi</TableHead>
+                  <TableHead>Daviplata</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Diferencia</TableHead>
                 </TableRow>
@@ -317,6 +353,8 @@ export function CierreCaja() {
                     <TableCell>${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}</TableCell>
                     <TableCell>${parseFloat(cierre.total_tarjeta_debito).toLocaleString('es-CO')}</TableCell>
                     <TableCell>${parseFloat(cierre.total_tarjeta_credito).toLocaleString('es-CO')}</TableCell>
+                    <TableCell>${parseFloat(cierre.total_nequi || 0).toLocaleString('es-CO')}</TableCell>
+                    <TableCell>${parseFloat(cierre.total_daviplata || 0).toLocaleString('es-CO')}</TableCell>
                     <TableCell className="font-medium">${parseFloat(cierre.total_ventas).toLocaleString('es-CO')}</TableCell>
                     <TableCell>
                       <Badge variant={cierre.diferencia === 0 ? 'default' : cierre.diferencia > 0 ? 'secondary' : 'destructive'}>

@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, DollarSign, Users, Printer, Check, CreditCard, Banknote } from "lucide-react";
+import { FileText, DollarSign, Users, Printer, Check, CreditCard, Banknote, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -23,7 +23,7 @@ export function FacturacionOrdenes() {
   const [tipoFacturacion, setTipoFacturacion] = useState<"completa" | "silla">("completa");
   const [sillasSeleccionadas, setSillasSeleccionadas] = useState<number[]>([]);
   const [propinaPorcentaje, setPropinaPorcentaje] = useState(10);
-  const [metodoPago, setMetodoPago] = useState<"efectivo" | "debito" | "credito">("efectivo");
+  const [metodoPago, setMetodoPago] = useState<"efectivo" | "debito" | "credito" | "nequi" | "daviplata">("efectivo");
   const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
   const [dialogExito, setDialogExito] = useState(false);
   const queryClient = useQueryClient();
@@ -536,6 +536,18 @@ export function FacturacionOrdenes() {
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4" />
                       Tarjeta Crédito
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="nequi">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="w-4 h-4" />
+                      Nequi
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="daviplata">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="w-4 h-4" />
+                      Daviplata
                     </div>
                   </SelectItem>
                 </SelectContent>
