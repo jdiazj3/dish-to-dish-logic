@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay } from "date-fns";
 import { GraficoVentasPorHora } from "@/components/cajero/GraficoVentasPorHora";
 import { ExportarVentas } from "@/components/cajero/ExportarVentas";
+import { ReporteMetodosPago } from "@/components/cajero/ReporteMetodosPago";
 
 export default function CajeroDashboard() {
   const { user, signOut } = useAuth();
@@ -169,6 +170,10 @@ export default function CajeroDashboard() {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <ReporteMetodosPago />
         </div>
       </div>
     </div>
