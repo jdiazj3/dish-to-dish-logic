@@ -1,20 +1,29 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Clock } from "lucide-react";
+import { Clock, CalendarIcon } from "lucide-react";
 import { startOfDay, endOfDay, format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
 
 export function GraficoVentasPorHora() {
   const queryClient = useQueryClient();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(),
+  });
 
   const { data: ventasPorHora, isLoading } = useQuery({
-    queryKey: ['ventas-por-hora-hoy'],
+    queryKey: ['ventas-por-hora', dateRange?.from, dateRange?.to],
     queryFn: async () => {
-      const hoy = new Date();
-      const inicio = startOfDay(hoy).toISOString();
-      const fin = endOfDay(hoy).toISOString();
+      const inicio = startOfDay(dateRange?.from || new Date()).toISOString();
+      const fin = endOfDay(dateRange?.to || dateRange?.from || new Date()).toISOString();
 
       const { data, error } = await supabase
         .from('facturas')
@@ -61,7 +70,7 @@ export function GraficoVentasPorHora() {
           table: 'facturas',
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['ventas-por-hora-hoy'] });
+          queryClient.invalidateQueries({ queryKey: ['ventas-por-hora'] });
         }
       )
       .subscribe();
@@ -71,14 +80,45 @@ export function GraficoVentasPorHora() {
     };
   }, [queryClient]);
 
+  const formatDateRange = () => {
+    if (!dateRange?.from) return "Seleccionar fechas";
+    if (!dateRange.to || dateRange.from.toDateString() === dateRange.to.toDateString()) {
+      return format(dateRange.from, "d MMM yyyy", { locale: es });
+    }
+    return `${format(dateRange.from, "d MMM", { locale: es })} - ${format(dateRange.to, "d MMM yyyy", { locale: es })}`;
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="w-5 h-5" />
-          Ventas por Hora - Hoy
-        </CardTitle>
-        <CardDescription>Distribución de ventas durante el día</CardDescription>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Ventas por Hora
+            </CardTitle>
+            <CardDescription>Distribución de ventas durante el día</CardDescription>
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <CalendarIcon className="w-4 h-4" />
+                {formatDateRange()}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={1}
+                locale={es}
+                disabled={(date) => date > new Date()}
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
