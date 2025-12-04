@@ -99,7 +99,7 @@ export default function MeseroDashboard() {
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Órdenes Activas</CardTitle>
-            <CardDescription>Órdenes en proceso</CardDescription>
+            <CardDescription>Haz clic en una orden para ver detalles o editarla</CardDescription>
           </CardHeader>
           <CardContent>
             {!ordenesActivas || ordenesActivas.length === 0 ? (
@@ -107,15 +107,24 @@ export default function MeseroDashboard() {
             ) : (
               <div className="space-y-3">
                 {ordenesActivas.map(orden => (
-                  <div key={orden.id} className="p-4 bg-muted rounded-lg">
+                  <div 
+                    key={orden.id} 
+                    className="p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                    onClick={() => navigate(`/orden/${orden.id}`)}
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-semibold">Mesa {orden.mesas?.numero}</p>
                         <p className="text-sm text-muted-foreground">{orden.mesas?.salones?.nombre}</p>
                       </div>
-                      <Badge variant={orden.estado === 'recibida' ? 'destructive' : 'secondary'}>
-                        {orden.estado === 'recibida' ? 'En espera' : 'En preparación'}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={orden.estado === 'recibida' ? 'destructive' : 'secondary'}>
+                          {orden.estado === 'recibida' ? 'En espera' : 'En preparación'}
+                        </Badge>
+                        {orden.estado === 'recibida' && (
+                          <Badge variant="outline" className="text-xs">Editable</Badge>
+                        )}
+                      </div>
                     </div>
                     <p className="text-sm">
                       {orden.orden_productos?.reduce((sum: number, p: any) => sum + p.cantidad, 0)} productos • ${Number(orden.total).toFixed(2)}

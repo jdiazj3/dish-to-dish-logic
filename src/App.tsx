@@ -16,6 +16,7 @@ import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
 import CajeroFacturacion from "./pages/CajeroFacturacion";
 import CrearOrden from "./pages/CrearOrden";
+import EditarOrden from "./pages/EditarOrden";
 import CrearUsuariosPrueba from "./pages/CrearUsuariosPrueba";
 import UserProfile from "./pages/UserProfile";
 import Logout from "./pages/Logout";
@@ -84,6 +85,11 @@ const App = () => (
           <Route path="/orden/nueva" element={
             <ProtectedRoute>
               <CrearOrden />
+            </ProtectedRoute>
+          } />
+          <Route path="/orden/:ordenId" element={
+            <ProtectedRoute>
+              <EditarOrden />
             </ProtectedRoute>
           } />
           <Route path="/perfil" element={
