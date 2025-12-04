@@ -19,6 +19,7 @@ type ProductoOrden = {
   producto_nombre: string;
   cantidad: number;
   precio: number;
+  notas?: string;
   isNew?: boolean;
 };
 
@@ -33,6 +34,7 @@ export default function EditarOrden() {
   const [sillaActual, setSillaActual] = useState(1);
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
   const [cantidad, setCantidad] = useState(1);
+  const [notas, setNotas] = useState("");
 
   const { data: orden, isLoading: ordenLoading } = useQuery({
     queryKey: ['orden', ordenId],
@@ -83,6 +85,7 @@ export default function EditarOrden() {
         producto_nombre: p.productos?.nombre || '',
         cantidad: p.cantidad,
         precio: Number(p.precio_unitario),
+        notas: p.notas || undefined,
       })));
     }
   }, [ordenProductos]);
@@ -105,7 +108,8 @@ export default function EditarOrden() {
           .update({
             cantidad: producto.cantidad,
             numero_silla: producto.silla,
-            subtotal: producto.precio * producto.cantidad
+            subtotal: producto.precio * producto.cantidad,
+            notas: producto.notas || null
           })
           .eq('id', producto.id);
         if (error) throw error;
@@ -122,7 +126,8 @@ export default function EditarOrden() {
             numero_silla: p.silla,
             cantidad: p.cantidad,
             precio_unitario: p.precio,
-            subtotal: p.precio * p.cantidad
+            subtotal: p.precio * p.cantidad,
+            notas: p.notas || null
           })));
         if (error) throw error;
       }
@@ -164,11 +169,13 @@ export default function EditarOrden() {
       producto_nombre: producto.nombre,
       cantidad,
       precio: Number(producto.precio),
+      notas: notas.trim() || undefined,
       isNew: true
     }]);
 
     setProductoSeleccionado("");
     setCantidad(1);
+    setNotas("");
     toast.success(`${producto.nombre} agregado a la orden`);
   };
 
@@ -184,6 +191,12 @@ export default function EditarOrden() {
     if (nuevaCantidad < 1) return;
     const nuevosProductos = [...productos];
     nuevosProductos[index].cantidad = nuevaCantidad;
+    setProductos(nuevosProductos);
+  };
+
+  const actualizarNotas = (index: number, nuevasNotas: string) => {
+    const nuevosProductos = [...productos];
+    nuevosProductos[index].notas = nuevasNotas.trim() || undefined;
     setProductos(nuevosProductos);
   };
 
@@ -300,6 +313,16 @@ export default function EditarOrden() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label>Notas especiales (opcional)</Label>
+                <Input
+                  placeholder="Ej: sin cebolla, extra picante..."
+                  value={notas}
+                  onChange={(e) => setNotas(e.target.value)}
+                  maxLength={200}
+                />
+              </div>
+
               <Button onClick={agregarProducto} className="w-full bg-gradient-primary">
                 <Plus className="w-4 h-4 mr-2" />
                 Agregar Producto
@@ -336,37 +359,46 @@ export default function EditarOrden() {
                   </p>
                 ) : (
                   productos.map((producto, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{producto.producto_nombre}</p>
-                          {producto.isNew && (
-                            <Badge variant="secondary" className="text-xs">Nuevo</Badge>
-                          )}
+                    <div key={index} className="p-3 bg-muted rounded-lg space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{producto.producto_nombre}</p>
+                            {producto.isNew && (
+                              <Badge variant="secondary" className="text-xs">Nuevo</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Silla {producto.silla} • ${producto.precio.toFixed(2)} c/u
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          Silla {producto.silla} • ${producto.precio.toFixed(2)} c/u
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={producto.cantidad}
+                            onChange={(e) => actualizarCantidad(index, Number(e.target.value))}
+                            className="w-16 text-center"
+                          />
+                          <span className="font-bold w-20 text-right">
+                            ${(producto.precio * producto.cantidad).toFixed(2)}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => eliminarProducto(index)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min="1"
-                          value={producto.cantidad}
-                          onChange={(e) => actualizarCantidad(index, Number(e.target.value))}
-                          className="w-16 text-center"
-                        />
-                        <span className="font-bold w-20 text-right">
-                          ${(producto.precio * producto.cantidad).toFixed(2)}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => eliminarProducto(index)}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
+                      <Input
+                        placeholder="Notas: sin cebolla, extra picante..."
+                        value={producto.notas || ""}
+                        onChange={(e) => actualizarNotas(index, e.target.value)}
+                        maxLength={200}
+                        className="text-sm"
+                      />
                     </div>
                   ))
                 )}
