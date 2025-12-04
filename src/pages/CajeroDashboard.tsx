@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -5,11 +6,59 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { LogOut, Receipt, DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { startOfDay, endOfDay } from "date-fns";
 
 export default function CajeroDashboard() {
   const { user, signOut } = useAuth();
   const { data: roles, isLoading } = useUserRole(user?.id);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data: estadisticas } = useQuery({
+    queryKey: ['estadisticas-cajero-hoy'],
+    queryFn: async () => {
+      const hoy = new Date();
+      const inicio = startOfDay(hoy).toISOString();
+      const fin = endOfDay(hoy).toISOString();
+
+      const { data, error } = await supabase
+        .from('facturas')
+        .select('total')
+        .gte('created_at', inicio)
+        .lte('created_at', fin);
+
+      if (error) throw error;
+
+      const totalVentas = data?.reduce((sum, f) => sum + parseFloat(String(f.total)), 0) || 0;
+      const totalFacturas = data?.length || 0;
+
+      return { totalVentas, totalFacturas };
+    },
+  });
+
+  // Suscripción en tiempo real
+  useEffect(() => {
+    const channel = supabase
+      .channel('facturas-dashboard')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'facturas',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['estadisticas-cajero-hoy'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
@@ -45,7 +94,9 @@ export default function CajeroDashboard() {
             <CardHeader>
               <DollarSign className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Total Ventas Hoy</CardTitle>
-              <CardDescription className="text-3xl font-bold text-foreground">$0</CardDescription>
+              <CardDescription className="text-3xl font-bold text-foreground">
+                ${estadisticas?.totalVentas.toLocaleString('es-CO') || '0'}
+              </CardDescription>
             </CardHeader>
           </Card>
 
@@ -53,7 +104,9 @@ export default function CajeroDashboard() {
             <CardHeader>
               <Receipt className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Facturas Emitidas</CardTitle>
-              <CardDescription className="text-3xl font-bold text-foreground">0</CardDescription>
+              <CardDescription className="text-3xl font-bold text-foreground">
+                {estadisticas?.totalFacturas || 0}
+              </CardDescription>
             </CardHeader>
           </Card>
         </div>
