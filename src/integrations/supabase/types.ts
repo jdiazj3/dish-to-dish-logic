@@ -190,6 +190,7 @@ export type Database = {
           nombre_cliente: string
           orden_id: string | null
           propina: number | null
+          referencia_pago: string | null
           subtotal: number
           total: number
         }
@@ -203,6 +204,7 @@ export type Database = {
           nombre_cliente: string
           orden_id?: string | null
           propina?: number | null
+          referencia_pago?: string | null
           subtotal: number
           total: number
         }
@@ -216,6 +218,7 @@ export type Database = {
           nombre_cliente?: string
           orden_id?: string | null
           propina?: number | null
+          referencia_pago?: string | null
           subtotal?: number
           total?: number
         }

@@ -24,6 +24,7 @@ export function FacturacionOrdenes() {
   const [sillasSeleccionadas, setSillasSeleccionadas] = useState<number[]>([]);
   const [propinaPorcentaje, setPropinaPorcentaje] = useState(10);
   const [metodoPago, setMetodoPago] = useState<"efectivo" | "debito" | "credito" | "nequi" | "daviplata">("efectivo");
+  const [referenciaPago, setReferenciaPago] = useState("");
   const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
   const [dialogExito, setDialogExito] = useState(false);
   const queryClient = useQueryClient();
@@ -132,7 +133,7 @@ export function FacturacionOrdenes() {
   }, [queryClient]);
 
   const facturarMutation = useMutation({
-    mutationFn: async ({ ordenId, items, totales, metodoPago }: any) => {
+    mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago }: any) => {
       // Crear la factura
       const { data: factura, error: facturaError } = await supabase
         .from('facturas')
@@ -145,6 +146,7 @@ export function FacturacionOrdenes() {
           propina: totales.propina,
           total: totales.total,
           metodo_pago: metodoPago,
+          referencia_pago: referenciaPago || null,
         })
         .select()
         .single();
@@ -235,6 +237,7 @@ export function FacturacionOrdenes() {
     setSillasSeleccionadas([]);
     setPropinaPorcentaje(10);
     setMetodoPago("efectivo");
+    setReferenciaPago("");
   };
 
   const handleFacturar = (orden: any) => {
@@ -295,6 +298,7 @@ export function FacturacionOrdenes() {
         total: totales.total,
       },
       metodoPago,
+      referenciaPago: referenciaPago.trim(),
     });
   };
 
@@ -553,6 +557,19 @@ export function FacturacionOrdenes() {
                 </SelectContent>
               </Select>
             </div>
+
+            {(metodoPago === "nequi" || metodoPago === "daviplata") && (
+              <div className="space-y-3">
+                <Label htmlFor="referencia">Número de Referencia / Transferencia</Label>
+                <Input
+                  id="referencia"
+                  value={referenciaPago}
+                  onChange={(e) => setReferenciaPago(e.target.value.slice(0, 50))}
+                  placeholder="Ej: 123456789"
+                  maxLength={50}
+                />
+              </div>
+            )}
 
             <div className="border rounded-lg p-4 space-y-2 bg-muted/50">
               <div className="flex justify-between text-sm">
