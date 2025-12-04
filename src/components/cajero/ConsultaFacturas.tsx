@@ -195,6 +195,7 @@ export function ConsultaFacturas() {
                   <TableHead>Consecutivo</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Mesa</TableHead>
+                  <TableHead>Método</TableHead>
                   <TableHead>Cajero</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead>Total</TableHead>
@@ -202,13 +203,29 @@ export function ConsultaFacturas() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {facturasFiltradas.map((factura) => (
+                {facturasFiltradas.map((factura) => {
+                  const metodosLabels: Record<string, string> = {
+                    efectivo: 'Efectivo',
+                    debito: 'Débito',
+                    credito: 'Crédito',
+                    nequi: 'Nequi',
+                    daviplata: 'Daviplata',
+                  };
+                  return (
                   <TableRow key={factura.id}>
                     <TableCell>
                       <Badge variant="outline">#{factura.consecutivo}</Badge>
                     </TableCell>
                     <TableCell className="font-medium">{factura.nombre_cliente}</TableCell>
                     <TableCell>Mesa {factura.ordenes?.mesas?.numero}</TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {metodosLabels[factura.metodo_pago] || 'Efectivo'}
+                        {factura.referencia_pago && (
+                          <p className="text-xs text-muted-foreground">Ref: {factura.referencia_pago}</p>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {factura.cajero ? `${factura.cajero.nombre} ${factura.cajero.apellido}` : 'N/A'}
                     </TableCell>
@@ -255,7 +272,8 @@ export function ConsultaFacturas() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           ) : (
@@ -297,6 +315,18 @@ export function ConsultaFacturas() {
                     {format(new Date(selectedFactura.created_at), "dd/MM/yyyy HH:mm")}
                   </p>
                 </div>
+                <div>
+                  <p className="text-muted-foreground">Método de Pago</p>
+                  <p className="font-medium">
+                    {{efectivo: 'Efectivo', debito: 'Tarjeta Débito', credito: 'Tarjeta Crédito', nequi: 'Nequi', daviplata: 'Daviplata'}[selectedFactura.metodo_pago] || 'Efectivo'}
+                  </p>
+                </div>
+                {selectedFactura.referencia_pago && (
+                  <div>
+                    <p className="text-muted-foreground">Referencia de Pago</p>
+                    <p className="font-medium">{selectedFactura.referencia_pago}</p>
+                  </div>
+                )}
               </div>
 
               <div>

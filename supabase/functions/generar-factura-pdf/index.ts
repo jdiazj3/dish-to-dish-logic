@@ -131,6 +131,19 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
             <td>Cajero:</td>
             <td>${cajero ? `${cajero.nombre} ${cajero.apellido}` : 'N/A'}</td>
           </tr>
+          <tr>
+            <td>Método de Pago:</td>
+            <td>${(() => {
+              const metodos: Record<string, string> = {efectivo: 'Efectivo', debito: 'Tarjeta Débito', credito: 'Tarjeta Crédito', nequi: 'Nequi', daviplata: 'Daviplata'};
+              return metodos[factura.metodo_pago as string] || 'Efectivo';
+            })()}</td>
+          </tr>
+          ${factura.referencia_pago ? `
+          <tr>
+            <td>Referencia:</td>
+            <td><strong>${factura.referencia_pago}</strong></td>
+          </tr>
+          ` : ''}
         </table>
       </div>
 
