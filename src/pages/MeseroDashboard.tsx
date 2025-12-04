@@ -10,8 +10,8 @@ import { LogOut, Plus, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 
 export default function MeseroDashboard() {
-  const { user, signOut } = useAuth();
-  const { data: roles, isLoading } = useUserRole(user?.id);
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { data: roles, isLoading: rolesLoading } = useUserRole(user?.id);
   const navigate = useNavigate();
 
   const { data: ordenesActivas } = useQuery({
@@ -29,10 +29,17 @@ export default function MeseroDashboard() {
     enabled: !!user?.id,
   });
 
-  if (isLoading) {
+  // Esperar a que tanto auth como roles estén cargados
+  if (authLoading || rolesLoading) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 
+  // Si no hay usuario, redirigir a auth
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Verificar rol de mesero
   if (!roles?.includes('mesero')) {
     return <Navigate to="/" replace />;
   }
