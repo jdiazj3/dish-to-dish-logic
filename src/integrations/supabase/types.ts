@@ -45,7 +45,9 @@ export type Database = {
           fecha: string
           id: string
           notas: string | null
+          total_daviplata: number
           total_efectivo: number
+          total_nequi: number
           total_tarjeta_credito: number
           total_tarjeta_debito: number
           total_ventas: number
@@ -59,7 +61,9 @@ export type Database = {
           fecha?: string
           id?: string
           notas?: string | null
+          total_daviplata?: number
           total_efectivo?: number
+          total_nequi?: number
           total_tarjeta_credito?: number
           total_tarjeta_debito?: number
           total_ventas?: number
@@ -73,7 +77,9 @@ export type Database = {
           fecha?: string
           id?: string
           notas?: string | null
+          total_daviplata?: number
           total_efectivo?: number
+          total_nequi?: number
           total_tarjeta_credito?: number
           total_tarjeta_debito?: number
           total_ventas?: number
