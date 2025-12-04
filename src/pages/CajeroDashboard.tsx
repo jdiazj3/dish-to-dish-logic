@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfDay, endOfDay } from "date-fns";
 import { GraficoVentasPorHora } from "@/components/cajero/GraficoVentasPorHora";
+import { ExportarVentas } from "@/components/cajero/ExportarVentas";
 
 export default function CajeroDashboard() {
   const { user, signOut } = useAuth();
@@ -92,6 +93,10 @@ export default function CajeroDashboard() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-end mb-4">
+          <ExportarVentas />
+        </div>
+        
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
           <Card className="bg-gradient-card">
             <CardHeader>
