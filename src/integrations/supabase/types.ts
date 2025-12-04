@@ -214,6 +214,7 @@ export type Database = {
         Row: {
           cantidad: number
           created_at: string
+          facturado: boolean | null
           id: string
           notas: string | null
           numero_silla: number
@@ -225,6 +226,7 @@ export type Database = {
         Insert: {
           cantidad?: number
           created_at?: string
+          facturado?: boolean | null
           id?: string
           notas?: string | null
           numero_silla: number
@@ -236,6 +238,7 @@ export type Database = {
         Update: {
           cantidad?: number
           created_at?: string
+          facturado?: boolean | null
           id?: string
           notas?: string | null
           numero_silla?: number

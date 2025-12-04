@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileText, DollarSign } from "lucide-react";
+import { FileText, DollarSign, Users } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -43,17 +43,13 @@ export function FacturacionOrdenes() {
           throw error;
         }
         
-        // Filtrar solo las órdenes que no han sido facturadas
-        const { data: facturas, error: facturasError } = await supabase
-          .from('facturas')
-          .select('orden_id');
+        // Filtrar órdenes que tienen productos sin facturar
+        const ordenesConProductosPendientes = data?.filter(orden => {
+          const productosPendientes = orden.orden_productos?.filter((p: any) => !p.facturado) || [];
+          return productosPendientes.length > 0;
+        }) || [];
         
-        if (facturasError) {
-          console.error('Error al cargar facturas:', facturasError);
-        }
-        
-        const ordenesFacturadas = new Set(facturas?.map(f => f.orden_id) || []);
-        return data?.filter(orden => !ordenesFacturadas.has(orden.id)) || [];
+        return ordenesConProductosPendientes;
       } catch (err) {
         console.error('Error en queryFn:', err);
         throw err;
@@ -70,7 +66,7 @@ export function FacturacionOrdenes() {
         .insert({
           orden_id: ordenId,
           cajero_id: user?.id,
-          nombre_cliente: selectedOrden.nombre_cliente,
+          nombre_cliente: selectedOrden.nombre_cliente || 'Cliente',
           subtotal: totales.subtotal,
           impuestos: totales.impuestos,
           propina: totales.propina,
@@ -96,6 +92,30 @@ export function FacturacionOrdenes() {
         .insert(facturaItems);
 
       if (itemsError) throw itemsError;
+
+      // Marcar los productos como facturados
+      const productIds = items.map((item: any) => item.id);
+      const { error: updateError } = await supabase
+        .from('orden_productos')
+        .update({ facturado: true })
+        .in('id', productIds);
+
+      if (updateError) throw updateError;
+
+      // Verificar si todos los productos de la orden están facturados
+      const { data: productosRestantes } = await supabase
+        .from('orden_productos')
+        .select('id')
+        .eq('orden_id', ordenId)
+        .eq('facturado', false);
+
+      // Si no quedan productos sin facturar, marcar la orden como facturada
+      if (!productosRestantes || productosRestantes.length === 0) {
+        await supabase
+          .from('ordenes')
+          .update({ estado: 'facturada' })
+          .eq('id', ordenId);
+      }
 
       return factura;
     },
@@ -125,9 +145,10 @@ export function FacturacionOrdenes() {
   };
 
   const calcularTotales = () => {
-    if (!selectedOrden) return { subtotal: 0, impuestos: 0, propina: 0, total: 0 };
+    if (!selectedOrden) return { subtotal: 0, impuestos: 0, propina: 0, total: 0, items: [] };
 
-    let items = selectedOrden.orden_productos;
+    // Filtrar solo productos no facturados
+    let items = selectedOrden.orden_productos.filter((item: any) => !item.facturado);
     
     if (tipoFacturacion === "silla" && sillasSeleccionadas.length > 0) {
       items = items.filter((item: any) => sillasSeleccionadas.includes(item.numero_silla));
@@ -140,6 +161,23 @@ export function FacturacionOrdenes() {
 
     return { subtotal, impuestos, propina, total, items };
   };
+
+  // Obtener productos no facturados agrupados por silla
+  const getProductosPorSilla = () => {
+    if (!selectedOrden) return {};
+    const productosPendientes = selectedOrden.orden_productos.filter((item: any) => !item.facturado);
+    return productosPendientes.reduce((acc: any, item: any) => {
+      const silla = item.numero_silla;
+      if (!acc[silla]) {
+        acc[silla] = { productos: [], total: 0 };
+      }
+      acc[silla].productos.push(item);
+      acc[silla].total += parseFloat(item.subtotal);
+      return acc;
+    }, {});
+  };
+
+  const productosPorSilla = getProductosPorSilla();
 
   const confirmarFacturacion = () => {
     const totales = calcularTotales();
@@ -161,11 +199,22 @@ export function FacturacionOrdenes() {
     });
   };
 
+  // Obtener solo sillas con productos pendientes de facturar
   const sillasDisponibles = selectedOrden?.orden_productos
-    ? Array.from(new Set(selectedOrden.orden_productos.map((item: any) => item.numero_silla)))
+    ? Array.from(new Set(
+        selectedOrden.orden_productos
+          .filter((item: any) => !item.facturado)
+          .map((item: any) => item.numero_silla)
+      )).sort((a: number, b: number) => a - b)
     : [];
 
   const totales = calcularTotales();
+
+  // Calcular pendiente por facturar de cada orden
+  const calcularPendiente = (orden: any) => {
+    const productosPendientes = orden.orden_productos?.filter((p: any) => !p.facturado) || [];
+    return productosPendientes.reduce((sum: number, p: any) => sum + parseFloat(p.subtotal), 0);
+  };
 
   return (
     <>
@@ -175,7 +224,7 @@ export function FacturacionOrdenes() {
             <FileText className="w-5 h-5" />
             Órdenes Pendientes de Facturar
           </CardTitle>
-          <CardDescription>Órdenes entregadas que aún no han sido facturadas</CardDescription>
+          <CardDescription>Órdenes entregadas con productos sin facturar</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -193,26 +242,46 @@ export function FacturacionOrdenes() {
                   <TableHead>Salón</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Fecha</TableHead>
-                  <TableHead>Total</TableHead>
+                  <TableHead>Pendiente</TableHead>
+                  <TableHead>Sillas</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ordenesEntregadas.map((orden) => (
-                  <TableRow key={orden.id}>
-                    <TableCell>Mesa {orden.mesas?.numero}</TableCell>
-                    <TableCell>{orden.mesas?.salones?.nombre}</TableCell>
-                    <TableCell>{orden.nombre_cliente || "Sin nombre"}</TableCell>
-                    <TableCell>{format(new Date(orden.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>
-                    <TableCell className="font-semibold">${Number(orden.total || 0).toLocaleString()}</TableCell>
-                    <TableCell className="text-right">
-                      <Button onClick={() => handleFacturar(orden)}>
-                        <DollarSign className="w-4 h-4 mr-2" />
-                        Facturar
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {ordenesEntregadas.map((orden) => {
+                  const pendiente = calcularPendiente(orden);
+                  const sillasPendientes = Array.from(new Set(
+                    orden.orden_productos
+                      ?.filter((p: any) => !p.facturado)
+                      .map((p: any) => p.numero_silla)
+                  )).sort((a: number, b: number) => a - b);
+                  
+                  return (
+                    <TableRow key={orden.id}>
+                      <TableCell>Mesa {orden.mesas?.numero}</TableCell>
+                      <TableCell>{orden.mesas?.salones?.nombre}</TableCell>
+                      <TableCell>{orden.nombre_cliente || "Sin nombre"}</TableCell>
+                      <TableCell>{format(new Date(orden.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>
+                      <TableCell className="font-semibold">${pendiente.toLocaleString('es-CO')}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {sillasPendientes.map((silla: number) => (
+                            <Badge key={silla} variant="outline" className="text-xs">
+                              <Users className="w-3 h-3 mr-1" />
+                              {silla}
+                            </Badge>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button onClick={() => handleFacturar(orden)}>
+                          <DollarSign className="w-4 h-4 mr-2" />
+                          Facturar
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           ) : (
@@ -259,24 +328,74 @@ export function FacturacionOrdenes() {
 
             {tipoFacturacion === "silla" && (
               <div className="space-y-3">
-                <Label>Seleccionar Sillas</Label>
-                <div className="grid grid-cols-4 gap-3">
-                  {sillasDisponibles.map((silla: number) => (
-                    <div key={silla} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`silla-${silla}`}
-                        checked={sillasSeleccionadas.includes(silla)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSillasSeleccionadas([...sillasSeleccionadas, silla]);
-                          } else {
-                            setSillasSeleccionadas(sillasSeleccionadas.filter(s => s !== silla));
-                          }
-                        }}
-                      />
-                      <Label htmlFor={`silla-${silla}`} className="cursor-pointer">
-                        Silla {silla}
-                      </Label>
+                <Label>Seleccionar Sillas a Facturar</Label>
+                <div className="space-y-3">
+                  {sillasDisponibles.map((silla: number) => {
+                    const sillaData = productosPorSilla[silla];
+                    return (
+                      <div key={silla} className="border rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`silla-${silla}`}
+                              checked={sillasSeleccionadas.includes(silla)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSillasSeleccionadas([...sillasSeleccionadas, silla]);
+                                } else {
+                                  setSillasSeleccionadas(sillasSeleccionadas.filter(s => s !== silla));
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`silla-${silla}`} className="cursor-pointer font-semibold">
+                              Silla {silla}
+                            </Label>
+                          </div>
+                          <Badge variant="secondary">
+                            ${sillaData?.total.toLocaleString('es-CO')}
+                          </Badge>
+                        </div>
+                        <div className="ml-6 space-y-1">
+                          {sillaData?.productos.map((item: any, idx: number) => (
+                            <div key={idx} className="text-sm">
+                              <span className="text-muted-foreground">
+                                {item.cantidad}x {item.productos?.nombre} - ${parseFloat(item.subtotal).toLocaleString('es-CO')}
+                              </span>
+                              {item.notas && (
+                                <p className="text-xs text-amber-600 italic ml-2">📝 {item.notas}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {tipoFacturacion === "completa" && Object.keys(productosPorSilla).length > 0 && (
+              <div className="space-y-3">
+                <Label>Detalle de Productos por Silla</Label>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {Object.entries(productosPorSilla).map(([silla, data]: [string, any]) => (
+                    <div key={silla} className="border rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold">Silla {silla}</span>
+                        <Badge variant="outline">${data.total.toLocaleString('es-CO')}</Badge>
+                      </div>
+                      <div className="space-y-1">
+                        {data.productos.map((item: any, idx: number) => (
+                          <div key={idx} className="text-sm">
+                            <span className="text-muted-foreground">
+                              {item.cantidad}x {item.productos?.nombre}
+                            </span>
+                            {item.notas && (
+                              <p className="text-xs text-amber-600 italic ml-2">📝 {item.notas}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
