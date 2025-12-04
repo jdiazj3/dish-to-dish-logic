@@ -4,7 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Receipt, DollarSign, TrendingUp, Coins } from "lucide-react";
+import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -142,18 +142,33 @@ export default function CajeroDashboard() {
         <div className="grid gap-6 md:grid-cols-2 mb-6">
           <GraficoVentasPorHora />
           
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/facturacion')}>
-            <CardHeader>
-              <CardTitle>Facturación</CardTitle>
-              <CardDescription>Gestiona órdenes y emite facturas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full">
-                <Receipt className="w-4 h-4 mr-2" />
-                Ir a Facturación
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="grid gap-6">
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/facturacion')}>
+              <CardHeader>
+                <CardTitle>Facturación</CardTitle>
+                <CardDescription>Gestiona órdenes y emite facturas</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">
+                  <Receipt className="w-4 h-4 mr-2" />
+                  Ir a Facturación
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/cierre')}>
+              <CardHeader>
+                <CardTitle>Cierre de Caja</CardTitle>
+                <CardDescription>Registra el cierre diario</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="secondary" className="w-full">
+                  <Calculator className="w-4 h-4 mr-2" />
+                  Ir a Cierre de Caja
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

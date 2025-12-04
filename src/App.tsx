@@ -15,6 +15,7 @@ import MeseroDashboard from "./pages/MeseroDashboard";
 import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
 import CajeroFacturacion from "./pages/CajeroFacturacion";
+import CajeroCierre from "./pages/CajeroCierre";
 import CrearOrden from "./pages/CrearOrden";
 import EditarOrden from "./pages/EditarOrden";
 import CrearUsuariosPrueba from "./pages/CrearUsuariosPrueba";
@@ -80,6 +81,11 @@ const App = () => (
           <Route path="/cajero/facturacion" element={
             <ProtectedRoute>
               <CajeroFacturacion />
+            </ProtectedRoute>
+          } />
+          <Route path="/cajero/cierre" element={
+            <ProtectedRoute>
+              <CajeroCierre />
             </ProtectedRoute>
           } />
           <Route path="/orden/nueva" element={
