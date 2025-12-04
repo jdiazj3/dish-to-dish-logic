@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
-  const { data: roles, isLoading: rolesLoading } = useUserRole(user?.id);
+  const { data: roles, isLoading: rolesLoading, isFetching } = useUserRole(user?.id);
   const { data: profile } = useProfile(user?.id);
 
   const handleSignOut = async () => {
@@ -21,7 +21,8 @@ export default function Dashboard() {
     toast.success("Sesión cerrada exitosamente");
   };
 
-  if (rolesLoading) {
+  // Esperar a que terminen de cargar los roles
+  if (rolesLoading || isFetching || roles === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-pulse text-lg text-muted-foreground">Cargando...</div>
