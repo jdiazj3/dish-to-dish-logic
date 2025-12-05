@@ -4,7 +4,8 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff } from "lucide-react";
+import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff, ClipboardList } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -93,6 +94,20 @@ export default function CajeroDashboard() {
     },
   });
 
+  // Query para contar órdenes pendientes por facturar (estado 'entregada')
+  const { data: ordenesPendientes } = useQuery({
+    queryKey: ['ordenes-pendientes-facturar'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('ordenes')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'entregada');
+
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
   // Callback para manejar nueva orden entregada
   const handleNewDeliveredOrder = useCallback((payload: any) => {
     const newOrder = payload.new;
@@ -146,16 +161,24 @@ export default function CajeroDashboard() {
           event: 'UPDATE',
           schema: 'public',
           table: 'ordenes',
-          filter: 'estado=eq.entregada'
         },
-        handleNewDeliveredOrder
+        (payload) => {
+          const newOrder = payload.new as any;
+          // Actualizar contador de órdenes pendientes
+          queryClient.invalidateQueries({ queryKey: ['ordenes-pendientes-facturar'] });
+          
+          // Notificar solo si cambió a 'entregada'
+          if (newOrder.estado === 'entregada') {
+            handleNewDeliveredOrder(payload);
+          }
+        }
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(ordenesChannel);
     };
-  }, [handleNewDeliveredOrder]);
+  }, [handleNewDeliveredOrder, queryClient]);
 
   // Esperar a que terminen de cargar los roles completamente
   if (isLoading || isFetching || roles === undefined) {
@@ -253,7 +276,15 @@ export default function CajeroDashboard() {
           <div className="grid gap-6">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/facturacion')}>
               <CardHeader>
-                <CardTitle>Facturación</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Facturación</CardTitle>
+                  {ordenesPendientes !== undefined && ordenesPendientes > 0 && (
+                    <Badge variant="destructive" className="animate-pulse">
+                      <ClipboardList className="w-3 h-3 mr-1" />
+                      {ordenesPendientes} pendiente{ordenesPendientes > 1 ? 's' : ''}
+                    </Badge>
+                  )}
+                </div>
                 <CardDescription>Gestiona órdenes y emite facturas</CardDescription>
               </CardHeader>
               <CardContent>
