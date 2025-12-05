@@ -142,9 +142,20 @@ export default function CocinaDashboard() {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">Ancestrale - Cocina</h1>
-            <p className="text-sm text-muted-foreground">Sistema de órdenes</p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold">Ancestrale - Cocina</h1>
+              <p className="text-sm text-muted-foreground">Sistema de órdenes</p>
+            </div>
+            {ordenesRecibidas && ordenesRecibidas.length > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="animate-pulse text-base px-3 py-1"
+              >
+                <Clock className="w-4 h-4 mr-1" />
+                {ordenesRecibidas.length} nueva{ordenesRecibidas.length > 1 ? 's' : ''}
+              </Badge>
+            )}
           </div>
           <Button onClick={handleSignOut} variant="outline">
             <LogOut className="w-4 h-4 mr-2" />
