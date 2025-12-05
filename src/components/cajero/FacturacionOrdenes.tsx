@@ -6,13 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, DollarSign, Users, Printer, Check, CreditCard, Banknote, Wallet } from "lucide-react";
+import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -26,7 +26,6 @@ export function FacturacionOrdenes() {
   const [metodoPago, setMetodoPago] = useState<"efectivo" | "debito" | "credito" | "nequi" | "daviplata">("efectivo");
   const [referenciaPago, setReferenciaPago] = useState("");
   const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
-  const [dialogExito, setDialogExito] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: ordenesEntregadas, isLoading, error } = useQuery({
@@ -133,7 +132,7 @@ export function FacturacionOrdenes() {
   }, [queryClient]);
 
   const facturarMutation = useMutation({
-    mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago }: any) => {
+    mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago, sillasFacturadas }: any) => {
       // Crear la factura
       const { data: factura, error: facturaError } = await supabase
         .from('facturas')
@@ -181,27 +180,67 @@ export function FacturacionOrdenes() {
       // Verificar si todos los productos de la orden están facturados
       const { data: productosRestantes } = await supabase
         .from('orden_productos')
-        .select('id')
+        .select('id, numero_silla')
         .eq('orden_id', ordenId)
         .eq('facturado', false);
 
       // Si no quedan productos sin facturar, marcar la orden como facturada
-      if (!productosRestantes || productosRestantes.length === 0) {
+      const ordenCompleta = !productosRestantes || productosRestantes.length === 0;
+      if (ordenCompleta) {
         await supabase
           .from('ordenes')
           .update({ estado: 'facturada' })
           .eq('id', ordenId);
       }
 
-      return factura;
+      return { 
+        factura, 
+        ordenCompleta, 
+        sillasRestantes: productosRestantes?.map((p: any) => p.numero_silla) || [],
+        sillasFacturadas 
+      };
     },
-    onSuccess: (factura) => {
+    onSuccess: async (result) => {
+      const { factura, ordenCompleta, sillasFacturadas } = result;
+      
       queryClient.invalidateQueries({ queryKey: ['ordenes-entregadas'] });
+      queryClient.invalidateQueries({ queryKey: ['ordenes-pendientes-facturar'] });
       queryClient.invalidateQueries({ queryKey: ['facturas'] });
+      
+      // Mostrar toast de éxito
+      const sillasTexto = sillasFacturadas?.length > 0 
+        ? `Silla${sillasFacturadas.length > 1 ? 's' : ''} ${sillasFacturadas.join(', ')}` 
+        : 'Mesa completa';
+      toast.success(`Factura #${factura.consecutivo} generada`, {
+        description: `${sillasTexto} - $${Number(factura.total).toLocaleString('es-CO')}`
+      });
+      
+      // Generar e imprimir PDF automáticamente
       setFacturaGenerada(factura);
-      setDialogOpen(false);
-      setDialogExito(true);
-      resetForm();
+      imprimirPDFMutation.mutate(factura.id);
+      
+      // Si la orden está completa, cerrar todo
+      if (ordenCompleta) {
+        setDialogOpen(false);
+        resetForm();
+      } else {
+        // Si quedan sillas pendientes, actualizar la orden seleccionada y resetear selección de sillas
+        setSillasSeleccionadas([]);
+        // Refrescar la orden seleccionada con los datos actualizados
+        const { data: ordenActualizada } = await supabase
+          .from('ordenes')
+          .select(`
+            *,
+            mesas(numero, salones(nombre)),
+            orden_productos(*, productos(nombre))
+          `)
+          .eq('id', selectedOrden.id)
+          .single();
+        
+        if (ordenActualizada) {
+          setSelectedOrden(ordenActualizada);
+        }
+      }
     },
     onError: (error) => {
       console.error('Error al facturar:', error);
@@ -299,6 +338,7 @@ export function FacturacionOrdenes() {
       },
       metodoPago,
       referenciaPago: referenciaPago.trim(),
+      sillasFacturadas: tipoFacturacion === "silla" ? sillasSeleccionadas : null,
     });
   };
 
@@ -602,48 +642,6 @@ export function FacturacionOrdenes() {
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de éxito con opción de imprimir */}
-      <Dialog open={dialogExito} onOpenChange={setDialogExito}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-green-600">
-              <Check className="w-6 h-6" />
-              Factura Generada
-            </DialogTitle>
-            <DialogDescription>
-              La factura #{facturaGenerada?.consecutivo} se generó exitosamente
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4 text-center">
-            <p className="text-2xl font-bold text-primary mb-2">
-              ${Number(facturaGenerada?.total || 0).toLocaleString('es-CO', { minimumFractionDigits: 2 })}
-            </p>
-            <p className="text-sm text-muted-foreground">Total facturado</p>
-          </div>
-
-          <DialogFooter className="flex gap-2 sm:gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDialogExito(false)}
-            >
-              Cerrar
-            </Button>
-            <Button
-              onClick={() => {
-                if (facturaGenerada) {
-                  imprimirPDFMutation.mutate(facturaGenerada.id);
-                }
-              }}
-              disabled={imprimirPDFMutation.isPending}
-              className="bg-gradient-primary"
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              {imprimirPDFMutation.isPending ? "Generando..." : "Imprimir Factura"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
