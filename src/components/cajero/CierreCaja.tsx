@@ -10,10 +10,168 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, CreditCard, Banknote, Calculator, CheckCircle, Smartphone, Printer } from "lucide-react";
+import { Wallet, CreditCard, Banknote, Calculator, CheckCircle, Smartphone, Printer, Download } from "lucide-react";
 import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
+import jsPDF from "jspdf";
+
+const downloadCierrePDF = (cierre: any, fecha: string) => {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: [80, 200]
+  });
+
+  const pageWidth = 80;
+  const margin = 5;
+  const contentWidth = pageWidth - (margin * 2);
+  let y = 10;
+
+  // Configuración de fuentes
+  doc.setFont("courier", "bold");
+  
+  // Header
+  doc.setFontSize(14);
+  doc.text("ANCESTRALE", pageWidth / 2, y, { align: "center" });
+  y += 6;
+  
+  doc.setFontSize(11);
+  doc.text("CIERRE DE CAJA", pageWidth / 2, y, { align: "center" });
+  y += 5;
+  
+  doc.setFontSize(9);
+  doc.setFont("courier", "normal");
+  doc.text(fecha, pageWidth / 2, y, { align: "center" });
+  y += 8;
+
+  // Línea separadora
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 6;
+
+  // Sección: Ventas por método de pago
+  doc.setFont("courier", "bold");
+  doc.setFontSize(9);
+  doc.text("VENTAS POR METODO DE PAGO", pageWidth / 2, y, { align: "center" });
+  y += 5;
+  
+  doc.setLineWidth(0.2);
+  doc.setLineDashPattern([1, 1], 0);
+  doc.line(margin, y, pageWidth - margin, y);
+  doc.setLineDashPattern([], 0);
+  y += 5;
+
+  doc.setFont("courier", "normal");
+  doc.setFontSize(8);
+
+  const addRow = (label: string, value: string) => {
+    doc.text(label, margin, y);
+    doc.text(value, pageWidth - margin, y, { align: "right" });
+    y += 4;
+  };
+
+  addRow("Efectivo", `$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}`);
+  addRow("Tarjeta Debito", `$${parseFloat(cierre.total_tarjeta_debito).toLocaleString('es-CO')}`);
+  addRow("Tarjeta Credito", `$${parseFloat(cierre.total_tarjeta_credito).toLocaleString('es-CO')}`);
+  addRow("Nequi", `$${parseFloat(cierre.total_nequi || 0).toLocaleString('es-CO')}`);
+  addRow("Daviplata", `$${parseFloat(cierre.total_daviplata || 0).toLocaleString('es-CO')}`);
+  
+  y += 2;
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 5;
+
+  doc.setFont("courier", "bold");
+  doc.setFontSize(10);
+  doc.text("TOTAL VENTAS", margin, y);
+  doc.text(`$${parseFloat(cierre.total_ventas).toLocaleString('es-CO')}`, pageWidth - margin, y, { align: "right" });
+  y += 6;
+
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 6;
+
+  // Sección: Arqueo de Caja
+  doc.setFontSize(9);
+  doc.text("ARQUEO DE CAJA", pageWidth / 2, y, { align: "center" });
+  y += 5;
+  
+  doc.setLineWidth(0.2);
+  doc.setLineDashPattern([1, 1], 0);
+  doc.line(margin, y, pageWidth - margin, y);
+  doc.setLineDashPattern([], 0);
+  y += 5;
+
+  doc.setFont("courier", "normal");
+  doc.setFontSize(8);
+
+  const efectivoEsperado = parseFloat(cierre.efectivo_inicial) + parseFloat(cierre.total_efectivo);
+  
+  addRow("Base inicial", `$${parseFloat(cierre.efectivo_inicial).toLocaleString('es-CO')}`);
+  addRow("+ Ventas efectivo", `$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}`);
+  
+  y += 1;
+  doc.setLineDashPattern([1, 1], 0);
+  doc.line(margin, y, pageWidth - margin, y);
+  doc.setLineDashPattern([], 0);
+  y += 4;
+  
+  addRow("= Esperado", `$${efectivoEsperado.toLocaleString('es-CO')}`);
+  addRow("Contado", `$${parseFloat(cierre.efectivo_final).toLocaleString('es-CO')}`);
+  
+  y += 3;
+
+  // Diferencia destacada
+  const diferenciaNum = parseFloat(cierre.diferencia);
+  const diferenciaText = diferenciaNum === 0 ? "CUADRE PERFECTO" : diferenciaNum > 0 ? "SOBRANTE" : "FALTANTE";
+  
+  doc.setFillColor(245, 245, 245);
+  doc.rect(margin, y, contentWidth, 18, 'F');
+  doc.rect(margin, y, contentWidth, 18, 'S');
+  
+  y += 5;
+  doc.setFontSize(8);
+  doc.text("DIFERENCIA", pageWidth / 2, y, { align: "center" });
+  y += 6;
+  
+  doc.setFont("courier", "bold");
+  doc.setFontSize(14);
+  doc.text(`$${Math.abs(diferenciaNum).toLocaleString('es-CO')}`, pageWidth / 2, y, { align: "center" });
+  y += 5;
+  
+  doc.setFontSize(8);
+  doc.text(diferenciaText, pageWidth / 2, y, { align: "center" });
+  y += 8;
+
+  // Notas
+  if (cierre.notas) {
+    doc.setFont("courier", "bold");
+    doc.setFontSize(8);
+    doc.text("NOTAS:", margin, y);
+    y += 4;
+    doc.setFont("courier", "normal");
+    doc.setFontSize(7);
+    const splitNotas = doc.splitTextToSize(cierre.notas, contentWidth);
+    doc.text(splitNotas, margin, y);
+    y += splitNotas.length * 3 + 4;
+  }
+
+  // Footer
+  y += 5;
+  doc.setFontSize(8);
+  doc.text("* * * * * * * * * *", pageWidth / 2, y, { align: "center" });
+  y += 5;
+  
+  doc.setFontSize(7);
+  doc.text(`Generado: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, pageWidth / 2, y, { align: "center" });
+  y += 5;
+  doc.text("Gracias por su trabajo", pageWidth / 2, y, { align: "center" });
+
+  // Descargar PDF
+  const fileName = `cierre-caja-${format(new Date(cierre.fecha), "yyyy-MM-dd")}.pdf`;
+  doc.save(fileName);
+  toast.success("PDF descargado correctamente");
+};
 
 const printCierreReport = (cierre: any, fecha: string) => {
   const printWindow = window.open('', '_blank');
@@ -464,15 +622,26 @@ export function CierreCaja() {
                 <CheckCircle className="w-5 h-5" />
                 <span>Cierre registrado - Diferencia: ${cierreHoy.diferencia.toLocaleString('es-CO')}</span>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
-                onClick={() => printCierreReport(cierreHoy, format(new Date(cierreHoy.fecha), "d 'de' MMMM, yyyy", { locale: es }))}
-              >
-                <Printer className="w-4 h-4" />
-                Imprimir
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => printCierreReport(cierreHoy, format(new Date(cierreHoy.fecha), "d 'de' MMMM, yyyy", { locale: es }))}
+                >
+                  <Printer className="w-4 h-4" />
+                  Imprimir
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => downloadCierrePDF(cierreHoy, format(new Date(cierreHoy.fecha), "d 'de' MMMM, yyyy", { locale: es }))}
+                >
+                  <Download className="w-4 h-4" />
+                  PDF
+                </Button>
+              </div>
             </div>
           ) : (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -621,13 +790,24 @@ export function CierreCaja() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => printCierreReport(cierre, format(new Date(cierre.fecha), "d 'de' MMMM, yyyy", { locale: es }))}
-                      >
-                        <Printer className="w-4 h-4" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          title="Imprimir"
+                          onClick={() => printCierreReport(cierre, format(new Date(cierre.fecha), "d 'de' MMMM, yyyy", { locale: es }))}
+                        >
+                          <Printer className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          title="Descargar PDF"
+                          onClick={() => downloadCierrePDF(cierre, format(new Date(cierre.fecha), "d 'de' MMMM, yyyy", { locale: es }))}
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
