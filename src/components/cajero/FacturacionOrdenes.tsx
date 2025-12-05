@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet } from "lucide-react";
+import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -363,11 +363,26 @@ export function FacturacionOrdenes() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Órdenes Pendientes de Facturar
-          </CardTitle>
-          <CardDescription>Órdenes entregadas con productos sin facturar</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Órdenes Pendientes de Facturar
+              </CardTitle>
+              <CardDescription>Órdenes entregadas con productos sin facturar</CardDescription>
+            </div>
+            {facturaGenerada && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => imprimirPDFMutation.mutate(facturaGenerada.id)}
+                disabled={imprimirPDFMutation.isPending}
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                {imprimirPDFMutation.isPending ? "Generando..." : `Reimprimir #${facturaGenerada.consecutivo}`}
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
