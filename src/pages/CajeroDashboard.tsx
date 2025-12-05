@@ -1,10 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator } from "lucide-react";
+import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,12 +12,62 @@ import { startOfDay, endOfDay } from "date-fns";
 import { GraficoVentasPorHora } from "@/components/cajero/GraficoVentasPorHora";
 import { ExportarVentas } from "@/components/cajero/ExportarVentas";
 import { ReporteMetodosPago } from "@/components/cajero/ReporteMetodosPago";
+import { useState } from "react";
+
+// Función para crear sonido de notificación usando Web Audio API
+const playNotificationSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    // Crear oscilador para el tono
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Configurar el sonido - tono agradable tipo "ding"
+    oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // La nota A5
+    oscillator.type = 'sine';
+    
+    // Configurar el volumen con fade out
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    // Reproducir
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+    
+    // Segundo tono más alto para hacer "ding-ding"
+    setTimeout(() => {
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      
+      osc2.frequency.setValueAtTime(1100, audioContext.currentTime);
+      osc2.type = 'sine';
+      
+      gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      osc2.start(audioContext.currentTime);
+      osc2.stop(audioContext.currentTime + 0.5);
+    }, 150);
+    
+  } catch (error) {
+    console.error('Error playing notification sound:', error);
+  }
+};
 
 export default function CajeroDashboard() {
   const { user, signOut } = useAuth();
   const { data: roles, isLoading, isFetching } = useUserRole(user?.id);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const lastOrderIdRef = useRef<string | null>(null);
 
   const { data: estadisticas } = useQuery({
     queryKey: ['estadisticas-cajero-hoy'],
@@ -43,7 +93,28 @@ export default function CajeroDashboard() {
     },
   });
 
-  // Suscripción en tiempo real
+  // Callback para manejar nueva orden entregada
+  const handleNewDeliveredOrder = useCallback((payload: any) => {
+    const newOrder = payload.new;
+    
+    // Evitar notificación duplicada
+    if (lastOrderIdRef.current === newOrder.id) return;
+    lastOrderIdRef.current = newOrder.id;
+    
+    // Solo notificar si el estado cambió a 'entregada'
+    if (newOrder.estado === 'entregada') {
+      if (soundEnabled) {
+        playNotificationSound();
+      }
+      
+      toast.success("Nueva orden lista para facturar", {
+        description: `Orden #${newOrder.id.slice(0, 8)} - Total: $${parseFloat(newOrder.total || 0).toLocaleString('es-CO')}`,
+        duration: 5000,
+      });
+    }
+  }, [soundEnabled]);
+
+  // Suscripción en tiempo real para facturas
   useEffect(() => {
     const channel = supabase
       .channel('facturas-dashboard')
@@ -64,6 +135,27 @@ export default function CajeroDashboard() {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
+
+  // Suscripción en tiempo real para órdenes entregadas
+  useEffect(() => {
+    const ordenesChannel = supabase
+      .channel('ordenes-entregadas-cajero')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'ordenes',
+          filter: 'estado=eq.entregada'
+        },
+        handleNewDeliveredOrder
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ordenesChannel);
+    };
+  }, [handleNewDeliveredOrder]);
 
   // Esperar a que terminen de cargar los roles completamente
   if (isLoading || isFetching || roles === undefined) {
@@ -87,10 +179,24 @@ export default function CajeroDashboard() {
             <h1 className="text-2xl font-bold">Ancestrale - Caja</h1>
             <p className="text-sm text-muted-foreground">Sistema de facturación</p>
           </div>
-          <Button onClick={handleSignOut} variant="outline">
-            <LogOut className="w-4 h-4 mr-2" />
-            Salir
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => setSoundEnabled(!soundEnabled)} 
+              variant={soundEnabled ? "default" : "outline"}
+              size="sm"
+              title={soundEnabled ? "Sonido activado" : "Sonido desactivado"}
+            >
+              {soundEnabled ? (
+                <Bell className="w-4 h-4" />
+              ) : (
+                <BellOff className="w-4 h-4" />
+              )}
+            </Button>
+            <Button onClick={handleSignOut} variant="outline">
+              <LogOut className="w-4 h-4 mr-2" />
+              Salir
+            </Button>
+          </div>
         </div>
       </header>
 
