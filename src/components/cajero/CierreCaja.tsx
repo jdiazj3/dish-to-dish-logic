@@ -22,95 +22,234 @@ const printCierreReport = (cierre: any, fecha: string) => {
     return;
   }
 
+  const efectivoEsperado = parseFloat(cierre.efectivo_inicial) + parseFloat(cierre.total_efectivo);
+  const diferenciaNum = parseFloat(cierre.diferencia);
+  const diferenciaClass = diferenciaNum === 0 ? '' : diferenciaNum > 0 ? 'sobrante' : 'faltante';
+  const diferenciaText = diferenciaNum > 0 ? '(+)' : diferenciaNum < 0 ? '(-)' : '';
+
   const html = `
     <!DOCTYPE html>
     <html>
     <head>
       <title>Cierre de Caja - ${fecha}</title>
       <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; max-width: 400px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .header h1 { font-size: 18px; margin-bottom: 5px; }
-        .header p { font-size: 12px; color: #666; }
-        .section { margin-bottom: 15px; }
-        .section-title { font-size: 14px; font-weight: bold; border-bottom: 1px dashed #ccc; padding-bottom: 5px; margin-bottom: 10px; }
-        .row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
-        .row.total { font-weight: bold; font-size: 14px; border-top: 1px solid #000; padding-top: 8px; margin-top: 8px; }
-        .row.diferencia { font-size: 16px; }
-        .positive { color: #059669; }
-        .negative { color: #dc2626; }
-        .neutral { color: #2563eb; }
-        .footer { text-align: center; margin-top: 20px; font-size: 10px; color: #999; border-top: 1px dashed #ccc; padding-top: 10px; }
-        @media print { body { padding: 10px; } }
+        @page { 
+          size: 80mm auto; 
+          margin: 0; 
+        }
+        * { 
+          margin: 0; 
+          padding: 0; 
+          box-sizing: border-box; 
+        }
+        body { 
+          font-family: 'Courier New', 'Lucida Console', monospace; 
+          font-size: 12px;
+          width: 80mm;
+          max-width: 80mm;
+          padding: 8px;
+          background: #fff;
+          color: #000;
+          line-height: 1.4;
+        }
+        .receipt {
+          width: 100%;
+        }
+        .center { text-align: center; }
+        .bold { font-weight: bold; }
+        .separator {
+          border-bottom: 1px dashed #000;
+          margin: 8px 0;
+        }
+        .double-separator {
+          border-bottom: 2px solid #000;
+          margin: 8px 0;
+        }
+        .header {
+          text-align: center;
+          padding-bottom: 8px;
+        }
+        .header .logo {
+          font-size: 16px;
+          font-weight: bold;
+          letter-spacing: 2px;
+        }
+        .header .subtitle {
+          font-size: 14px;
+          font-weight: bold;
+          margin-top: 4px;
+        }
+        .header .date {
+          font-size: 11px;
+          margin-top: 4px;
+        }
+        .row {
+          display: flex;
+          justify-content: space-between;
+          padding: 2px 0;
+        }
+        .row .label {
+          flex: 1;
+        }
+        .row .value {
+          text-align: right;
+          font-weight: bold;
+        }
+        .section-title {
+          font-weight: bold;
+          text-transform: uppercase;
+          font-size: 11px;
+          letter-spacing: 1px;
+          margin: 4px 0;
+        }
+        .total-row {
+          font-size: 14px;
+          font-weight: bold;
+          padding: 6px 0;
+        }
+        .total-row .value {
+          font-size: 16px;
+        }
+        .diferencia-section {
+          background: #f5f5f5;
+          padding: 8px;
+          margin: 8px 0;
+          border: 1px solid #000;
+        }
+        .diferencia-section.sobrante .value { }
+        .diferencia-section.faltante .value { }
+        .diferencia-label {
+          font-size: 10px;
+          text-transform: uppercase;
+        }
+        .diferencia-value {
+          font-size: 18px;
+          font-weight: bold;
+          text-align: center;
+          margin-top: 4px;
+        }
+        .notas {
+          font-size: 10px;
+          padding: 4px;
+          border: 1px dashed #999;
+          margin-top: 8px;
+        }
+        .notas-title {
+          font-weight: bold;
+          font-size: 10px;
+        }
+        .footer {
+          text-align: center;
+          font-size: 9px;
+          margin-top: 12px;
+          padding-top: 8px;
+        }
+        .footer .timestamp {
+          margin-top: 4px;
+        }
+        .stars {
+          letter-spacing: 2px;
+        }
+        @media print {
+          body {
+            width: 80mm;
+            padding: 4px;
+          }
+        }
+        @media screen {
+          body {
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+          }
+        }
       </style>
     </head>
     <body>
-      <div class="header">
-        <h1>CIERRE DE CAJA</h1>
-        <p>${fecha}</p>
-      </div>
-      
-      <div class="section">
-        <div class="section-title">Ventas por Método de Pago</div>
-        <div class="row">
-          <span>Efectivo:</span>
-          <span>$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}</span>
+      <div class="receipt">
+        <div class="header">
+          <div class="logo">ANCESTRALE</div>
+          <div class="subtitle">CIERRE DE CAJA</div>
+          <div class="date">${fecha}</div>
         </div>
+        
+        <div class="double-separator"></div>
+        
+        <div class="section-title center">Ventas por Metodo de Pago</div>
+        <div class="separator"></div>
+        
         <div class="row">
-          <span>Tarjeta Débito:</span>
-          <span>$${parseFloat(cierre.total_tarjeta_debito).toLocaleString('es-CO')}</span>
-        </div>
-        <div class="row">
-          <span>Tarjeta Crédito:</span>
-          <span>$${parseFloat(cierre.total_tarjeta_credito).toLocaleString('es-CO')}</span>
+          <span class="label">Efectivo</span>
+          <span class="value">$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}</span>
         </div>
         <div class="row">
-          <span>Nequi:</span>
-          <span>$${parseFloat(cierre.total_nequi || 0).toLocaleString('es-CO')}</span>
+          <span class="label">Tarjeta Debito</span>
+          <span class="value">$${parseFloat(cierre.total_tarjeta_debito).toLocaleString('es-CO')}</span>
         </div>
         <div class="row">
-          <span>Daviplata:</span>
-          <span>$${parseFloat(cierre.total_daviplata || 0).toLocaleString('es-CO')}</span>
-        </div>
-        <div class="row total">
-          <span>TOTAL VENTAS:</span>
-          <span>$${parseFloat(cierre.total_ventas).toLocaleString('es-CO')}</span>
-        </div>
-      </div>
-      
-      <div class="section">
-        <div class="section-title">Arqueo de Caja</div>
-        <div class="row">
-          <span>Efectivo Inicial:</span>
-          <span>$${parseFloat(cierre.efectivo_inicial).toLocaleString('es-CO')}</span>
+          <span class="label">Tarjeta Credito</span>
+          <span class="value">$${parseFloat(cierre.total_tarjeta_credito).toLocaleString('es-CO')}</span>
         </div>
         <div class="row">
-          <span>Efectivo Final:</span>
-          <span>$${parseFloat(cierre.efectivo_final).toLocaleString('es-CO')}</span>
+          <span class="label">Nequi</span>
+          <span class="value">$${parseFloat(cierre.total_nequi || 0).toLocaleString('es-CO')}</span>
         </div>
         <div class="row">
-          <span>Efectivo Esperado:</span>
-          <span>$${(parseFloat(cierre.efectivo_inicial) + parseFloat(cierre.total_efectivo)).toLocaleString('es-CO')}</span>
+          <span class="label">Daviplata</span>
+          <span class="value">$${parseFloat(cierre.total_daviplata || 0).toLocaleString('es-CO')}</span>
         </div>
-        <div class="row total diferencia">
-          <span>DIFERENCIA:</span>
-          <span class="${parseFloat(cierre.diferencia) === 0 ? 'neutral' : parseFloat(cierre.diferencia) > 0 ? 'positive' : 'negative'}">
-            $${parseFloat(cierre.diferencia).toLocaleString('es-CO')}
-            ${parseFloat(cierre.diferencia) > 0 ? ' (Sobrante)' : parseFloat(cierre.diferencia) < 0 ? ' (Faltante)' : ''}
-          </span>
+        
+        <div class="double-separator"></div>
+        
+        <div class="row total-row">
+          <span class="label">TOTAL VENTAS</span>
+          <span class="value">$${parseFloat(cierre.total_ventas).toLocaleString('es-CO')}</span>
         </div>
-      </div>
-      
-      ${cierre.notas ? `
-      <div class="section">
-        <div class="section-title">Notas</div>
-        <p style="font-size: 12px;">${cierre.notas}</p>
-      </div>
-      ` : ''}
-      
-      <div class="footer">
-        Impreso el ${format(new Date(), "d 'de' MMMM, yyyy HH:mm", { locale: es })}
+        
+        <div class="double-separator"></div>
+        
+        <div class="section-title center">Arqueo de Caja</div>
+        <div class="separator"></div>
+        
+        <div class="row">
+          <span class="label">Base inicial</span>
+          <span class="value">$${parseFloat(cierre.efectivo_inicial).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row">
+          <span class="label">+ Ventas efectivo</span>
+          <span class="value">$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}</span>
+        </div>
+        <div class="separator"></div>
+        <div class="row">
+          <span class="label">= Esperado</span>
+          <span class="value">$${efectivoEsperado.toLocaleString('es-CO')}</span>
+        </div>
+        <div class="row">
+          <span class="label">Contado</span>
+          <span class="value">$${parseFloat(cierre.efectivo_final).toLocaleString('es-CO')}</span>
+        </div>
+        
+        <div class="diferencia-section ${diferenciaClass}">
+          <div class="diferencia-label center">DIFERENCIA ${diferenciaText}</div>
+          <div class="diferencia-value">$${Math.abs(diferenciaNum).toLocaleString('es-CO')}</div>
+          <div class="center" style="font-size: 10px; margin-top: 4px;">
+            ${diferenciaNum === 0 ? 'CUADRE PERFECTO' : diferenciaNum > 0 ? 'SOBRANTE' : 'FALTANTE'}
+          </div>
+        </div>
+        
+        ${cierre.notas ? `
+        <div class="notas">
+          <div class="notas-title">NOTAS:</div>
+          <div>${cierre.notas}</div>
+        </div>
+        ` : ''}
+        
+        <div class="footer">
+          <div class="stars">* * * * * * * * * *</div>
+          <div class="timestamp">
+            Impreso: ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: es })}
+          </div>
+          <div style="margin-top: 8px;">Gracias por su trabajo</div>
+        </div>
       </div>
     </body>
     </html>
