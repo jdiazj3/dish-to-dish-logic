@@ -9,10 +9,11 @@ import { GestionMesas } from "@/components/admin/GestionMesas";
 
 export default function AdminMesasSalones() {
   const { user } = useAuth();
-  const { data: roles, isLoading } = useUserRole(user?.id);
+  const { data: roles, isLoading, isFetching } = useUserRole(user?.id);
   const navigate = useNavigate();
 
-  if (isLoading) {
+  // Esperar a que terminen de cargar los roles completamente
+  if (isLoading || isFetching || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 

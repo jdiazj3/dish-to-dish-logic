@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 export default function MeseroDashboard() {
   const { user, signOut, loading: authLoading } = useAuth();
-  const { data: roles, isLoading: rolesLoading } = useUserRole(user?.id);
+  const { data: roles, isLoading: rolesLoading, isFetching } = useUserRole(user?.id);
   const navigate = useNavigate();
 
   const { data: ordenesActivas } = useQuery({
@@ -29,8 +29,8 @@ export default function MeseroDashboard() {
     enabled: !!user?.id,
   });
 
-  // Esperar a que tanto auth como roles estén cargados
-  if (authLoading || rolesLoading) {
+  // Esperar a que terminen de cargar los roles completamente
+  if (authLoading || rolesLoading || isFetching || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 

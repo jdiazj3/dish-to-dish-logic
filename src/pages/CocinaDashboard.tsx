@@ -14,7 +14,7 @@ import { OrdenCard } from "@/components/OrdenCard";
 
 export default function CocinaDashboard() {
   const { user, signOut } = useAuth();
-  const { data: roles, isLoading } = useUserRole(user?.id);
+  const { data: roles, isLoading, isFetching } = useUserRole(user?.id);
   const queryClient = useQueryClient();
   const [turnoActual, setTurnoActual] = useState<'manana' | 'tarde' | 'noche'>('manana');
 
@@ -124,7 +124,8 @@ export default function CocinaDashboard() {
     },
   });
 
-  if (isLoading) {
+  // Esperar a que terminen de cargar los roles completamente
+  if (isLoading || isFetching || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 
