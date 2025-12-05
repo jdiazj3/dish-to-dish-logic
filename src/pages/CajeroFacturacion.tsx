@@ -9,11 +9,11 @@ import { ConsultaFacturas } from "@/components/cajero/ConsultaFacturas";
 
 export default function CajeroFacturacion() {
   const { user } = useAuth();
-  const { data: roles, isLoading } = useUserRole(user?.id);
+  const { data: roles, isLoading, isFetching } = useUserRole(user?.id);
   const navigate = useNavigate();
 
-  // Esperar a que tanto el usuario como los roles estén cargados
-  if (isLoading || !user || !roles) {
+  // Esperar a que terminen de cargar los roles completamente
+  if (isLoading || isFetching || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 
