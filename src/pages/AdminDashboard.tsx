@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen, BarChart3 } from "lucide-react";
+import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen, BarChart3, Package } from "lucide-react";
 import { toast } from "sonner";
 import { GestionProductos } from "@/components/admin/GestionProductos";
 import { GestionCategorias } from "@/components/admin/GestionCategorias";
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="dashboard">
               <LayoutDashboard className="w-4 h-4 mr-2" />
               Dashboard
@@ -65,6 +65,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="reportes">
               <BarChart3 className="w-4 h-4 mr-2" />
               Reportes
+            </TabsTrigger>
+            <TabsTrigger value="inventario">
+              <Package className="w-4 h-4 mr-2" />
+              Inventario
             </TabsTrigger>
             <TabsTrigger value="productos">
               <UtensilsCrossed className="w-4 h-4 mr-2" />
@@ -108,6 +112,21 @@ export default function AdminDashboard() {
                 <Button className="w-full">
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Ver Reportes
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="inventario">
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/inventario')}>
+              <CardHeader>
+                <CardTitle>Gestión de Inventario</CardTitle>
+                <CardDescription>Entradas, stock y proveedores para control de costos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">
+                  <Package className="w-4 h-4 mr-2" />
+                  Ir a Inventario
                 </Button>
               </CardContent>
             </Card>

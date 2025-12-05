@@ -232,6 +232,95 @@ export type Database = {
           },
         ]
       }
+      inventario_entradas: {
+        Row: {
+          cantidad: number
+          created_at: string
+          fecha_ingreso: string
+          fecha_vencimiento: string | null
+          id: string
+          lote: string | null
+          notas: string | null
+          precio_compra: number
+          producto_id: string | null
+          proveedor_id: string | null
+          registrado_por: string | null
+        }
+        Insert: {
+          cantidad: number
+          created_at?: string
+          fecha_ingreso?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          lote?: string | null
+          notas?: string | null
+          precio_compra: number
+          producto_id?: string | null
+          proveedor_id?: string | null
+          registrado_por?: string | null
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          fecha_ingreso?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          lote?: string | null
+          notas?: string | null
+          precio_compra?: number
+          producto_id?: string | null
+          proveedor_id?: string | null
+          registrado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventario_entradas_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventario_entradas_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventario_stock: {
+        Row: {
+          cantidad_actual: number
+          cantidad_minima: number | null
+          id: string
+          producto_id: string
+          ultima_actualizacion: string
+        }
+        Insert: {
+          cantidad_actual?: number
+          cantidad_minima?: number | null
+          id?: string
+          producto_id: string
+          ultima_actualizacion?: string
+        }
+        Update: {
+          cantidad_actual?: number
+          cantidad_minima?: number | null
+          id?: string
+          producto_id?: string
+          ultima_actualizacion?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventario_stock_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: true
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mesas: {
         Row: {
           capacidad_sillas: number
@@ -461,6 +550,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      proveedores: {
+        Row: {
+          activo: boolean | null
+          correo: string | null
+          created_at: string
+          direccion: string | null
+          id: string
+          nombre: string
+          notas: string | null
+          telefono: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          correo?: string | null
+          created_at?: string
+          direccion?: string | null
+          id?: string
+          nombre: string
+          notas?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          correo?: string | null
+          created_at?: string
+          direccion?: string | null
+          id?: string
+          nombre?: string
+          notas?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       salones: {
         Row: {
