@@ -86,6 +86,39 @@ export type Database = {
         }
         Relationships: []
       }
+      clientes: {
+        Row: {
+          apellido: string | null
+          cedula: string | null
+          celular: string | null
+          correo: string | null
+          created_at: string
+          id: string
+          nombre: string | null
+          updated_at: string
+        }
+        Insert: {
+          apellido?: string | null
+          cedula?: string | null
+          celular?: string | null
+          correo?: string | null
+          created_at?: string
+          id?: string
+          nombre?: string | null
+          updated_at?: string
+        }
+        Update: {
+          apellido?: string | null
+          cedula?: string | null
+          celular?: string | null
+          correo?: string | null
+          created_at?: string
+          id?: string
+          nombre?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       configuracion_restaurante: {
         Row: {
           created_at: string
@@ -182,6 +215,7 @@ export type Database = {
       facturas: {
         Row: {
           cajero_id: string | null
+          cliente_id: string | null
           consecutivo: number
           created_at: string
           id: string
@@ -196,6 +230,7 @@ export type Database = {
         }
         Insert: {
           cajero_id?: string | null
+          cliente_id?: string | null
           consecutivo?: number
           created_at?: string
           id?: string
@@ -210,6 +245,7 @@ export type Database = {
         }
         Update: {
           cajero_id?: string | null
+          cliente_id?: string | null
           consecutivo?: number
           created_at?: string
           id?: string
@@ -223,6 +259,13 @@ export type Database = {
           total?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "facturas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "facturas_orden_id_fkey"
             columns: ["orden_id"]
