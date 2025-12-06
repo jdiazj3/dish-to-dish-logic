@@ -12,9 +12,18 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet, Printer } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet, Printer, ChevronDown, User, Search } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+
+interface ClienteData {
+  nombre: string;
+  apellido: string;
+  cedula: string;
+  celular: string;
+  correo: string;
+}
 
 export function FacturacionOrdenes() {
   const { user } = useAuth();
@@ -26,6 +35,10 @@ export function FacturacionOrdenes() {
   const [metodoPago, setMetodoPago] = useState<"efectivo" | "debito" | "credito" | "nequi" | "daviplata">("efectivo");
   const [referenciaPago, setReferenciaPago] = useState("");
   const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
+  const [clienteData, setClienteData] = useState<ClienteData>({ nombre: "", apellido: "", cedula: "", celular: "", correo: "" });
+  const [clienteExpanded, setClienteExpanded] = useState(false);
+  const [busquedaCedula, setBusquedaCedula] = useState("");
+  const [clienteEncontrado, setClienteEncontrado] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: ordenesEntregadas, isLoading, error } = useQuery({
@@ -132,20 +145,23 @@ export function FacturacionOrdenes() {
   }, [queryClient]);
 
   const facturarMutation = useMutation({
-    mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago, sillasFacturadas }: any) => {
+    mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago, sillasFacturadas, clienteId }: any) => {
       // Crear la factura
       const { data: factura, error: facturaError } = await supabase
         .from('facturas')
         .insert({
           orden_id: ordenId,
           cajero_id: user?.id,
-          nombre_cliente: selectedOrden.nombre_cliente || 'Cliente',
+          nombre_cliente: clienteData.nombre && clienteData.apellido 
+            ? `${clienteData.nombre} ${clienteData.apellido}` 
+            : selectedOrden.nombre_cliente || 'Cliente',
           subtotal: totales.subtotal,
           impuestos: totales.impuestos,
           propina: totales.propina,
           total: totales.total,
           metodo_pago: metodoPago,
           referencia_pago: referenciaPago || null,
+          cliente_id: clienteId || null,
         })
         .select()
         .single();
@@ -277,6 +293,94 @@ export function FacturacionOrdenes() {
     setPropinaPorcentaje(10);
     setMetodoPago("efectivo");
     setReferenciaPago("");
+    setClienteData({ nombre: "", apellido: "", cedula: "", celular: "", correo: "" });
+    setClienteExpanded(false);
+    setBusquedaCedula("");
+    setClienteEncontrado(null);
+  };
+
+  const buscarClientePorCedula = async () => {
+    if (!busquedaCedula.trim()) return;
+    
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('cedula', busquedaCedula.trim())
+      .maybeSingle();
+    
+    if (error) {
+      toast.error("Error al buscar cliente");
+      return;
+    }
+    
+    if (data) {
+      setClienteEncontrado(data);
+      setClienteData({
+        nombre: data.nombre || "",
+        apellido: data.apellido || "",
+        cedula: data.cedula || "",
+        celular: data.celular || "",
+        correo: data.correo || "",
+      });
+      toast.success("Cliente encontrado");
+    } else {
+      setClienteEncontrado(null);
+      toast.info("Cliente no registrado");
+    }
+  };
+
+  const guardarCliente = async (): Promise<string | null> => {
+    // Si no hay datos del cliente, no guardar
+    const tieneAlgunDato = clienteData.nombre || clienteData.apellido || clienteData.cedula || clienteData.celular || clienteData.correo;
+    if (!tieneAlgunDato) return null;
+    
+    // Si ya tenemos un cliente encontrado con la misma cédula, usarlo
+    if (clienteEncontrado && clienteEncontrado.cedula === clienteData.cedula) {
+      return clienteEncontrado.id;
+    }
+    
+    // Si tiene cédula, verificar si ya existe
+    if (clienteData.cedula) {
+      const { data: existente } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('cedula', clienteData.cedula)
+        .maybeSingle();
+      
+      if (existente) {
+        // Actualizar cliente existente
+        await supabase
+          .from('clientes')
+          .update({
+            nombre: clienteData.nombre || null,
+            apellido: clienteData.apellido || null,
+            celular: clienteData.celular || null,
+            correo: clienteData.correo || null,
+          })
+          .eq('id', existente.id);
+        return existente.id;
+      }
+    }
+    
+    // Crear nuevo cliente
+    const { data: nuevoCliente, error } = await supabase
+      .from('clientes')
+      .insert({
+        nombre: clienteData.nombre || null,
+        apellido: clienteData.apellido || null,
+        cedula: clienteData.cedula || null,
+        celular: clienteData.celular || null,
+        correo: clienteData.correo || null,
+      })
+      .select('id')
+      .single();
+    
+    if (error) {
+      console.error('Error al guardar cliente:', error);
+      return null;
+    }
+    
+    return nuevoCliente?.id || null;
   };
 
   const handleFacturar = (orden: any) => {
@@ -319,13 +423,16 @@ export function FacturacionOrdenes() {
 
   const productosPorSilla = getProductosPorSilla();
 
-  const confirmarFacturacion = () => {
+  const confirmarFacturacion = async () => {
     const totales = calcularTotales();
     
     if (tipoFacturacion === "silla" && sillasSeleccionadas.length === 0) {
       toast.error("Selecciona al menos una silla");
       return;
     }
+
+    // Guardar cliente si hay datos
+    const clienteId = await guardarCliente();
 
     facturarMutation.mutate({
       ordenId: selectedOrden.id,
@@ -339,6 +446,7 @@ export function FacturacionOrdenes() {
       metodoPago,
       referenciaPago: referenciaPago.trim(),
       sillasFacturadas: tipoFacturacion === "silla" ? sillasSeleccionadas : null,
+      clienteId,
     });
   };
 
@@ -483,6 +591,108 @@ export function FacturacionOrdenes() {
                 </div>
               </RadioGroup>
             </div>
+
+            {/* Datos del cliente frecuente */}
+            <Collapsible open={clienteExpanded} onOpenChange={setClienteExpanded}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Datos del Cliente (Opcional)
+                  </div>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${clienteExpanded ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-4">
+                <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+                  {/* Búsqueda por cédula */}
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Label htmlFor="buscar-cedula" className="text-xs text-muted-foreground">Buscar cliente por cédula</Label>
+                      <Input
+                        id="buscar-cedula"
+                        placeholder="Ingrese cédula para buscar..."
+                        value={busquedaCedula}
+                        onChange={(e) => setBusquedaCedula(e.target.value.replace(/\D/g, ''))}
+                        maxLength={15}
+                      />
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      className="mt-5"
+                      onClick={buscarClientePorCedula}
+                    >
+                      <Search className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {clienteEncontrado && (
+                    <div className="text-sm text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                      ✓ Cliente registrado: {clienteEncontrado.nombre} {clienteEncontrado.apellido}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="cliente-nombre" className="text-xs">Nombre</Label>
+                      <Input
+                        id="cliente-nombre"
+                        placeholder="Nombre"
+                        value={clienteData.nombre}
+                        onChange={(e) => setClienteData({ ...clienteData, nombre: e.target.value })}
+                        maxLength={50}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cliente-apellido" className="text-xs">Apellido</Label>
+                      <Input
+                        id="cliente-apellido"
+                        placeholder="Apellido"
+                        value={clienteData.apellido}
+                        onChange={(e) => setClienteData({ ...clienteData, apellido: e.target.value })}
+                        maxLength={50}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="cliente-cedula" className="text-xs">Cédula</Label>
+                    <Input
+                      id="cliente-cedula"
+                      placeholder="Número de cédula"
+                      value={clienteData.cedula}
+                      onChange={(e) => setClienteData({ ...clienteData, cedula: e.target.value.replace(/\D/g, '') })}
+                      maxLength={15}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="cliente-celular" className="text-xs">Celular</Label>
+                      <Input
+                        id="cliente-celular"
+                        placeholder="Número de celular"
+                        value={clienteData.celular}
+                        onChange={(e) => setClienteData({ ...clienteData, celular: e.target.value.replace(/\D/g, '') })}
+                        maxLength={15}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cliente-correo" className="text-xs">Correo</Label>
+                      <Input
+                        id="cliente-correo"
+                        type="email"
+                        placeholder="correo@ejemplo.com"
+                        value={clienteData.correo}
+                        onChange={(e) => setClienteData({ ...clienteData, correo: e.target.value })}
+                        maxLength={100}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             {tipoFacturacion === "silla" && (
               <div className="space-y-3">
