@@ -39,6 +39,7 @@ export function FacturacionOrdenes() {
   const [clienteExpanded, setClienteExpanded] = useState(false);
   const [busquedaCedula, setBusquedaCedula] = useState("");
   const [clienteEncontrado, setClienteEncontrado] = useState<any>(null);
+  const [sillasFacturadasSesion, setSillasFacturadasSesion] = useState<number[]>([]);
   const queryClient = useQueryClient();
 
   const { data: ordenesEntregadas, isLoading, error } = useQuery({
@@ -241,6 +242,10 @@ export function FacturacionOrdenes() {
         resetForm();
       } else {
         // Si quedan sillas pendientes, actualizar la orden seleccionada y resetear selección de sillas
+        // Guardar las sillas facturadas en la sesión para mostrarlas visualmente
+        if (sillasFacturadas && sillasFacturadas.length > 0) {
+          setSillasFacturadasSesion(prev => [...prev, ...sillasFacturadas]);
+        }
         setSillasSeleccionadas([]);
         // Limpiar datos del cliente para permitir ingresar uno nuevo por cada silla
         setClienteData({ nombre: "", apellido: "", cedula: "", celular: "", correo: "" });
@@ -301,6 +306,7 @@ export function FacturacionOrdenes() {
     setClienteExpanded(false);
     setBusquedaCedula("");
     setClienteEncontrado(null);
+    setSillasFacturadasSesion([]);
   };
 
   const buscarClientePorCedula = async () => {
@@ -701,11 +707,40 @@ export function FacturacionOrdenes() {
             {tipoFacturacion === "silla" && (
               <div className="space-y-3">
                 <Label>Seleccionar Sillas a Facturar</Label>
+                
+                {/* Mostrar sillas ya facturadas en esta sesión */}
+                {sillasFacturadasSesion.length > 0 && (
+                  <div className="space-y-2 opacity-60">
+                    <p className="text-xs text-muted-foreground font-medium">Sillas ya facturadas:</p>
+                    {sillasFacturadasSesion.map((silla: number) => (
+                      <div key={`facturada-${silla}`} className="border rounded-lg p-3 bg-muted/50 border-green-500/30">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-green-500 flex items-center justify-center">
+                              <span className="text-white text-xs">✓</span>
+                            </div>
+                            <span className="font-semibold line-through text-muted-foreground">
+                              Silla {silla}
+                            </span>
+                          </div>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            Facturada
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Sillas pendientes por facturar */}
                 <div className="space-y-3">
+                  {sillasDisponibles.length > 0 && sillasFacturadasSesion.length > 0 && (
+                    <p className="text-xs text-muted-foreground font-medium">Sillas pendientes:</p>
+                  )}
                   {sillasDisponibles.map((silla: number) => {
                     const sillaData = productosPorSilla[silla];
                     return (
-                      <div key={silla} className="border rounded-lg p-3">
+                      <div key={silla} className="border rounded-lg p-3 border-primary/30 bg-background">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <Checkbox
