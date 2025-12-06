@@ -242,6 +242,10 @@ export function FacturacionOrdenes() {
       } else {
         // Si quedan sillas pendientes, actualizar la orden seleccionada y resetear selección de sillas
         setSillasSeleccionadas([]);
+        // Limpiar datos del cliente para permitir ingresar uno nuevo por cada silla
+        setClienteData({ nombre: "", apellido: "", cedula: "", celular: "", correo: "" });
+        setBusquedaCedula("");
+        setClienteEncontrado(null);
         // Refrescar la orden seleccionada con los datos actualizados
         const { data: ordenActualizada } = await supabase
           .from('ordenes')
@@ -251,7 +255,7 @@ export function FacturacionOrdenes() {
             orden_productos(*, productos(nombre))
           `)
           .eq('id', selectedOrden.id)
-          .single();
+          .maybeSingle();
         
         if (ordenActualizada) {
           setSelectedOrden(ordenActualizada);
