@@ -14,6 +14,64 @@ export type Database = {
   }
   public: {
     Tables: {
+      canjes_puntos: {
+        Row: {
+          cajero_id: string | null
+          cliente_id: string
+          created_at: string
+          estado: string
+          factura_id: string | null
+          id: string
+          notas: string | null
+          premio_id: string
+          puntos_usados: number
+        }
+        Insert: {
+          cajero_id?: string | null
+          cliente_id: string
+          created_at?: string
+          estado?: string
+          factura_id?: string | null
+          id?: string
+          notas?: string | null
+          premio_id: string
+          puntos_usados: number
+        }
+        Update: {
+          cajero_id?: string | null
+          cliente_id?: string
+          created_at?: string
+          estado?: string
+          factura_id?: string | null
+          id?: string
+          notas?: string | null
+          premio_id?: string
+          puntos_usados?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canjes_puntos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "canjes_puntos_factura_id_fkey"
+            columns: ["factura_id"]
+            isOneToOne: false
+            referencedRelation: "facturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "canjes_puntos_premio_id_fkey"
+            columns: ["premio_id"]
+            isOneToOne: false
+            referencedRelation: "premios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias: {
         Row: {
           created_at: string
@@ -496,6 +554,59 @@ export type Database = {
             columns: ["mesa_id"]
             isOneToOne: false
             referencedRelation: "mesas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      premios: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          descripcion: string | null
+          id: string
+          imagen_url: string | null
+          nombre: string
+          producto_id: string | null
+          puntos_requeridos: number
+          stock: number | null
+          tipo: string
+          updated_at: string
+          valor_descuento: number | null
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          imagen_url?: string | null
+          nombre: string
+          producto_id?: string | null
+          puntos_requeridos: number
+          stock?: number | null
+          tipo?: string
+          updated_at?: string
+          valor_descuento?: number | null
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          imagen_url?: string | null
+          nombre?: string
+          producto_id?: string | null
+          puntos_requeridos?: number
+          stock?: number | null
+          tipo?: string
+          updated_at?: string
+          valor_descuento?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premios_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
             referencedColumns: ["id"]
           },
         ]

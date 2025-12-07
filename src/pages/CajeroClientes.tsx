@@ -10,15 +10,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Users, Search, Mail, Phone, CreditCard, FileText, TrendingUp, Download, Star } from "lucide-react";
+import { ArrowLeft, Users, Search, Mail, Phone, CreditCard, FileText, TrendingUp, Download, Star, Gift } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
+import { CanjePuntos } from "@/components/cajero/CanjePuntos";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CajeroClientes() {
   const { user } = useAuth();
   const { data: roles, isLoading, isFetching } = useUserRole(user?.id);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [busqueda, setBusqueda] = useState("");
   const [clienteSeleccionado, setClienteSeleccionado] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -64,7 +67,7 @@ export default function CajeroClientes() {
 
       if (error) throw error;
 
-      // Obtener puntos acumulados
+      // Obtener puntos ganados
       const { data: puntosData, error: puntosError } = await supabase
         .from('puntos_cliente')
         .select('puntos_otorgados, turno, factura_id')
@@ -72,7 +75,16 @@ export default function CajeroClientes() {
 
       if (puntosError) throw puntosError;
 
-      const totalPuntos = puntosData?.reduce((sum, p) => sum + p.puntos_otorgados, 0) || 0;
+      // Obtener puntos usados en canjes
+      const { data: canjesData } = await supabase
+        .from('canjes_puntos')
+        .select('puntos_usados')
+        .eq('cliente_id', clienteSeleccionado.id)
+        .neq('estado', 'cancelado');
+
+      const puntosGanados = puntosData?.reduce((sum, p) => sum + p.puntos_otorgados, 0) || 0;
+      const puntosUsados = canjesData?.reduce((sum, c) => sum + c.puntos_usados, 0) || 0;
+      const totalPuntos = puntosGanados - puntosUsados;
       
       // Crear mapa de puntos por factura
       const puntosPorFactura: { [key: string]: number } = {};
@@ -386,8 +398,18 @@ export default function CajeroClientes() {
                     <Card className="bg-yellow-500/10 border-yellow-500/30">
                       <CardContent className="pt-4 text-center">
                         <Star className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
-                        <p className="text-xs text-muted-foreground">Puntos Acumulados</p>
+                        <p className="text-xs text-muted-foreground">Puntos Disponibles</p>
                         <p className="text-lg font-bold text-yellow-600">{estadisticasCliente.totalPuntos}</p>
+                        {estadisticasCliente.totalPuntos > 0 && (
+                          <div className="mt-2">
+                            <CanjePuntos
+                              clienteId={clienteSeleccionado.id}
+                              clienteNombre={`${clienteSeleccionado.nombre || ''} ${clienteSeleccionado.apellido || ''}`}
+                              puntosDisponibles={estadisticasCliente.totalPuntos}
+                              onCanjeExitoso={() => queryClient.invalidateQueries({ queryKey: ['estadisticas-cliente', clienteSeleccionado.id] })}
+                            />
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
