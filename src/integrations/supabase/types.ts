@@ -630,6 +630,84 @@ export type Database = {
         }
         Relationships: []
       }
+      puntos_cliente: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          factura_id: string
+          id: string
+          monto_factura: number
+          puntos_otorgados: number
+          turno: Database["public"]["Enums"]["turno"]
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          factura_id: string
+          id?: string
+          monto_factura: number
+          puntos_otorgados?: number
+          turno: Database["public"]["Enums"]["turno"]
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          factura_id?: string
+          id?: string
+          monto_factura?: number
+          puntos_otorgados?: number
+          turno?: Database["public"]["Enums"]["turno"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "puntos_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "puntos_cliente_factura_id_fkey"
+            columns: ["factura_id"]
+            isOneToOne: true
+            referencedRelation: "facturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      puntos_configuracion: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          descripcion: string | null
+          id: string
+          monto_base: number
+          puntos_por_peso: number
+          turno: Database["public"]["Enums"]["turno"]
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          monto_base?: number
+          puntos_por_peso?: number
+          turno: Database["public"]["Enums"]["turno"]
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          monto_base?: number
+          puntos_por_peso?: number
+          turno?: Database["public"]["Enums"]["turno"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       salones: {
         Row: {
           created_at: string
