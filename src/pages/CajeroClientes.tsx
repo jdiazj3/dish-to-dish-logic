@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Users, Search, Mail, Phone, CreditCard, FileText, TrendingUp, Download } from "lucide-react";
+import { ArrowLeft, Users, Search, Mail, Phone, CreditCard, FileText, TrendingUp, Download, Star } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -48,6 +48,7 @@ export default function CajeroClientes() {
     queryFn: async () => {
       if (!clienteSeleccionado?.id) return null;
 
+      // Obtener facturas
       const { data: facturas, error } = await supabase
         .from('facturas')
         .select(`
@@ -62,6 +63,22 @@ export default function CajeroClientes() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      // Obtener puntos acumulados
+      const { data: puntosData, error: puntosError } = await supabase
+        .from('puntos_cliente')
+        .select('puntos_otorgados, turno, factura_id')
+        .eq('cliente_id', clienteSeleccionado.id);
+
+      if (puntosError) throw puntosError;
+
+      const totalPuntos = puntosData?.reduce((sum, p) => sum + p.puntos_otorgados, 0) || 0;
+      
+      // Crear mapa de puntos por factura
+      const puntosPorFactura: { [key: string]: number } = {};
+      puntosData?.forEach(p => {
+        puntosPorFactura[p.factura_id] = p.puntos_otorgados;
+      });
 
       const totalGastado = facturas?.reduce((sum, f) => sum + parseFloat(String(f.total)), 0) || 0;
       const totalVisitas = facturas?.length || 0;
@@ -85,6 +102,8 @@ export default function CajeroClientes() {
         ticketPromedio: totalVisitas > 0 ? totalGastado / totalVisitas : 0,
         productosFavoritos,
         facturas: facturas || [],
+        totalPuntos,
+        puntosPorFactura,
       };
     },
     enabled: !!clienteSeleccionado?.id,
@@ -342,7 +361,7 @@ export default function CajeroClientes() {
                 <div className="text-center py-4 text-muted-foreground">Cargando estadísticas...</div>
               ) : estadisticasCliente && (
                 <>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <Card className="bg-primary/5">
                       <CardContent className="pt-4 text-center">
                         <TrendingUp className="w-6 h-6 mx-auto mb-2 text-primary" />
@@ -362,6 +381,13 @@ export default function CajeroClientes() {
                         <CreditCard className="w-6 h-6 mx-auto mb-2 text-primary" />
                         <p className="text-xs text-muted-foreground">Ticket Promedio</p>
                         <p className="text-lg font-bold">${estadisticasCliente.ticketPromedio.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-yellow-500/10 border-yellow-500/30">
+                      <CardContent className="pt-4 text-center">
+                        <Star className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
+                        <p className="text-xs text-muted-foreground">Puntos Acumulados</p>
+                        <p className="text-lg font-bold text-yellow-600">{estadisticasCliente.totalPuntos}</p>
                       </CardContent>
                     </Card>
                   </div>
@@ -393,28 +419,39 @@ export default function CajeroClientes() {
                       </CardHeader>
                       <CardContent>
                         <div className="max-h-60 overflow-y-auto space-y-2">
-                          {estadisticasCliente.facturas.map((factura: any) => (
-                            <div key={factura.id} className="p-3 border rounded-lg text-sm">
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="font-medium">Factura #{factura.consecutivo}</span>
-                                <Badge variant="outline">${Number(factura.total).toLocaleString('es-CO')}</Badge>
-                              </div>
-                              <div className="flex justify-between text-muted-foreground text-xs">
-                                <span>{format(new Date(factura.created_at), 'dd/MM/yyyy HH:mm')}</span>
-                                <span className="capitalize">{factura.metodo_pago}</span>
-                              </div>
-                              {factura.factura_items?.length > 0 && (
-                                <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
-                                  {factura.factura_items.slice(0, 3).map((item: any, idx: number) => (
-                                    <div key={idx}>{item.cantidad}x {item.producto_nombre}</div>
-                                  ))}
-                                  {factura.factura_items.length > 3 && (
-                                    <div>+{factura.factura_items.length - 3} más...</div>
-                                  )}
+                          {estadisticasCliente.facturas.map((factura: any) => {
+                            const puntosFactura = estadisticasCliente.puntosPorFactura?.[factura.id] || 0;
+                            return (
+                              <div key={factura.id} className="p-3 border rounded-lg text-sm">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="font-medium">Factura #{factura.consecutivo}</span>
+                                  <div className="flex items-center gap-2">
+                                    {puntosFactura > 0 && (
+                                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                                        <Star className="w-3 h-3 mr-1" />
+                                        +{puntosFactura}
+                                      </Badge>
+                                    )}
+                                    <Badge variant="outline">${Number(factura.total).toLocaleString('es-CO')}</Badge>
+                                  </div>
                                 </div>
-                              )}
-                            </div>
-                          ))}
+                                <div className="flex justify-between text-muted-foreground text-xs">
+                                  <span>{format(new Date(factura.created_at), 'dd/MM/yyyy HH:mm')}</span>
+                                  <span className="capitalize">{factura.metodo_pago}</span>
+                                </div>
+                                {factura.factura_items?.length > 0 && (
+                                  <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
+                                    {factura.factura_items.slice(0, 3).map((item: any, idx: number) => (
+                                      <div key={idx}>{item.cantidad}x {item.producto_nombre}</div>
+                                    ))}
+                                    {factura.factura_items.length > 3 && (
+                                      <div>+{factura.factura_items.length - 3} más...</div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </CardContent>
                     </Card>

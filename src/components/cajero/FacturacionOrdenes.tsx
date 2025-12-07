@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet, Printer, ChevronDown, User, Search } from "lucide-react";
+import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet, Printer, ChevronDown, User, Search, Star } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -47,7 +47,7 @@ export function FacturacionOrdenes() {
   const { data: historialCompras, isLoading: historialLoading } = useQuery({
     queryKey: ['historial-cliente', clienteEncontrado?.id],
     queryFn: async () => {
-      if (!clienteEncontrado?.id) return [];
+      if (!clienteEncontrado?.id) return { facturas: [], totalPuntos: 0 };
       
       const { data, error } = await supabase
         .from('facturas')
@@ -64,7 +64,26 @@ export function FacturacionOrdenes() {
         .limit(10);
       
       if (error) throw error;
-      return data || [];
+
+      // Obtener puntos del cliente
+      const { data: puntosData } = await supabase
+        .from('puntos_cliente')
+        .select('puntos_otorgados, factura_id')
+        .eq('cliente_id', clienteEncontrado.id);
+
+      const totalPuntos = puntosData?.reduce((sum, p) => sum + p.puntos_otorgados, 0) || 0;
+      
+      // Mapa de puntos por factura
+      const puntosPorFactura: { [key: string]: number } = {};
+      puntosData?.forEach(p => {
+        puntosPorFactura[p.factura_id] = p.puntos_otorgados;
+      });
+
+      return { 
+        facturas: data || [], 
+        totalPuntos,
+        puntosPorFactura
+      };
     },
     enabled: !!clienteEncontrado?.id,
   });
@@ -713,48 +732,69 @@ export function FacturacionOrdenes() {
                         ✓ Cliente registrado: {clienteEncontrado.nombre} {clienteEncontrado.apellido}
                       </div>
                       
+                      {/* Puntos acumulados del cliente */}
+                      {historialCompras && historialCompras.totalPuntos > 0 && (
+                        <div className="flex items-center gap-2 text-sm bg-yellow-50 p-2 rounded border border-yellow-200">
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          <span className="text-yellow-700 font-medium">
+                            {historialCompras.totalPuntos} puntos acumulados
+                          </span>
+                        </div>
+                      )}
+                      
                       {/* Historial de compras del cliente */}
-                      {historialCompras && historialCompras.length > 0 && (
+                      {historialCompras && historialCompras.facturas.length > 0 && (
                         <Collapsible open={historialExpanded} onOpenChange={setHistorialExpanded}>
                           <CollapsibleTrigger asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between text-xs h-8 bg-muted/50">
                               <span className="flex items-center gap-1">
                                 <FileText className="w-3 h-3" />
-                                Historial de compras ({historialCompras.length} facturas)
+                                Historial de compras ({historialCompras.facturas.length} facturas)
                               </span>
                               <ChevronDown className={`w-3 h-3 transition-transform ${historialExpanded ? 'rotate-180' : ''}`} />
                             </Button>
                           </CollapsibleTrigger>
                           <CollapsibleContent className="pt-2">
                             <div className="max-h-40 overflow-y-auto space-y-2 border rounded-md p-2 bg-muted/30">
-                              {historialCompras.map((factura: any) => (
-                                <div key={factura.id} className="text-xs p-2 bg-background rounded border">
-                                  <div className="flex justify-between items-center mb-1">
-                                    <span className="font-medium">Factura #{factura.consecutivo}</span>
-                                    <Badge variant="outline" className="text-[10px] h-5">
-                                      ${Number(factura.total).toLocaleString('es-CO')}
-                                    </Badge>
-                                  </div>
-                                  <div className="flex justify-between text-muted-foreground">
-                                    <span>{format(new Date(factura.created_at), 'dd/MM/yyyy HH:mm')}</span>
-                                    <span className="capitalize">{factura.metodo_pago}</span>
-                                  </div>
-                                  {factura.factura_items?.length > 0 && (
-                                    <div className="mt-1 pt-1 border-t text-muted-foreground">
-                                      {factura.factura_items.slice(0, 3).map((item: any, idx: number) => (
-                                        <div key={idx} className="truncate">
-                                          {item.cantidad}x {item.producto_nombre}
-                                        </div>
-                                      ))}
-                                      {factura.factura_items.length > 3 && (
-                                        <div className="text-muted-foreground/70">
-                                          +{factura.factura_items.length - 3} más...
-                                        </div>
-                                      )}
+                              {historialCompras.facturas.map((factura: any) => {
+                                const puntosFactura = historialCompras.puntosPorFactura?.[factura.id] || 0;
+                                return (
+                                  <div key={factura.id} className="text-xs p-2 bg-background rounded border">
+                                    <div className="flex justify-between items-center mb-1">
+                                      <span className="font-medium">Factura #{factura.consecutivo}</span>
+                                      <div className="flex items-center gap-1">
+                                        {puntosFactura > 0 && (
+                                          <Badge variant="outline" className="text-[10px] h-5 bg-yellow-50 text-yellow-700 border-yellow-200">
+                                            <Star className="w-2 h-2 mr-0.5" />
+                                            +{puntosFactura}
+                                          </Badge>
+                                        )}
+                                        <Badge variant="outline" className="text-[10px] h-5">
+                                          ${Number(factura.total).toLocaleString('es-CO')}
+                                        </Badge>
+                                      </div>
                                     </div>
-                                  )}
-                                </div>
-                              ))}
+                                    <div className="flex justify-between text-muted-foreground">
+                                      <span>{format(new Date(factura.created_at), 'dd/MM/yyyy HH:mm')}</span>
+                                      <span className="capitalize">{factura.metodo_pago}</span>
+                                    </div>
+                                    {factura.factura_items?.length > 0 && (
+                                      <div className="mt-1 pt-1 border-t text-muted-foreground">
+                                        {factura.factura_items.slice(0, 3).map((item: any, idx: number) => (
+                                          <div key={idx} className="truncate">
+                                            {item.cantidad}x {item.producto_nombre}
+                                          </div>
+                                        ))}
+                                        {factura.factura_items.length > 3 && (
+                                          <div className="text-muted-foreground/70">
+                                            +{factura.factura_items.length - 3} más...
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </CollapsibleContent>
                         </Collapsible>
