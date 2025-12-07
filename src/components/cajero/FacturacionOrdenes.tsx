@@ -40,7 +40,34 @@ export function FacturacionOrdenes() {
   const [busquedaCedula, setBusquedaCedula] = useState("");
   const [clienteEncontrado, setClienteEncontrado] = useState<any>(null);
   const [sillasFacturadasSesion, setSillasFacturadasSesion] = useState<number[]>([]);
+  const [historialExpanded, setHistorialExpanded] = useState(false);
   const queryClient = useQueryClient();
+
+  // Query para historial de compras del cliente encontrado
+  const { data: historialCompras, isLoading: historialLoading } = useQuery({
+    queryKey: ['historial-cliente', clienteEncontrado?.id],
+    queryFn: async () => {
+      if (!clienteEncontrado?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('facturas')
+        .select(`
+          id,
+          consecutivo,
+          total,
+          metodo_pago,
+          created_at,
+          factura_items(producto_nombre, cantidad, subtotal)
+        `)
+        .eq('cliente_id', clienteEncontrado.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!clienteEncontrado?.id,
+  });
 
   const { data: ordenesEntregadas, isLoading, error } = useQuery({
     queryKey: ['ordenes-entregadas'],
@@ -307,6 +334,7 @@ export function FacturacionOrdenes() {
     setBusquedaCedula("");
     setClienteEncontrado(null);
     setSillasFacturadasSesion([]);
+    setHistorialExpanded(false);
   };
 
   const buscarClientePorCedula = async () => {
@@ -638,8 +666,63 @@ export function FacturacionOrdenes() {
                   </div>
 
                   {clienteEncontrado && (
-                    <div className="text-sm text-green-600 bg-green-50 p-2 rounded border border-green-200">
-                      ✓ Cliente registrado: {clienteEncontrado.nombre} {clienteEncontrado.apellido}
+                    <div className="space-y-2">
+                      <div className="text-sm text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                        ✓ Cliente registrado: {clienteEncontrado.nombre} {clienteEncontrado.apellido}
+                      </div>
+                      
+                      {/* Historial de compras del cliente */}
+                      {historialCompras && historialCompras.length > 0 && (
+                        <Collapsible open={historialExpanded} onOpenChange={setHistorialExpanded}>
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm" className="w-full justify-between text-xs h-8 bg-muted/50">
+                              <span className="flex items-center gap-1">
+                                <FileText className="w-3 h-3" />
+                                Historial de compras ({historialCompras.length} facturas)
+                              </span>
+                              <ChevronDown className={`w-3 h-3 transition-transform ${historialExpanded ? 'rotate-180' : ''}`} />
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="pt-2">
+                            <div className="max-h-40 overflow-y-auto space-y-2 border rounded-md p-2 bg-muted/30">
+                              {historialCompras.map((factura: any) => (
+                                <div key={factura.id} className="text-xs p-2 bg-background rounded border">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="font-medium">Factura #{factura.consecutivo}</span>
+                                    <Badge variant="outline" className="text-[10px] h-5">
+                                      ${Number(factura.total).toLocaleString('es-CO')}
+                                    </Badge>
+                                  </div>
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>{format(new Date(factura.created_at), 'dd/MM/yyyy HH:mm')}</span>
+                                    <span className="capitalize">{factura.metodo_pago}</span>
+                                  </div>
+                                  {factura.factura_items?.length > 0 && (
+                                    <div className="mt-1 pt-1 border-t text-muted-foreground">
+                                      {factura.factura_items.slice(0, 3).map((item: any, idx: number) => (
+                                        <div key={idx} className="truncate">
+                                          {item.cantidad}x {item.producto_nombre}
+                                        </div>
+                                      ))}
+                                      {factura.factura_items.length > 3 && (
+                                        <div className="text-muted-foreground/70">
+                                          +{factura.factura_items.length - 3} más...
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )}
+                      
+                      {historialLoading && (
+                        <div className="text-xs text-muted-foreground text-center py-1">
+                          Cargando historial...
+                        </div>
+                      )}
                     </div>
                   )}
 
