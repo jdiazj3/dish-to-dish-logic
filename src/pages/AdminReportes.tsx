@@ -319,29 +319,15 @@ export default function AdminReportes() {
   });
 
   const handleExportExcel = async () => {
-    // Dynamic import to avoid CSP issues
-    const XLSX = await import("xlsx");
-    
-    const wb = XLSX.utils.book_new();
-
-    // Ventas por período
-    const wsVentas = XLSX.utils.json_to_sheet(prepararDatosExportacion(ventasPorPeriodo, "ventas"));
-    XLSX.utils.book_append_sheet(wb, wsVentas, "Ventas");
-
-    // Productos más vendidos
-    const wsProductos = XLSX.utils.json_to_sheet(prepararDatosExportacion(productosMasVendidos, "productos"));
-    XLSX.utils.book_append_sheet(wb, wsProductos, "Productos Top");
-
-    // Ranking meseros
-    const wsMeseros = XLSX.utils.json_to_sheet(prepararDatosExportacion(rankingMeseros, "meseros"));
-    XLSX.utils.book_append_sheet(wb, wsMeseros, "Meseros");
-
-    // Ranking cocineros
-    const wsCocineros = XLSX.utils.json_to_sheet(prepararDatosExportacion(rankingCocineros, "cocineros"));
-    XLSX.utils.book_append_sheet(wb, wsCocineros, "Cocineros");
-
-    XLSX.writeFile(wb, `reporte-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-    toast.success("Reporte exportado a Excel");
+    // Export all data as CSV (native implementation, no xlsx library)
+    const allData = [
+      ...prepararDatosExportacion(ventasPorPeriodo, "ventas").map(d => ({ ...d, Tipo: 'Ventas' })),
+      ...prepararDatosExportacion(productosMasVendidos, "productos").map(d => ({ ...d, Tipo: 'Productos' })),
+      ...prepararDatosExportacion(rankingMeseros, "meseros").map(d => ({ ...d, Tipo: 'Meseros' })),
+      ...prepararDatosExportacion(rankingCocineros, "cocineros").map(d => ({ ...d, Tipo: 'Cocineros' })),
+    ];
+    await exportToCSV(allData, `reporte-${format(new Date(), "yyyy-MM-dd")}`);
+    toast.success("Reporte exportado a CSV");
   };
 
   const handleExportCSV = async () => {

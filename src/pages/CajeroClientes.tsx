@@ -147,9 +147,6 @@ export default function CajeroClientes() {
     toast.loading("Generando reporte...", { id: "export" });
 
     try {
-      // Dynamic import to avoid CSP issues
-      const XLSX = await import("xlsx");
-      
       // Obtener estadísticas de todos los clientes
       const clientesConEstadisticas = await Promise.all(
         clientes.map(async (cliente) => {
@@ -175,17 +172,28 @@ export default function CajeroClientes() {
         })
       );
 
-      const ws = XLSX.utils.json_to_sheet(clientesConEstadisticas);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Clientes");
-
-      // Ajustar anchos de columna
-      ws['!cols'] = [
-        { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 25 },
-        { wch: 14 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
-      ];
-
-      XLSX.writeFile(wb, `clientes_frecuentes_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      // Native CSV export (no xlsx library)
+      const escapeCSV = (val: any) => {
+        if (val === null || val === undefined) return '';
+        const str = String(val);
+        return str.includes(',') || str.includes('"') || str.includes('\n') 
+          ? `"${str.replace(/"/g, '""')}"` : str;
+      };
+      
+      const headers = Object.keys(clientesConEstadisticas[0]);
+      const csv = [
+        headers.map(escapeCSV).join(','),
+        ...clientesConEstadisticas.map(row => headers.map(h => escapeCSV(row[h as keyof typeof row])).join(','))
+      ].join('\n');
+      
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `clientes_frecuentes_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      
       toast.success("Reporte exportado exitosamente", { id: "export" });
     } catch (error) {
       console.error("Error al exportar:", error);

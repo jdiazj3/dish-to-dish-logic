@@ -11,6 +11,35 @@ import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
+function escapeCSVValue(value: any): string {
+  if (value === null || value === undefined) return '';
+  const str = String(value);
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+function jsonToCSV(data: any[]): string {
+  if (data.length === 0) return '';
+  const headers = Object.keys(data[0]);
+  const headerRow = headers.map(escapeCSVValue).join(',');
+  const rows = data.map(row => 
+    headers.map(header => escapeCSVValue(row[header])).join(',')
+  );
+  return [headerRow, ...rows].join('\n');
+}
+
+function downloadCSV(content: string, filename: string) {
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + content], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
 export function ExportarVentas() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
@@ -27,7 +56,7 @@ export function ExportarVentas() {
     return `${format(dateRange.from, "d MMM", { locale: es })} - ${format(dateRange.to, "d MMM yyyy", { locale: es })}`;
   };
 
-  const exportToExcel = async () => {
+  const exportToCSV = async () => {
     if (!dateRange?.from) {
       toast.error("Selecciona un rango de fechas");
       return;
@@ -35,9 +64,6 @@ export function ExportarVentas() {
 
     setIsExporting(true);
     try {
-      // Dynamic import to avoid CSP issues
-      const XLSX = await import("xlsx");
-      
       const inicio = startOfDay(dateRange.from).toISOString();
       const fin = endOfDay(dateRange.to || dateRange.from).toISOString();
 
@@ -66,7 +92,7 @@ export function ExportarVentas() {
         return;
       }
 
-      // Crear hoja de resumen de facturas
+      // Crear datos de resumen de facturas
       const resumenData = facturas.map((f: any) => ({
         'N° Factura': f.consecutivo,
         'Cliente': f.nombre_cliente,
@@ -76,21 +102,6 @@ export function ExportarVentas() {
         'Propina': parseFloat(f.propina || 0),
         'Total': parseFloat(f.total),
       }));
-
-      // Crear hoja de detalle de productos
-      const detalleData: any[] = [];
-      facturas.forEach((f: any) => {
-        f.factura_items?.forEach((item: any) => {
-          detalleData.push({
-            'N° Factura': f.consecutivo,
-            'Fecha': format(new Date(f.created_at), "dd/MM/yyyy"),
-            'Producto': item.producto_nombre,
-            'Cantidad': item.cantidad,
-            'Precio Unitario': parseFloat(item.precio_unitario),
-            'Subtotal': parseFloat(item.subtotal),
-          });
-        });
-      });
 
       // Calcular totales
       const totales = facturas.reduce((acc: any, f: any) => ({
@@ -111,34 +122,15 @@ export function ExportarVentas() {
         'Total': totales.total,
       });
 
-      // Crear workbook
-      const wb = XLSX.utils.book_new();
-      
-      // Hoja de resumen
-      const wsResumen = XLSX.utils.json_to_sheet(resumenData);
-      wsResumen['!cols'] = [
-        { wch: 12 }, { wch: 25 }, { wch: 18 }, 
-        { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }
-      ];
-      XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen Facturas");
-
-      // Hoja de detalle
-      if (detalleData.length > 0) {
-        const wsDetalle = XLSX.utils.json_to_sheet(detalleData);
-        wsDetalle['!cols'] = [
-          { wch: 12 }, { wch: 12 }, { wch: 30 }, 
-          { wch: 10 }, { wch: 14 }, { wch: 12 }
-        ];
-        XLSX.utils.book_append_sheet(wb, wsDetalle, "Detalle Productos");
-      }
-
       // Generar nombre del archivo
       const fechaInicio = format(dateRange.from, "yyyyMMdd");
       const fechaFin = format(dateRange.to || dateRange.from, "yyyyMMdd");
-      const fileName = `Ventas_${fechaInicio}_${fechaFin}.xlsx`;
+      const fileName = `Ventas_${fechaInicio}_${fechaFin}.csv`;
 
-      // Descargar
-      XLSX.writeFile(wb, fileName);
+      // Descargar CSV
+      const csv = jsonToCSV(resumenData);
+      downloadCSV(csv, fileName);
+      
       toast.success("Archivo exportado correctamente");
       setDialogOpen(false);
     } catch (error: any) {
@@ -159,7 +151,7 @@ export function ExportarVentas() {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Exportar Ventas a Excel</DialogTitle>
+          <DialogTitle>Exportar Ventas</DialogTitle>
           <DialogDescription>
             Selecciona el rango de fechas para exportar
           </DialogDescription>
@@ -190,12 +182,12 @@ export function ExportarVentas() {
           </div>
 
           <Button 
-            onClick={exportToExcel} 
+            onClick={exportToCSV} 
             disabled={isExporting || !dateRange?.from}
             className="w-full gap-2"
           >
             <Download className="w-4 h-4" />
-            {isExporting ? "Exportando..." : "Descargar Excel"}
+            {isExporting ? "Exportando..." : "Descargar CSV"}
           </Button>
         </div>
       </DialogContent>
