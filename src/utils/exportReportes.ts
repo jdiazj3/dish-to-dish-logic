@@ -1,13 +1,23 @@
-import * as XLSX from "xlsx";
+// Lazy import xlsx to avoid CSP eval() issues
+let xlsxModule: typeof import("xlsx") | null = null;
 
-export function exportToExcel(data: any[], filename: string, sheetName: string = "Reporte") {
+async function getXLSX() {
+  if (!xlsxModule) {
+    xlsxModule = await import("xlsx");
+  }
+  return xlsxModule;
+}
+
+export async function exportToExcel(data: any[], filename: string, sheetName: string = "Reporte") {
+  const XLSX = await getXLSX();
   const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
   XLSX.writeFile(workbook, `${filename}.xlsx`);
 }
 
-export function exportToCSV(data: any[], filename: string) {
+export async function exportToCSV(data: any[], filename: string) {
+  const XLSX = await getXLSX();
   const worksheet = XLSX.utils.json_to_sheet(data);
   const csv = XLSX.utils.sheet_to_csv(worksheet);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });

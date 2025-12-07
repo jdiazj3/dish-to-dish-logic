@@ -13,7 +13,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ArrowLeft, Users, Search, Mail, Phone, CreditCard, FileText, TrendingUp, Download, Star, Gift } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 import { CanjePuntos } from "@/components/cajero/CanjePuntos";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -148,6 +147,9 @@ export default function CajeroClientes() {
     toast.loading("Generando reporte...", { id: "export" });
 
     try {
+      // Dynamic import to avoid CSP issues
+      const XLSX = await import("xlsx");
+      
       // Obtener estadísticas de todos los clientes
       const clientesConEstadisticas = await Promise.all(
         clientes.map(async (cliente) => {
