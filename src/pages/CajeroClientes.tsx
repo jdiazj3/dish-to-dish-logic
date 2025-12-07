@@ -10,8 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ArrowLeft, Users, Search, Mail, Phone, CreditCard, FileText, TrendingUp } from "lucide-react";
+import { ArrowLeft, Users, Search, Mail, Phone, CreditCard, FileText, TrendingUp, Download } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 export default function CajeroClientes() {
   const { user } = useAuth();
@@ -99,9 +101,63 @@ export default function CajeroClientes() {
     return <Navigate to="/" replace />;
   }
 
+  const isAdmin = roles?.includes('admin_total') || roles?.includes('admin_sede');
+
   const handleVerCliente = (cliente: any) => {
     setClienteSeleccionado(cliente);
     setDialogOpen(true);
+  };
+
+  const exportarExcel = async () => {
+    if (!clientes || clientes.length === 0) {
+      toast.error("No hay clientes para exportar");
+      return;
+    }
+
+    toast.loading("Generando reporte...", { id: "export" });
+
+    try {
+      // Obtener estadísticas de todos los clientes
+      const clientesConEstadisticas = await Promise.all(
+        clientes.map(async (cliente) => {
+          const { data: facturas } = await supabase
+            .from('facturas')
+            .select('total')
+            .eq('cliente_id', cliente.id);
+
+          const totalGastado = facturas?.reduce((sum, f) => sum + parseFloat(String(f.total)), 0) || 0;
+          const totalVisitas = facturas?.length || 0;
+
+          return {
+            Nombre: cliente.nombre || '',
+            Apellido: cliente.apellido || '',
+            Cédula: cliente.cedula || '',
+            Celular: cliente.celular || '',
+            Correo: cliente.correo || '',
+            'Fecha Registro': format(new Date(cliente.created_at), 'dd/MM/yyyy'),
+            'Total Gastado': totalGastado,
+            'Número de Visitas': totalVisitas,
+            'Ticket Promedio': totalVisitas > 0 ? Math.round(totalGastado / totalVisitas) : 0,
+          };
+        })
+      );
+
+      const ws = XLSX.utils.json_to_sheet(clientesConEstadisticas);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Clientes");
+
+      // Ajustar anchos de columna
+      ws['!cols'] = [
+        { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 25 },
+        { wch: 14 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
+      ];
+
+      XLSX.writeFile(wb, `clientes_frecuentes_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      toast.success("Reporte exportado exitosamente", { id: "export" });
+    } catch (error) {
+      console.error("Error al exportar:", error);
+      toast.error("Error al generar el reporte", { id: "export" });
+    }
   };
 
   return (
@@ -120,6 +176,12 @@ export default function CajeroClientes() {
               <p className="text-sm text-muted-foreground">Base de datos de clientes registrados</p>
             </div>
           </div>
+          {isAdmin && (
+            <Button onClick={exportarExcel} variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              Exportar Excel
+            </Button>
+          )}
         </div>
       </header>
 
