@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen, BarChart3, Package } from "lucide-react";
+import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen, BarChart3, Package, Star } from "lucide-react";
 import { toast } from "sonner";
 import { GestionProductos } from "@/components/admin/GestionProductos";
 import { GestionCategorias } from "@/components/admin/GestionCategorias";
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="config">
+          <TabsContent value="config" className="space-y-4">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/sedes')}>
               <CardHeader>
                 <CardTitle>Gestión de Sedes</CardTitle>
@@ -176,6 +176,22 @@ export default function AdminDashboard() {
                 <Button className="w-full">
                   <DoorOpen className="w-4 h-4 mr-2" />
                   Ir a Sedes
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/puntos')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-500" />
+                  Programa de Puntos
+                </CardTitle>
+                <CardDescription>Configura los puntos de lealtad por turno</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  <Star className="w-4 h-4 mr-2" />
+                  Configurar Puntos
                 </Button>
               </CardContent>
             </Card>

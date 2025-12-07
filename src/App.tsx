@@ -12,6 +12,7 @@ import AdminMesasSalones from "./pages/AdminMesasSalones";
 import AdminSedes from "./pages/AdminSedes";
 import AdminReportes from "./pages/AdminReportes";
 import AdminInventario from "./pages/AdminInventario";
+import AdminPuntos from "./pages/AdminPuntos";
 import MeseroDashboard from "./pages/MeseroDashboard";
 import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
@@ -68,6 +69,11 @@ const App = () => (
           <Route path="/admin/inventario" element={
             <ProtectedRoute>
               <AdminInventario />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/puntos" element={
+            <ProtectedRoute>
+              <AdminPuntos />
             </ProtectedRoute>
           } />
           <Route path="/mesero" element={
