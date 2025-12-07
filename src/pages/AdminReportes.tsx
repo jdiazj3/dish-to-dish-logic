@@ -14,9 +14,8 @@ import { ProductosMasVendidosReporte } from "@/components/admin/reportes/Product
 import { RankingEmpleados } from "@/components/admin/reportes/RankingEmpleados";
 import { AnalisisPorTurno } from "@/components/admin/reportes/AnalisisPorTurno";
 import { AnalisisPorSede } from "@/components/admin/reportes/AnalisisPorSede";
-import { exportToExcel, exportToCSV, prepararDatosExportacion } from "@/utils/exportReportes";
+import { exportToCSV, prepararDatosExportacion } from "@/utils/exportReportes";
 import { format, startOfMonth, endOfMonth } from "date-fns";
-import * as XLSX from "xlsx";
 
 export default function AdminReportes() {
   const { user } = useAuth();
@@ -319,7 +318,10 @@ export default function AdminReportes() {
     enabled: !!fechaInicio && !!fechaFin,
   });
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    // Dynamic import to avoid CSP issues
+    const XLSX = await import("xlsx");
+    
     const wb = XLSX.utils.book_new();
 
     // Ventas por período
@@ -342,8 +344,8 @@ export default function AdminReportes() {
     toast.success("Reporte exportado a Excel");
   };
 
-  const handleExportCSV = () => {
-    exportToCSV(prepararDatosExportacion(ventasPorPeriodo, "ventas"), `ventas-${format(new Date(), "yyyy-MM-dd")}`);
+  const handleExportCSV = async () => {
+    await exportToCSV(prepararDatosExportacion(ventasPorPeriodo, "ventas"), `ventas-${format(new Date(), "yyyy-MM-dd")}`);
     toast.success("Reporte exportado a CSV");
   };
 

@@ -10,7 +10,6 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 export function ExportarVentas() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -36,6 +35,9 @@ export function ExportarVentas() {
 
     setIsExporting(true);
     try {
+      // Dynamic import to avoid CSP issues
+      const XLSX = await import("xlsx");
+      
       const inicio = startOfDay(dateRange.from).toISOString();
       const fin = endOfDay(dateRange.to || dateRange.from).toISOString();
 
