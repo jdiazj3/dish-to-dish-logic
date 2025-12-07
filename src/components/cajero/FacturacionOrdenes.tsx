@@ -69,6 +69,20 @@ export function FacturacionOrdenes() {
     enabled: !!clienteEncontrado?.id,
   });
 
+  // Query para configuración de puntos
+  const { data: puntosConfig } = useQuery({
+    queryKey: ['puntos-configuracion'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('puntos_configuracion')
+        .select('*')
+        .eq('activo', true);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const { data: ordenesEntregadas, isLoading, error } = useQuery({
     queryKey: ['ordenes-entregadas'],
     queryFn: async () => {
@@ -173,7 +187,7 @@ export function FacturacionOrdenes() {
   }, [queryClient]);
 
   const facturarMutation = useMutation({
-    mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago, sillasFacturadas, clienteId }: any) => {
+    mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago, sillasFacturadas, clienteId, turnoOrden }: any) => {
       // Crear la factura
       const { data: factura, error: facturaError } = await supabase
         .from('facturas')
@@ -212,6 +226,31 @@ export function FacturacionOrdenes() {
 
       if (itemsError) throw itemsError;
 
+      // Calcular y asignar puntos si hay cliente registrado
+      let puntosOtorgados = 0;
+      if (clienteId && puntosConfig && puntosConfig.length > 0) {
+        const configTurno = puntosConfig.find((c: any) => c.turno === turnoOrden);
+        if (configTurno) {
+          puntosOtorgados = Math.floor((totales.total / configTurno.monto_base) * configTurno.puntos_por_peso);
+          
+          if (puntosOtorgados > 0) {
+            const { error: puntosError } = await supabase
+              .from('puntos_cliente')
+              .insert({
+                cliente_id: clienteId,
+                factura_id: factura.id,
+                puntos_otorgados: puntosOtorgados,
+                turno: turnoOrden,
+                monto_factura: totales.total,
+              });
+            
+            if (puntosError) {
+              console.error('Error al asignar puntos:', puntosError);
+            }
+          }
+        }
+      }
+
       // Marcar los productos como facturados
       const productIds = items.map((item: any) => item.id);
       const { error: updateError } = await supabase
@@ -241,22 +280,24 @@ export function FacturacionOrdenes() {
         factura, 
         ordenCompleta, 
         sillasRestantes: productosRestantes?.map((p: any) => p.numero_silla) || [],
-        sillasFacturadas 
+        sillasFacturadas,
+        puntosOtorgados
       };
     },
     onSuccess: async (result) => {
-      const { factura, ordenCompleta, sillasFacturadas } = result;
+      const { factura, ordenCompleta, sillasFacturadas, puntosOtorgados } = result;
       
       queryClient.invalidateQueries({ queryKey: ['ordenes-entregadas'] });
       queryClient.invalidateQueries({ queryKey: ['ordenes-pendientes-facturar'] });
       queryClient.invalidateQueries({ queryKey: ['facturas'] });
       
-      // Mostrar toast de éxito
+      // Mostrar toast de éxito con puntos si aplica
       const sillasTexto = sillasFacturadas?.length > 0 
         ? `Silla${sillasFacturadas.length > 1 ? 's' : ''} ${sillasFacturadas.join(', ')}` 
         : 'Mesa completa';
+      const puntosTexto = puntosOtorgados > 0 ? ` | +${puntosOtorgados} puntos` : '';
       toast.success(`Factura #${factura.consecutivo} generada`, {
-        description: `${sillasTexto} - $${Number(factura.total).toLocaleString('es-CO')}`
+        description: `${sillasTexto} - $${Number(factura.total).toLocaleString('es-CO')}${puntosTexto}`
       });
       
       // Generar e imprimir PDF automáticamente
@@ -485,6 +526,7 @@ export function FacturacionOrdenes() {
       referenciaPago: referenciaPago.trim(),
       sillasFacturadas: tipoFacturacion === "silla" ? sillasSeleccionadas : null,
       clienteId,
+      turnoOrden: selectedOrden.turno,
     });
   };
 
