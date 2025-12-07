@@ -1,34 +1,51 @@
-// Lazy import xlsx to avoid CSP eval() issues
-let xlsxModule: typeof import("xlsx") | null = null;
+// Native CSV/Excel export without xlsx library to avoid CSP eval() issues
 
-async function getXLSX() {
-  if (!xlsxModule) {
-    xlsxModule = await import("xlsx");
+function escapeCSVValue(value: any): string {
+  if (value === null || value === undefined) return '';
+  const str = String(value);
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
   }
-  return xlsxModule;
+  return str;
 }
 
-export async function exportToExcel(data: any[], filename: string, sheetName: string = "Reporte") {
-  const XLSX = await getXLSX();
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-  XLSX.writeFile(workbook, `${filename}.xlsx`);
+function jsonToCSV(data: any[]): string {
+  if (data.length === 0) return '';
+  
+  const headers = Object.keys(data[0]);
+  const headerRow = headers.map(escapeCSVValue).join(',');
+  
+  const rows = data.map(row => 
+    headers.map(header => escapeCSVValue(row[header])).join(',')
+  );
+  
+  return [headerRow, ...rows].join('\n');
 }
 
-export async function exportToCSV(data: any[], filename: string) {
-  const XLSX = await getXLSX();
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const csv = XLSX.utils.sheet_to_csv(worksheet);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+function downloadFile(content: string, filename: string, mimeType: string) {
+  const BOM = '\uFEFF'; // UTF-8 BOM for Excel compatibility
+  const blob = new Blob([BOM + content], { type: mimeType });
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
   link.setAttribute("href", url);
-  link.setAttribute("download", `${filename}.csv`);
+  link.setAttribute("download", filename);
   link.style.visibility = "hidden";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export async function exportToExcel(data: any[], filename: string, _sheetName: string = "Reporte") {
+  // Export as CSV with .xlsx extension for Excel compatibility
+  // This avoids the xlsx library which uses eval()
+  const csv = jsonToCSV(data);
+  downloadFile(csv, `${filename}.csv`, "text/csv;charset=utf-8;");
+}
+
+export async function exportToCSV(data: any[], filename: string) {
+  const csv = jsonToCSV(data);
+  downloadFile(csv, `${filename}.csv`, "text/csv;charset=utf-8;");
 }
 
 export function prepararDatosExportacion(datos: any[], tipo: string) {
