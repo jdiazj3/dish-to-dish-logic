@@ -110,11 +110,12 @@ export function FacturacionOrdenes() {
           .from('ordenes')
           .select(`
             *,
+            numero_orden,
             mesas(numero, salones(nombre)),
             orden_productos(*, productos(nombre))
           `)
           .eq('estado', 'entregada')
-          .order('created_at', { ascending: false });
+          .order('numero_orden', { ascending: false });
         
         if (error) {
           console.error('Error al cargar órdenes:', error);
@@ -603,6 +604,7 @@ export function FacturacionOrdenes() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Orden</TableHead>
                   <TableHead>Mesa</TableHead>
                   <TableHead>Salón</TableHead>
                   <TableHead>Cliente</TableHead>
@@ -621,8 +623,13 @@ export function FacturacionOrdenes() {
                       .map((p: any) => p.numero_silla)
                   )).sort((a: number, b: number) => a - b);
                   
-                  return (
+                    return (
                     <TableRow key={orden.id}>
+                      <TableCell>
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold">
+                          {orden.numero_orden || '-'}
+                        </div>
+                      </TableCell>
                       <TableCell>Mesa {orden.mesas?.numero}</TableCell>
                       <TableCell>{orden.mesas?.salones?.nombre}</TableCell>
                       <TableCell>{orden.nombre_cliente || "Sin nombre"}</TableCell>
@@ -663,7 +670,14 @@ export function FacturacionOrdenes() {
       }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Facturar Orden - Mesa {selectedOrden?.mesas?.numero}</DialogTitle>
+            <DialogTitle className="flex items-center gap-3">
+              {selectedOrden?.numero_orden && (
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold">
+                  {selectedOrden.numero_orden}
+                </div>
+              )}
+              Facturar Orden - Mesa {selectedOrden?.mesas?.numero}
+            </DialogTitle>
             <DialogDescription>
               Cliente: {selectedOrden?.nombre_cliente || "Sin nombre"}
             </DialogDescription>
