@@ -19,10 +19,10 @@ export default function MeseroDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ordenes')
-        .select('*, mesas(numero, salones(nombre)), orden_productos(cantidad)')
+        .select('*, numero_orden, mesas(numero, salones(nombre)), orden_productos(cantidad)')
         .eq('mesero_id', user?.id)
         .in('estado', ['recibida', 'tomada'])
-        .order('created_at', { ascending: false });
+        .order('numero_orden', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -113,9 +113,16 @@ export default function MeseroDashboard() {
                     onClick={() => navigate(`/orden/${orden.id}`)}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-semibold">Mesa {orden.mesas?.numero}</p>
-                        <p className="text-sm text-muted-foreground">{orden.mesas?.salones?.nombre}</p>
+                      <div className="flex items-center gap-3">
+                        {orden.numero_orden && (
+                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold text-lg">
+                            {orden.numero_orden}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-semibold">Mesa {orden.mesas?.numero}</p>
+                          <p className="text-sm text-muted-foreground">{orden.mesas?.salones?.nombre}</p>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={orden.estado === 'recibida' ? 'destructive' : 'secondary'}>
