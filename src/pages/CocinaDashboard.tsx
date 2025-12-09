@@ -30,10 +30,10 @@ export default function CocinaDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ordenes')
-        .select('*, mesas(numero, salones(nombre)), orden_productos(*, productos(nombre))')
+        .select('*, numero_orden, mesas(numero, salones(nombre)), orden_productos(*, productos(nombre))')
         .eq('estado', 'recibida')
         .eq('turno', turnoActual)
-        .order('created_at', { ascending: true });
+        .order('numero_orden', { ascending: true });
       if (error) throw error;
       return data;
     },
@@ -44,10 +44,10 @@ export default function CocinaDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ordenes')
-        .select('*, mesas(numero, salones(nombre)), orden_productos(*, productos(nombre))')
+        .select('*, numero_orden, mesas(numero, salones(nombre)), orden_productos(*, productos(nombre))')
         .eq('estado', 'tomada')
         .eq('turno', turnoActual)
-        .order('created_at', { ascending: true });
+        .order('numero_orden', { ascending: true });
       if (error) throw error;
       return data;
     },
@@ -58,10 +58,10 @@ export default function CocinaDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ordenes')
-        .select('*, mesas(numero, salones(nombre)), orden_productos(*, productos(nombre))')
+        .select('*, numero_orden, mesas(numero, salones(nombre)), orden_productos(*, productos(nombre))')
         .eq('estado', 'entregada')
         .eq('turno', turnoActual)
-        .order('created_at', { ascending: false });
+        .order('numero_orden', { ascending: false });
       if (error) throw error;
       return data;
     },

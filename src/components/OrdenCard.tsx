@@ -5,6 +5,7 @@ import { Clock } from "lucide-react";
 
 type Orden = {
   id: string;
+  numero_orden?: number;
   created_at: string;
   total: number;
   mesas: { numero: number; salones: { nombre: string } } | null;
@@ -44,9 +45,16 @@ export function OrdenCard({ orden, estado, onTomarOrden, onEntregarOrden, loadin
     <Card className="shadow-md hover:shadow-lg transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <div>
-            <p className="text-lg font-bold">Mesa {orden.mesas?.numero}</p>
-            <p className="text-sm text-muted-foreground">{orden.mesas?.salones?.nombre}</p>
+          <div className="flex items-center gap-3">
+            {orden.numero_orden && (
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground font-bold text-2xl shadow-lg">
+                {orden.numero_orden}
+              </div>
+            )}
+            <div>
+              <p className="text-lg font-bold">Mesa {orden.mesas?.numero}</p>
+              <p className="text-sm text-muted-foreground">{orden.mesas?.salones?.nombre}</p>
+            </div>
           </div>
           <div className="text-right">
             <Badge variant={
