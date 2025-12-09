@@ -520,6 +520,7 @@ export type Database = {
           mesa_id: string | null
           mesero_id: string | null
           nombre_cliente: string | null
+          numero_orden: number
           total: number | null
           turno: Database["public"]["Enums"]["turno"]
           updated_at: string
@@ -532,6 +533,7 @@ export type Database = {
           mesa_id?: string | null
           mesero_id?: string | null
           nombre_cliente?: string | null
+          numero_orden?: number
           total?: number | null
           turno: Database["public"]["Enums"]["turno"]
           updated_at?: string
@@ -544,6 +546,7 @@ export type Database = {
           mesa_id?: string | null
           mesero_id?: string | null
           nombre_cliente?: string | null
+          numero_orden?: number
           total?: number | null
           turno?: Database["public"]["Enums"]["turno"]
           updated_at?: string
