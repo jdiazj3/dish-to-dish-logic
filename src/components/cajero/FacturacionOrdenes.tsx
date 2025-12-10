@@ -1074,11 +1074,19 @@ export function FacturacionOrdenes() {
             </div>
 
             <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={facturarMutation.isPending}>
                 Cancelar
               </Button>
-              <Button onClick={confirmarFacturacion} disabled={facturarMutation.isPending}>
-                {facturarMutation.isPending ? "Procesando..." : "Generar Factura"}
+              <Button 
+                onClick={confirmarFacturacion} 
+                disabled={
+                  facturarMutation.isPending || 
+                  (tipoFacturacion === "silla" && sillasSeleccionadas.length === 0) ||
+                  (tipoFacturacion === "completa" && sillasDisponibles.length === 0)
+                }
+              >
+                {facturarMutation.isPending ? "Procesando..." : 
+                  sillasDisponibles.length === 0 ? "Todo Facturado" : "Generar Factura"}
               </Button>
             </div>
           </div>
