@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -26,15 +26,7 @@ export default function AdminReportes() {
   const [fechaFin, setFechaFin] = useState<Date | undefined>(endOfMonth(new Date()));
   const [sedeId, setSedeId] = useState<string>("all");
 
-  // Esperar a que terminen de cargar los roles completamente
-  if (isLoading || isFetching || roles === undefined) {
-    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
-  }
-
   const isAdmin = roles?.includes("admin_total") || roles?.includes("admin_sede");
-  if (!isAdmin) {
-    return <Navigate to="/" replace />;
-  }
 
   // Obtener sedes
   const { data: sedes = [] } = useQuery({
@@ -44,6 +36,7 @@ export default function AdminReportes() {
       if (error) throw error;
       return data;
     },
+    enabled: isAdmin,
   });
 
   // Obtener datos de ventas por período
@@ -81,7 +74,7 @@ export default function AdminReportes() {
         ordenes: number;
       }>;
     },
-    enabled: !!fechaInicio && !!fechaFin,
+    enabled: isAdmin && !!fechaInicio && !!fechaFin,
   });
 
   // Productos más vendidos
@@ -120,7 +113,7 @@ export default function AdminReportes() {
         total: number;
       }>;
     },
-    enabled: !!fechaInicio && !!fechaFin,
+    enabled: isAdmin && !!fechaInicio && !!fechaFin,
   });
 
   // Productos menos vendidos
@@ -157,7 +150,7 @@ export default function AdminReportes() {
         total: number;
       }>;
     },
-    enabled: !!fechaInicio && !!fechaFin,
+    enabled: isAdmin && !!fechaInicio && !!fechaFin,
   });
 
   // Ranking de meseros
@@ -201,7 +194,7 @@ export default function AdminReportes() {
         total_ventas: number;
       }>;
     },
-    enabled: !!fechaInicio && !!fechaFin,
+    enabled: isAdmin && !!fechaInicio && !!fechaFin,
   });
 
   // Ranking de cocineros
@@ -245,7 +238,7 @@ export default function AdminReportes() {
         total_ventas: number;
       }>;
     },
-    enabled: !!fechaInicio && !!fechaFin,
+    enabled: isAdmin && !!fechaInicio && !!fechaFin,
   });
 
   // Análisis por turno
@@ -279,7 +272,7 @@ export default function AdminReportes() {
         total: number;
       }>;
     },
-    enabled: !!fechaInicio && !!fechaFin,
+    enabled: isAdmin && !!fechaInicio && !!fechaFin,
   });
 
   // Análisis por sede
@@ -315,8 +308,17 @@ export default function AdminReportes() {
         total: number;
       }>;
     },
-    enabled: !!fechaInicio && !!fechaFin,
+    enabled: isAdmin && !!fechaInicio && !!fechaFin,
   });
+
+  // Early returns AFTER all hooks
+  if (isLoading || isFetching || roles === undefined) {
+    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleExportExcel = async () => {
     // Export all data as CSV (native implementation, no xlsx library)
