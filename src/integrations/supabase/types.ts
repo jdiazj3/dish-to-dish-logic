@@ -930,6 +930,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      reset_orden_counter: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin_total" | "admin_sede" | "cajero" | "mesero" | "cocina"
