@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
+import { formatCOP } from "@/utils/formatCurrency";
 
 interface VentasPorPeriodoProps {
   data: Array<{
@@ -34,8 +35,21 @@ export function VentasPorPeriodo({ data }: VentasPorPeriodoProps) {
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="fecha" className="text-xs" />
-              <YAxis className="text-xs" />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <YAxis 
+                className="text-xs" 
+                tickFormatter={(value) => formatCOP(value)}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '6px',
+                }}
+                formatter={(value: any, name: string) => [
+                  name === 'ventas' ? formatCOP(value) : value,
+                  name === 'ventas' ? 'Ventas' : 'Órdenes'
+                ]}
+              />
               <Legend />
               <Line type="monotone" dataKey="ventas" stroke="var(--color-ventas)" strokeWidth={2} name="Ventas ($)" />
               <Line type="monotone" dataKey="ordenes" stroke="var(--color-ordenes)" strokeWidth={2} name="Órdenes" />
