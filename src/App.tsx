@@ -25,6 +25,7 @@ import CrearUsuariosPrueba from "./pages/CrearUsuariosPrueba";
 import UserProfile from "./pages/UserProfile";
 import Logout from "./pages/Logout";
 import NotFound from "./pages/NotFound";
+import PantallaTurnos from "./pages/PantallaTurnos";
 
 const queryClient = new QueryClient();
 
@@ -123,6 +124,7 @@ const App = () => (
           } />
           <Route path="/logout" element={<Logout />} />
           <Route path="/setup/test-users" element={<CrearUsuariosPrueba />} />
+          <Route path="/turnos" element={<PantallaTurnos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
