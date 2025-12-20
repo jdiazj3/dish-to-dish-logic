@@ -15,6 +15,8 @@ import { RankingEmpleados } from "@/components/admin/reportes/RankingEmpleados";
 import { AnalisisPorTurno } from "@/components/admin/reportes/AnalisisPorTurno";
 import { AnalisisPorSede } from "@/components/admin/reportes/AnalisisPorSede";
 import { ReporteRentabilidad } from "@/components/admin/reportes/ReporteRentabilidad";
+import { ConfiguracionAlertasRentabilidad } from "@/components/admin/reportes/ConfiguracionAlertasRentabilidad";
+import { AlertaMargenBajo } from "@/components/admin/reportes/AlertaMargenBajo";
 import { exportToCSV, prepararDatosExportacion } from "@/utils/exportReportes";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 
@@ -431,6 +433,21 @@ export default function AdminReportes() {
     enabled: isAdmin && !!fechaInicio && !!fechaFin,
   });
 
+  // Configuración de alertas de rentabilidad
+  const { data: alertasConfig } = useQuery({
+    queryKey: ["alertas-rentabilidad-config"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("alertas_rentabilidad_config")
+        .select("*")
+        .single();
+      
+      if (error) return null;
+      return data;
+    },
+    enabled: isAdmin,
+  });
+
   // Early returns AFTER all hooks
   if (isLoading || isFetching || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
@@ -483,6 +500,20 @@ export default function AdminReportes() {
           sedes={sedes}
         />
 
+        {/* Alerta de margen bajo */}
+        {reporteRentabilidad && alertasConfig?.activo && (
+          <AlertaMargenBajo
+            margenActual={reporteRentabilidad.margenGanancia}
+            margenMinimo={alertasConfig.margen_minimo}
+            totalInversion={reporteRentabilidad.totalInversion}
+            totalVentas={reporteRentabilidad.totalVentas}
+            ganancia={reporteRentabilidad.ganancia}
+            fechaInicio={fechaInicio}
+            fechaFin={fechaFin}
+            emailConfigurado={!!alertasConfig.email_admin}
+          />
+        )}
+
         {/* Reporte de Rentabilidad */}
         {reporteRentabilidad && (
           <ReporteRentabilidad
@@ -496,6 +527,9 @@ export default function AdminReportes() {
             fechaFin={fechaFin}
           />
         )}
+
+        {/* Configuración de Alertas - Solo para admin_total */}
+        <ConfiguracionAlertasRentabilidad />
 
         <VentasPorPeriodo data={ventasPorPeriodo} />
 
