@@ -4,7 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff, ClipboardList, Users } from "lucide-react";
+import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff, ClipboardList, Users, Monitor } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -318,6 +318,19 @@ export default function CajeroDashboard() {
                 <Button variant="outline" className="w-full">
                   <Users className="w-4 h-4 mr-2" />
                   Ver Clientes
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.open('/turnos', '_blank')}>
+              <CardHeader>
+                <CardTitle>Pantalla de Turnos</CardTitle>
+                <CardDescription>Proyectar estado de órdenes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  <Monitor className="w-4 h-4 mr-2" />
+                  Abrir en Nueva Ventana
                 </Button>
               </CardContent>
             </Card>
