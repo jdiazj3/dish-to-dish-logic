@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, Plus, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
+import { formatCOP } from "@/utils/formatCurrency";
 
 export default function MeseroDashboard() {
   const { user, signOut, loading: authLoading } = useAuth();
@@ -134,7 +135,7 @@ export default function MeseroDashboard() {
                       </div>
                     </div>
                     <p className="text-sm">
-                      {orden.orden_productos?.reduce((sum: number, p: any) => sum + p.cantidad, 0)} productos • ${Number(orden.total).toFixed(2)}
+                      {orden.orden_productos?.reduce((sum: number, p: any) => sum + p.cantidad, 0)} productos • {formatCOP(orden.total)}
                     </p>
                   </div>
                 ))}

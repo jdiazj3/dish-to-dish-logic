@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
+import { formatCOP } from "@/utils/formatCurrency";
 
 type Orden = {
   id: string;
@@ -88,7 +89,7 @@ export function OrdenCard({ orden, estado, onTomarOrden, onEntregarOrden, loadin
         ))}
 
         <div className="flex justify-between items-center pt-2 border-t">
-          <span className="font-bold text-lg">Total: ${Number(orden.total).toFixed(2)}</span>
+          <span className="font-bold text-lg">Total: {formatCOP(orden.total)}</span>
           {estado === 'recibida' && onTomarOrden && (
             <Button 
               onClick={() => onTomarOrden(orden.id)}
