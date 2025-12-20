@@ -333,6 +333,59 @@ export type Database = {
           },
         ]
       }
+      insumos_restaurante: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          peso_estandar: number | null
+          precio_referencia: number | null
+          stock_actual: number | null
+          stock_minimo: number | null
+          tipo_insumo_id: string | null
+          unidad_medida: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          peso_estandar?: number | null
+          precio_referencia?: number | null
+          stock_actual?: number | null
+          stock_minimo?: number | null
+          tipo_insumo_id?: string | null
+          unidad_medida?: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          peso_estandar?: number | null
+          precio_referencia?: number | null
+          stock_actual?: number | null
+          stock_minimo?: number | null
+          tipo_insumo_id?: string | null
+          unidad_medida?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insumos_restaurante_tipo_insumo_id_fkey"
+            columns: ["tipo_insumo_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_insumos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventario_entradas: {
         Row: {
           cantidad: number
@@ -383,6 +436,66 @@ export type Database = {
           },
           {
             foreignKeyName: "inventario_entradas_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventario_entradas_insumos: {
+        Row: {
+          cantidad: number
+          created_at: string
+          fecha_compra: string
+          fecha_vencimiento: string | null
+          id: string
+          insumo_id: string
+          lote: string | null
+          notas: string | null
+          peso: number | null
+          precio_compra: number
+          proveedor_id: string | null
+          registrado_por: string | null
+        }
+        Insert: {
+          cantidad: number
+          created_at?: string
+          fecha_compra?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          insumo_id: string
+          lote?: string | null
+          notas?: string | null
+          peso?: number | null
+          precio_compra: number
+          proveedor_id?: string | null
+          registrado_por?: string | null
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          fecha_compra?: string
+          fecha_vencimiento?: string | null
+          id?: string
+          insumo_id?: string
+          lote?: string | null
+          notas?: string | null
+          peso?: number | null
+          precio_compra?: number
+          proveedor_id?: string | null
+          registrado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventario_entradas_insumos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos_restaurante"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventario_entradas_insumos_proveedor_id_fkey"
             columns: ["proveedor_id"]
             isOneToOne: false
             referencedRelation: "proveedores"
@@ -896,6 +1009,30 @@ export type Database = {
           notas?: string | null
           telefono?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      tipos_insumos: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
         }
         Relationships: []
       }
