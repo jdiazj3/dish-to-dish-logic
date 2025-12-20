@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays } from "date-fns";
 import { es } from "date-fns/locale";
+import { formatCOP } from "@/utils/formatCurrency";
 
 export function GraficoVentasPorDia() {
   const { data: ventasPorDia, isLoading } = useQuery({
@@ -59,7 +60,7 @@ export function GraficoVentasPorDia() {
               <YAxis 
                 className="text-xs"
                 stroke="hsl(var(--muted-foreground))"
-                tickFormatter={(value) => `$${value.toLocaleString()}`}
+                tickFormatter={(value) => formatCOP(value)}
               />
               <Tooltip
                 contentStyle={{
@@ -67,7 +68,7 @@ export function GraficoVentasPorDia() {
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '6px',
                 }}
-                formatter={(value: any) => [`$${value.toLocaleString()}`, 'Ventas']}
+                formatter={(value: any) => [formatCOP(value), 'Ventas']}
               />
               <Line 
                 type="monotone" 

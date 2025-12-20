@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { startOfDay, endOfDay } from "date-fns";
-
+import { formatCOP } from "@/utils/formatCurrency";
 const COLORES = [
   'hsl(var(--chart-1))',
   'hsl(var(--chart-2))',
@@ -119,7 +119,7 @@ export function VentasPorCategoria() {
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '6px',
                 }}
-                formatter={(value: any) => [`$${value.toLocaleString()}`, 'Ventas']}
+                formatter={(value: any) => [formatCOP(value), 'Ventas']}
               />
               <Legend />
             </PieChart>
