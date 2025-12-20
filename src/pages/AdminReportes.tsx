@@ -492,6 +492,8 @@ export default function AdminReportes() {
             margenGanancia={reporteRentabilidad.margenGanancia}
             detalleInversion={reporteRentabilidad.detalleInversion}
             inversionPorDia={reporteRentabilidad.inversionPorDia}
+            fechaInicio={fechaInicio}
+            fechaFin={fechaFin}
           />
         )}
 
