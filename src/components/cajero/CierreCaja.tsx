@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import jsPDF from "jspdf";
+import { formatCOP } from "@/utils/formatCurrency";
 
 const downloadCierrePDF = (cierre: any, fecha: string) => {
   const doc = new jsPDF({
@@ -546,7 +547,7 @@ export function CierreCaja() {
             <CardTitle className="text-sm font-medium">Efectivo</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${resumenDia?.efectivo.toLocaleString('es-CO') || '0'}</p>
+            <p className="text-2xl font-bold">{formatCOP(resumenDia?.efectivo || 0)}</p>
           </CardContent>
         </Card>
 
@@ -556,7 +557,7 @@ export function CierreCaja() {
             <CardTitle className="text-sm font-medium">Tarjeta Débito</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${resumenDia?.debito.toLocaleString('es-CO') || '0'}</p>
+            <p className="text-2xl font-bold">{formatCOP(resumenDia?.debito || 0)}</p>
           </CardContent>
         </Card>
 
@@ -566,7 +567,7 @@ export function CierreCaja() {
             <CardTitle className="text-sm font-medium">Tarjeta Crédito</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${resumenDia?.credito.toLocaleString('es-CO') || '0'}</p>
+            <p className="text-2xl font-bold">{formatCOP(resumenDia?.credito || 0)}</p>
           </CardContent>
         </Card>
 
@@ -576,7 +577,7 @@ export function CierreCaja() {
             <CardTitle className="text-sm font-medium">Nequi</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${resumenDia?.nequi.toLocaleString('es-CO') || '0'}</p>
+            <p className="text-2xl font-bold">{formatCOP(resumenDia?.nequi || 0)}</p>
           </CardContent>
         </Card>
 
@@ -586,7 +587,7 @@ export function CierreCaja() {
             <CardTitle className="text-sm font-medium">Daviplata</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${resumenDia?.daviplata.toLocaleString('es-CO') || '0'}</p>
+            <p className="text-2xl font-bold">{formatCOP(resumenDia?.daviplata || 0)}</p>
           </CardContent>
         </Card>
 
@@ -596,7 +597,7 @@ export function CierreCaja() {
             <CardTitle className="text-sm font-medium">Total Ventas</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">${resumenDia?.total.toLocaleString('es-CO') || '0'}</p>
+            <p className="text-2xl font-bold">{formatCOP(resumenDia?.total || 0)}</p>
             <p className="text-xs text-muted-foreground">{resumenDia?.facturas || 0} facturas</p>
           </CardContent>
         </Card>
@@ -620,7 +621,7 @@ export function CierreCaja() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-green-600">
                 <CheckCircle className="w-5 h-5" />
-                <span>Cierre registrado - Diferencia: ${cierreHoy.diferencia.toLocaleString('es-CO')}</span>
+                <span>Cierre registrado - Diferencia: {formatCOP(cierreHoy.diferencia)}</span>
               </div>
               <div className="flex gap-2">
                 <Button 
@@ -688,41 +689,41 @@ export function CierreCaja() {
                   <div className="border rounded-lg p-4 space-y-2 bg-muted/50">
                     <div className="flex justify-between text-sm">
                       <span>Ventas en Efectivo:</span>
-                      <span className="font-medium">${resumenDia?.efectivo.toLocaleString('es-CO') || '0'}</span>
+                      <span className="font-medium">{formatCOP(resumenDia?.efectivo || 0)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Ventas Tarjeta Débito:</span>
-                      <span className="font-medium">${resumenDia?.debito.toLocaleString('es-CO') || '0'}</span>
+                      <span className="font-medium">{formatCOP(resumenDia?.debito || 0)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Ventas Tarjeta Crédito:</span>
-                      <span className="font-medium">${resumenDia?.credito.toLocaleString('es-CO') || '0'}</span>
+                      <span className="font-medium">{formatCOP(resumenDia?.credito || 0)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Ventas Nequi:</span>
-                      <span className="font-medium">${resumenDia?.nequi.toLocaleString('es-CO') || '0'}</span>
+                      <span className="font-medium">{formatCOP(resumenDia?.nequi || 0)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Ventas Daviplata:</span>
-                      <span className="font-medium">${resumenDia?.daviplata.toLocaleString('es-CO') || '0'}</span>
+                      <span className="font-medium">{formatCOP(resumenDia?.daviplata || 0)}</span>
                     </div>
                     <div className="border-t pt-2 mt-2">
                       <div className="flex justify-between text-sm">
                         <span>Efectivo esperado:</span>
                         <span className="font-medium">
-                          ${(efectivoInicial + (resumenDia?.efectivo || 0)).toLocaleString('es-CO')}
+                          {formatCOP(efectivoInicial + (resumenDia?.efectivo || 0))}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Efectivo contado:</span>
-                        <span className="font-medium">${efectivoFinal.toLocaleString('es-CO')}</span>
+                        <span className="font-medium">{formatCOP(efectivoFinal)}</span>
                       </div>
                     </div>
                     <div className="border-t pt-2 mt-2">
                       <div className="flex justify-between font-bold">
                         <span>Diferencia:</span>
                         <span className={diferencia === 0 ? 'text-green-600' : diferencia > 0 ? 'text-blue-600' : 'text-red-600'}>
-                          ${diferencia.toLocaleString('es-CO')}
+                          {formatCOP(diferencia)}
                           {diferencia > 0 && ' (sobrante)'}
                           {diferencia < 0 && ' (faltante)'}
                         </span>
@@ -778,15 +779,15 @@ export function CierreCaja() {
                 {cierresAnteriores.map((cierre: any) => (
                   <TableRow key={cierre.id}>
                     <TableCell>{format(new Date(cierre.fecha), "dd/MM/yyyy")}</TableCell>
-                    <TableCell>${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}</TableCell>
-                    <TableCell>${parseFloat(cierre.total_tarjeta_debito).toLocaleString('es-CO')}</TableCell>
-                    <TableCell>${parseFloat(cierre.total_tarjeta_credito).toLocaleString('es-CO')}</TableCell>
-                    <TableCell>${parseFloat(cierre.total_nequi || 0).toLocaleString('es-CO')}</TableCell>
-                    <TableCell>${parseFloat(cierre.total_daviplata || 0).toLocaleString('es-CO')}</TableCell>
-                    <TableCell className="font-medium">${parseFloat(cierre.total_ventas).toLocaleString('es-CO')}</TableCell>
+                    <TableCell>{formatCOP(cierre.total_efectivo)}</TableCell>
+                    <TableCell>{formatCOP(cierre.total_tarjeta_debito)}</TableCell>
+                    <TableCell>{formatCOP(cierre.total_tarjeta_credito)}</TableCell>
+                    <TableCell>{formatCOP(cierre.total_nequi || 0)}</TableCell>
+                    <TableCell>{formatCOP(cierre.total_daviplata || 0)}</TableCell>
+                    <TableCell className="font-medium">{formatCOP(cierre.total_ventas)}</TableCell>
                     <TableCell>
                       <Badge variant={cierre.diferencia === 0 ? 'default' : cierre.diferencia > 0 ? 'secondary' : 'destructive'}>
-                        ${parseFloat(cierre.diferencia).toLocaleString('es-CO')}
+                        {formatCOP(cierre.diferencia)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

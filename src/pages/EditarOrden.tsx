@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, ShoppingCart, Save } from "lucide-react";
+import { formatCOP } from "@/utils/formatCurrency";
 
 type ProductoOrden = {
   id?: string;
@@ -296,7 +297,7 @@ export default function EditarOrden() {
                   <SelectContent>
                     {productosMenu?.map(producto => (
                       <SelectItem key={producto.id} value={producto.id}>
-                        {producto.nombre} - ${Number(producto.precio).toFixed(2)}
+                        {producto.nombre} - {formatCOP(producto.precio)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -369,7 +370,7 @@ export default function EditarOrden() {
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Silla {producto.silla} • ${producto.precio.toFixed(2)} c/u
+                            Silla {producto.silla} • {formatCOP(producto.precio)} c/u
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -381,7 +382,7 @@ export default function EditarOrden() {
                             className="w-16 text-center"
                           />
                           <span className="font-bold w-20 text-right">
-                            ${(producto.precio * producto.cantidad).toFixed(2)}
+                            {formatCOP(producto.precio * producto.cantidad)}
                           </span>
                           <Button
                             variant="ghost"
@@ -407,7 +408,7 @@ export default function EditarOrden() {
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total:</span>
-                  <span className="text-primary">${total.toFixed(2)}</span>
+                  <span className="text-primary">{formatCOP(total)}</span>
                 </div>
               </div>
 

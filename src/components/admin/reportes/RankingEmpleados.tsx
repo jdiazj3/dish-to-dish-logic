@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal, Award } from "lucide-react";
+import { formatCOP } from "@/utils/formatCurrency";
 
 interface RankingEmpleadosProps {
   data: Array<{
@@ -54,7 +55,7 @@ export function RankingEmpleados({ data, tipo }: RankingEmpleadosProps) {
                   <Badge variant="outline">{empleado.ordenes}</Badge>
                 </TableCell>
                 <TableCell className="text-right font-semibold">
-                  ${empleado.total_ventas?.toLocaleString() || 0}
+                  {formatCOP(empleado.total_ventas || 0)}
                 </TableCell>
               </TableRow>
             ))}

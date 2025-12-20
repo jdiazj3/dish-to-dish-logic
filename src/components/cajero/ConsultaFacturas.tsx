@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Eye, Receipt, Download, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { formatCOP } from "@/utils/formatCurrency";
 
 export function ConsultaFacturas() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -231,7 +232,7 @@ export function ConsultaFacturas() {
                     </TableCell>
                     <TableCell>{format(new Date(factura.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>
                     <TableCell className="font-semibold">
-                      ${Number(factura.total).toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                      {formatCOP(factura.total)}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -346,10 +347,10 @@ export function ConsultaFacturas() {
                         <TableCell>{item.producto_nombre}</TableCell>
                         <TableCell className="text-center">{item.cantidad}</TableCell>
                         <TableCell className="text-right">
-                          ${Number(item.precio_unitario).toLocaleString('es-CO')}
+                          {formatCOP(item.precio_unitario)}
                         </TableCell>
                         <TableCell className="text-right">
-                          ${Number(item.subtotal).toLocaleString('es-CO')}
+                          {formatCOP(item.subtotal)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -361,25 +362,25 @@ export function ConsultaFacturas() {
                 <div className="flex justify-between text-sm">
                   <span>Subtotal:</span>
                   <span className="font-medium">
-                    ${Number(selectedFactura.subtotal).toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                    {formatCOP(selectedFactura.subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Impuestos:</span>
                   <span className="font-medium">
-                    ${Number(selectedFactura.impuestos).toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                    {formatCOP(selectedFactura.impuestos)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Propina:</span>
                   <span className="font-medium">
-                    ${Number(selectedFactura.propina || 0).toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                    {formatCOP(selectedFactura.propina || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
                   <span>Total:</span>
                   <span>
-                    ${Number(selectedFactura.total).toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                    {formatCOP(selectedFactura.total)}
                   </span>
                 </div>
               </div>
@@ -407,7 +408,7 @@ export function ConsultaFacturas() {
             {selectedFactura && (
               <div className="text-sm text-muted-foreground">
                 <p>Factura: #{selectedFactura.consecutivo}</p>
-                <p>Total: ${Number(selectedFactura.total).toLocaleString('es-CO', { minimumFractionDigits: 2 })}</p>
+                <p>Total: {formatCOP(selectedFactura.total)}</p>
               </div>
             )}
           </div>

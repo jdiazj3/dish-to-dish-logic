@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GestionPremios } from "@/components/admin/GestionPremios";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatCOP } from "@/utils/formatCurrency";
 
 const turnoLabels: { [key: string]: { label: string; icon: any; color: string } } = {
   manana: { label: "Mañana", icon: Sun, color: "text-yellow-500" },
@@ -246,8 +247,8 @@ export default function AdminPuntos() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="secondary" className="text-base">
-                                {config.puntos_por_peso} punto{config.puntos_por_peso !== 1 ? 's' : ''} / ${config.monto_base.toLocaleString()}
+                            <Badge variant="secondary" className="text-base">
+                                {config.puntos_por_peso} punto{config.puntos_por_peso !== 1 ? 's' : ''} / {formatCOP(config.monto_base)}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-muted-foreground max-w-xs truncate">

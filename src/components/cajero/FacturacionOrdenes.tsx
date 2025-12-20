@@ -16,6 +16,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet, Printer, ChevronDown, User, Search, Star } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatCOP } from "@/utils/formatCurrency";
 
 interface ClienteData {
   nombre: string;
@@ -317,7 +318,7 @@ export function FacturacionOrdenes() {
         : 'Mesa completa';
       const puntosTexto = puntosOtorgados > 0 ? ` | +${puntosOtorgados} puntos` : '';
       toast.success(`Factura #${factura.consecutivo} generada`, {
-        description: `${sillasTexto} - $${Number(factura.total).toLocaleString('es-CO')}${puntosTexto}`
+        description: `${sillasTexto} - ${formatCOP(factura.total)}${puntosTexto}`
       });
       
       // Generar e imprimir PDF automáticamente
@@ -634,7 +635,7 @@ export function FacturacionOrdenes() {
                       <TableCell>{orden.mesas?.salones?.nombre}</TableCell>
                       <TableCell>{orden.nombre_cliente || "Sin nombre"}</TableCell>
                       <TableCell>{format(new Date(orden.created_at), 'dd/MM/yyyy HH:mm')}</TableCell>
-                      <TableCell className="font-semibold">${pendiente.toLocaleString('es-CO')}</TableCell>
+                      <TableCell className="font-semibold">{formatCOP(pendiente)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           {sillasPendientes.map((silla: number) => (
@@ -784,7 +785,7 @@ export function FacturacionOrdenes() {
                                           </Badge>
                                         )}
                                         <Badge variant="outline" className="text-[10px] h-5">
-                                          ${Number(factura.total).toLocaleString('es-CO')}
+                                          {formatCOP(factura.total)}
                                         </Badge>
                                       </div>
                                     </div>
@@ -938,15 +939,15 @@ export function FacturacionOrdenes() {
                             </Label>
                           </div>
                           <Badge variant="secondary">
-                            ${sillaData?.total.toLocaleString('es-CO')}
+                            {formatCOP(sillaData?.total)}
                           </Badge>
                         </div>
                         <div className="ml-6 space-y-1">
                           {sillaData?.productos.map((item: any, idx: number) => (
                             <div key={idx} className="text-sm">
-                              <span className="text-muted-foreground">
-                                {item.cantidad}x {item.productos?.nombre} - ${parseFloat(item.subtotal).toLocaleString('es-CO')}
-                              </span>
+                            <span className="text-muted-foreground">
+                              {item.cantidad}x {item.productos?.nombre} - {formatCOP(item.subtotal)}
+                            </span>
                               {item.notas && (
                                 <p className="text-xs text-amber-600 italic ml-2">📝 {item.notas}</p>
                               )}
@@ -968,7 +969,7 @@ export function FacturacionOrdenes() {
                     <div key={silla} className="border rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold">Silla {silla}</span>
-                        <Badge variant="outline">${data.total.toLocaleString('es-CO')}</Badge>
+                        <Badge variant="outline">{formatCOP(data.total)}</Badge>
                       </div>
                       <div className="space-y-1">
                         {data.productos.map((item: any, idx: number) => (
@@ -1057,19 +1058,19 @@ export function FacturacionOrdenes() {
             <div className="border rounded-lg p-4 space-y-2 bg-muted/50">
               <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
-                <span className="font-medium">${totales.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</span>
+                <span className="font-medium">{formatCOP(totales.subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Impuestos (19%):</span>
-                <span className="font-medium">${totales.impuestos.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</span>
+                <span className="font-medium">{formatCOP(totales.impuestos)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Propina ({propinaPorcentaje}%):</span>
-                <span className="font-medium">${totales.propina.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</span>
+                <span className="font-medium">{formatCOP(totales.propina)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold pt-2 border-t">
                 <span>Total:</span>
-                <span>${totales.total.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</span>
+                <span>{formatCOP(totales.total)}</span>
               </div>
             </div>
 
