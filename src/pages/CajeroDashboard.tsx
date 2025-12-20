@@ -14,6 +14,7 @@ import { GraficoVentasPorHora } from "@/components/cajero/GraficoVentasPorHora";
 import { ExportarVentas } from "@/components/cajero/ExportarVentas";
 import { ReporteMetodosPago } from "@/components/cajero/ReporteMetodosPago";
 import { useState } from "react";
+import { formatCOP } from "@/utils/formatCurrency";
 
 // Función para crear sonido de notificación usando Web Audio API
 const playNotificationSound = () => {
@@ -122,10 +123,10 @@ export default function CajeroDashboard() {
         playNotificationSound();
       }
       
-      toast.success("Nueva orden lista para facturar", {
-        description: `Orden #${newOrder.id.slice(0, 8)} - Total: $${parseFloat(newOrder.total || 0).toLocaleString('es-CO')}`,
-        duration: 5000,
-      });
+        toast.success("Nueva orden lista para facturar", {
+          description: `Orden #${newOrder.id.slice(0, 8)} - Total: ${formatCOP(newOrder.total || 0)}`,
+          duration: 5000,
+        });
     }
   }, [soundEnabled]);
 
@@ -234,7 +235,7 @@ export default function CajeroDashboard() {
               <DollarSign className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Total Ventas Hoy</CardTitle>
               <CardDescription className="text-3xl font-bold text-foreground">
-                ${estadisticas?.totalVentas.toLocaleString('es-CO') || '0'}
+                {formatCOP(estadisticas?.totalVentas || 0)}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -254,7 +255,7 @@ export default function CajeroDashboard() {
               <TrendingUp className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Ticket Promedio</CardTitle>
               <CardDescription className="text-3xl font-bold text-foreground">
-                ${estadisticas?.ticketPromedio.toLocaleString('es-CO', { maximumFractionDigits: 0 }) || '0'}
+                {formatCOP(estadisticas?.ticketPromedio || 0)}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -264,7 +265,7 @@ export default function CajeroDashboard() {
               <Coins className="w-10 h-10 text-primary mb-2" />
               <CardTitle>Total Propinas</CardTitle>
               <CardDescription className="text-3xl font-bold text-foreground">
-                ${estadisticas?.totalPropinas.toLocaleString('es-CO') || '0'}
+                {formatCOP(estadisticas?.totalPropinas || 0)}
               </CardDescription>
             </CardHeader>
           </Card>

@@ -11,6 +11,7 @@ import { startOfDay, endOfDay, format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
+import { formatCOP } from "@/utils/formatCurrency";
 
 export function GraficoVentasPorHora() {
   const queryClient = useQueryClient();
@@ -144,7 +145,7 @@ export function GraficoVentasPorHora() {
                 className="fill-muted-foreground"
               />
               <Tooltip 
-                formatter={(value: number) => [`$${value.toLocaleString('es-CO')}`, 'Ventas']}
+                formatter={(value: number) => [formatCOP(value), 'Ventas']}
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--card))', 
                   border: '1px solid hsl(var(--border))',

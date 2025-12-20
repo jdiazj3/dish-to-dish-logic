@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Gift, Plus, Edit, Trash2, Star, Percent, DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { formatCOP } from "@/utils/formatCurrency";
 
 const tipoLabels: { [key: string]: { label: string; icon: any } } = {
   descuento_valor: { label: "Descuento Valor", icon: DollarSign },
@@ -244,7 +245,7 @@ export function GestionPremios() {
                       <TableCell>
                         {premio.tipo === 'descuento_porcentaje' 
                           ? `${premio.valor_descuento}%`
-                          : `$${premio.valor_descuento?.toLocaleString()}`
+                          : formatCOP(premio.valor_descuento)
                         }
                       </TableCell>
                       <TableCell>

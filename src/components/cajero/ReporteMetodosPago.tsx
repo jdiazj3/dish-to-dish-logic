@@ -11,6 +11,7 @@ import { CalendarIcon, PieChartIcon } from "lucide-react";
 import { format, startOfDay, endOfDay, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { formatCOP } from "@/utils/formatCurrency";
 
 const COLORS = {
   efectivo: '#22c55e',  // green
@@ -91,7 +92,7 @@ export function ReporteMetodosPago() {
         <div className="bg-popover border rounded-lg p-3 shadow-lg">
           <p className="font-semibold">{data.name}</p>
           <p className="text-sm text-muted-foreground">{data.cantidad} facturas</p>
-          <p className="font-bold">${data.value.toLocaleString('es-CO', { minimumFractionDigits: 0 })}</p>
+          <p className="font-bold">{formatCOP(data.value)}</p>
           <p className="text-xs text-muted-foreground">{porcentaje}% del total</p>
         </div>
       );
@@ -174,7 +175,7 @@ export function ReporteMetodosPago() {
               <div className="border rounded-lg p-4 bg-muted/50">
                 <p className="text-sm text-muted-foreground">Total Período</p>
                 <p className="text-3xl font-bold">
-                  ${reporteData.totalGeneral.toLocaleString('es-CO', { minimumFractionDigits: 0 })}
+                  {formatCOP(reporteData.totalGeneral)}
                 </p>
                 <p className="text-sm text-muted-foreground">{reporteData.totalFacturas} facturas</p>
               </div>
@@ -198,7 +199,7 @@ export function ReporteMetodosPago() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold">${data.total.toLocaleString('es-CO', { minimumFractionDigits: 0 })}</p>
+                          <p className="font-bold">{formatCOP(data.total)}</p>
                           <p className="text-xs text-muted-foreground">{porcentaje.toFixed(1)}%</p>
                         </div>
                       </div>
