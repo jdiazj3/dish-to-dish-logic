@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
+import { formatCOP } from "@/utils/formatCurrency";
 
 interface AnalisisPorSedeProps {
   data: Array<{
@@ -34,8 +35,21 @@ export function AnalisisPorSede({ data }: AnalisisPorSedeProps) {
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="sede" className="text-xs" />
-              <YAxis className="text-xs" />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <YAxis 
+                className="text-xs"
+                tickFormatter={(value) => formatCOP(value)}
+              />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '6px',
+                }}
+                formatter={(value: any, name: string) => [
+                  name === 'total' ? formatCOP(value) : value,
+                  name === 'total' ? 'Ventas' : 'Órdenes'
+                ]}
+              />
               <Legend />
               <Bar dataKey="ordenes" fill="var(--color-ordenes)" name="Órdenes" />
               <Bar dataKey="total" fill="var(--color-total)" name="Ventas ($)" />
