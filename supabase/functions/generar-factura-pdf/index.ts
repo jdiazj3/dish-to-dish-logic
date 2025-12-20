@@ -13,6 +13,18 @@ interface FacturaRequest {
   correoDestino?: string;
 }
 
+// Función para formatear como pesos colombianos (sin decimales)
+const formatCOP = (value: number | string | null | undefined): string => {
+  const numValue = typeof value === 'string' ? parseFloat(value) : (value ?? 0);
+  if (isNaN(numValue)) return '$0';
+  return numValue.toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+};
+
 const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any, qrUrl: string) => {
   // Agrupar items por silla
   const itemsPorSilla = items?.reduce((acc: any, item: any) => {
@@ -34,8 +46,8 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
             ${item.notas ? `<br><small style="color: #f59e0b; font-style: italic;">📝 ${item.notas}</small>` : ''}
           </td>
           <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.cantidad}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.precio_unitario).toLocaleString('es-CO')}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.subtotal).toLocaleString('es-CO')}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCOP(item.precio_unitario)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCOP(item.subtotal)}</td>
         </tr>
       `).join('') || '';
     }
@@ -48,7 +60,7 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
       return `
         <tr>
           <td colspan="4" style="padding: 10px 8px 5px; background: #f5f5f5; font-weight: bold; border-bottom: 1px solid #ddd;">
-            🪑 Silla ${silla} - Subtotal: $${subtotalSilla.toLocaleString('es-CO')}
+            🪑 Silla ${silla} - Subtotal: ${formatCOP(subtotalSilla)}
           </td>
         </tr>
         ${sillaItems.map((item: any) => `
@@ -58,8 +70,8 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
               ${item.notas ? `<br><small style="color: #f59e0b; font-style: italic;">📝 ${item.notas}</small>` : ''}
             </td>
             <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.cantidad}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.precio_unitario).toLocaleString('es-CO')}</td>
-            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${Number(item.subtotal).toLocaleString('es-CO')}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCOP(item.precio_unitario)}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCOP(item.subtotal)}</td>
           </tr>
         `).join('')}
       `;
@@ -165,19 +177,19 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
         <table>
           <tr>
             <td>Subtotal:</td>
-            <td>$${Number(factura.subtotal).toLocaleString('es-CO', { minimumFractionDigits: 2 })}</td>
+            <td>${formatCOP(factura.subtotal)}</td>
           </tr>
           <tr>
             <td>Impuestos (19%):</td>
-            <td>$${Number(factura.impuestos).toLocaleString('es-CO', { minimumFractionDigits: 2 })}</td>
+            <td>${formatCOP(factura.impuestos)}</td>
           </tr>
           <tr>
             <td>Propina:</td>
-            <td>$${Number(factura.propina || 0).toLocaleString('es-CO', { minimumFractionDigits: 2 })}</td>
+            <td>${formatCOP(factura.propina || 0)}</td>
           </tr>
           <tr class="total-final">
             <td>TOTAL:</td>
-            <td>$${Number(factura.total).toLocaleString('es-CO', { minimumFractionDigits: 2 })}</td>
+            <td>${formatCOP(factura.total)}</td>
           </tr>
         </table>
       </div>

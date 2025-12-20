@@ -17,6 +17,18 @@ import { es } from "date-fns/locale";
 import jsPDF from "jspdf";
 import { formatCOP } from "@/utils/formatCurrency";
 
+// Función local para formatear COP en el PDF (sin importar de utils)
+const formatCOPLocal = (value: number | string | null | undefined): string => {
+  const numValue = typeof value === 'string' ? parseFloat(value) : (value ?? 0);
+  if (isNaN(numValue)) return '$0';
+  return numValue.toLocaleString('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+};
+
 const downloadCierrePDF = (cierre: any, fecha: string) => {
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -72,11 +84,11 @@ const downloadCierrePDF = (cierre: any, fecha: string) => {
     y += 4;
   };
 
-  addRow("Efectivo", `$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}`);
-  addRow("Tarjeta Debito", `$${parseFloat(cierre.total_tarjeta_debito).toLocaleString('es-CO')}`);
-  addRow("Tarjeta Credito", `$${parseFloat(cierre.total_tarjeta_credito).toLocaleString('es-CO')}`);
-  addRow("Nequi", `$${parseFloat(cierre.total_nequi || 0).toLocaleString('es-CO')}`);
-  addRow("Daviplata", `$${parseFloat(cierre.total_daviplata || 0).toLocaleString('es-CO')}`);
+  addRow("Efectivo", formatCOPLocal(cierre.total_efectivo));
+  addRow("Tarjeta Debito", formatCOPLocal(cierre.total_tarjeta_debito));
+  addRow("Tarjeta Credito", formatCOPLocal(cierre.total_tarjeta_credito));
+  addRow("Nequi", formatCOPLocal(cierre.total_nequi || 0));
+  addRow("Daviplata", formatCOPLocal(cierre.total_daviplata || 0));
   
   y += 2;
   doc.setLineWidth(0.5);
@@ -86,7 +98,7 @@ const downloadCierrePDF = (cierre: any, fecha: string) => {
   doc.setFont("courier", "bold");
   doc.setFontSize(10);
   doc.text("TOTAL VENTAS", margin, y);
-  doc.text(`$${parseFloat(cierre.total_ventas).toLocaleString('es-CO')}`, pageWidth - margin, y, { align: "right" });
+  doc.text(formatCOPLocal(cierre.total_ventas), pageWidth - margin, y, { align: "right" });
   y += 6;
 
   doc.line(margin, y, pageWidth - margin, y);
@@ -108,8 +120,8 @@ const downloadCierrePDF = (cierre: any, fecha: string) => {
 
   const efectivoEsperado = parseFloat(cierre.efectivo_inicial) + parseFloat(cierre.total_efectivo);
   
-  addRow("Base inicial", `$${parseFloat(cierre.efectivo_inicial).toLocaleString('es-CO')}`);
-  addRow("+ Ventas efectivo", `$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}`);
+  addRow("Base inicial", formatCOPLocal(cierre.efectivo_inicial));
+  addRow("+ Ventas efectivo", formatCOPLocal(cierre.total_efectivo));
   
   y += 1;
   doc.setLineDashPattern([1, 1], 0);
@@ -117,8 +129,8 @@ const downloadCierrePDF = (cierre: any, fecha: string) => {
   doc.setLineDashPattern([], 0);
   y += 4;
   
-  addRow("= Esperado", `$${efectivoEsperado.toLocaleString('es-CO')}`);
-  addRow("Contado", `$${parseFloat(cierre.efectivo_final).toLocaleString('es-CO')}`);
+  addRow("= Esperado", formatCOPLocal(efectivoEsperado));
+  addRow("Contado", formatCOPLocal(cierre.efectivo_final));
   
   y += 3;
 
@@ -137,7 +149,7 @@ const downloadCierrePDF = (cierre: any, fecha: string) => {
   
   doc.setFont("courier", "bold");
   doc.setFontSize(14);
-  doc.text(`$${Math.abs(diferenciaNum).toLocaleString('es-CO')}`, pageWidth / 2, y, { align: "center" });
+  doc.text(formatCOPLocal(Math.abs(diferenciaNum)), pageWidth / 2, y, { align: "center" });
   y += 5;
   
   doc.setFontSize(8);
@@ -185,6 +197,18 @@ const printCierreReport = (cierre: any, fecha: string) => {
   const diferenciaNum = parseFloat(cierre.diferencia);
   const diferenciaClass = diferenciaNum === 0 ? '' : diferenciaNum > 0 ? 'sobrante' : 'faltante';
   const diferenciaText = diferenciaNum > 0 ? '(+)' : diferenciaNum < 0 ? '(-)' : '';
+
+  // Helper para formatear COP en el HTML
+  const fmtCOP = (val: number | string | null | undefined): string => {
+    const numValue = typeof val === 'string' ? parseFloat(val) : (val ?? 0);
+    if (isNaN(numValue)) return '$0';
+    return numValue.toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+  };
 
   const html = `
     <!DOCTYPE html>
@@ -338,30 +362,30 @@ const printCierreReport = (cierre: any, fecha: string) => {
         
         <div class="row">
           <span class="label">Efectivo</span>
-          <span class="value">$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(cierre.total_efectivo)}</span>
         </div>
         <div class="row">
           <span class="label">Tarjeta Debito</span>
-          <span class="value">$${parseFloat(cierre.total_tarjeta_debito).toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(cierre.total_tarjeta_debito)}</span>
         </div>
         <div class="row">
           <span class="label">Tarjeta Credito</span>
-          <span class="value">$${parseFloat(cierre.total_tarjeta_credito).toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(cierre.total_tarjeta_credito)}</span>
         </div>
         <div class="row">
           <span class="label">Nequi</span>
-          <span class="value">$${parseFloat(cierre.total_nequi || 0).toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(cierre.total_nequi || 0)}</span>
         </div>
         <div class="row">
           <span class="label">Daviplata</span>
-          <span class="value">$${parseFloat(cierre.total_daviplata || 0).toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(cierre.total_daviplata || 0)}</span>
         </div>
         
         <div class="double-separator"></div>
         
         <div class="row total-row">
           <span class="label">TOTAL VENTAS</span>
-          <span class="value">$${parseFloat(cierre.total_ventas).toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(cierre.total_ventas)}</span>
         </div>
         
         <div class="double-separator"></div>
@@ -371,25 +395,25 @@ const printCierreReport = (cierre: any, fecha: string) => {
         
         <div class="row">
           <span class="label">Base inicial</span>
-          <span class="value">$${parseFloat(cierre.efectivo_inicial).toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(cierre.efectivo_inicial)}</span>
         </div>
         <div class="row">
           <span class="label">+ Ventas efectivo</span>
-          <span class="value">$${parseFloat(cierre.total_efectivo).toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(cierre.total_efectivo)}</span>
         </div>
         <div class="separator"></div>
         <div class="row">
           <span class="label">= Esperado</span>
-          <span class="value">$${efectivoEsperado.toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(efectivoEsperado)}</span>
         </div>
         <div class="row">
           <span class="label">Contado</span>
-          <span class="value">$${parseFloat(cierre.efectivo_final).toLocaleString('es-CO')}</span>
+          <span class="value">${fmtCOP(cierre.efectivo_final)}</span>
         </div>
         
         <div class="diferencia-section ${diferenciaClass}">
           <div class="diferencia-label center">DIFERENCIA ${diferenciaText}</div>
-          <div class="diferencia-value">$${Math.abs(diferenciaNum).toLocaleString('es-CO')}</div>
+          <div class="diferencia-value">${fmtCOP(Math.abs(diferenciaNum))}</div>
           <div class="center" style="font-size: 10px; margin-top: 4px;">
             ${diferenciaNum === 0 ? 'CUADRE PERFECTO' : diferenciaNum > 0 ? 'SOBRANTE' : 'FALTANTE'}
           </div>
