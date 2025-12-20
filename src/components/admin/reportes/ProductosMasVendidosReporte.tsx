@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
+import { formatCOP } from "@/utils/formatCurrency";
 
 interface ProductosMasVendidosReporteProps {
   data: Array<{
@@ -32,7 +33,17 @@ export function ProductosMasVendidosReporte({ data, tipo }: ProductosMasVendidos
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis type="number" className="text-xs" />
               <YAxis dataKey="nombre" type="category" width={150} className="text-xs" />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '6px',
+                }}
+                formatter={(value: any, name: string) => [
+                  name === 'total' ? formatCOP(value) : value,
+                  name === 'total' ? 'Total Ventas' : 'Cantidad'
+                ]}
+              />
               <Legend />
               <Bar dataKey="cantidad" fill="var(--color-cantidad)" name="Cantidad" />
             </BarChart>
