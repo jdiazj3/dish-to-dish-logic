@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      alertas_rentabilidad_config: {
+        Row: {
+          activo: boolean
+          created_at: string
+          email_admin: string | null
+          id: string
+          margen_minimo: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          email_admin?: string | null
+          id?: string
+          margen_minimo?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          email_admin?: string | null
+          id?: string
+          margen_minimo?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       canjes_puntos: {
         Row: {
           cajero_id: string | null
