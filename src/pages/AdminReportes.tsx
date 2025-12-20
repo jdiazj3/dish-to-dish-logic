@@ -14,6 +14,7 @@ import { ProductosMasVendidosReporte } from "@/components/admin/reportes/Product
 import { RankingEmpleados } from "@/components/admin/reportes/RankingEmpleados";
 import { AnalisisPorTurno } from "@/components/admin/reportes/AnalisisPorTurno";
 import { AnalisisPorSede } from "@/components/admin/reportes/AnalisisPorSede";
+import { ReporteRentabilidad } from "@/components/admin/reportes/ReporteRentabilidad";
 import { exportToCSV, prepararDatosExportacion } from "@/utils/exportReportes";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 
@@ -311,6 +312,125 @@ export default function AdminReportes() {
     enabled: isAdmin && !!fechaInicio && !!fechaFin,
   });
 
+  // Reporte de Rentabilidad - Inventario vs Ventas
+  const { data: reporteRentabilidad } = useQuery({
+    queryKey: ["reporte-rentabilidad", fechaInicio, fechaFin],
+    queryFn: async () => {
+      // Obtener entradas de productos (inventario_entradas)
+      const { data: entradasProductos, error: errorProductos } = await supabase
+        .from("inventario_entradas")
+        .select("cantidad, precio_compra, fecha_ingreso");
+
+      if (errorProductos) throw errorProductos;
+
+      // Obtener entradas de insumos (inventario_entradas_insumos)
+      const { data: entradasInsumos, error: errorInsumos } = await supabase
+        .from("inventario_entradas_insumos")
+        .select("cantidad, precio_compra, fecha_compra");
+
+      if (errorInsumos) throw errorInsumos;
+
+      // Obtener facturas (ventas)
+      const { data: facturas, error: errorFacturas } = await supabase
+        .from("facturas")
+        .select("total, created_at");
+
+      if (errorFacturas) throw errorFacturas;
+
+      // Filtrar por rango de fechas
+      const productosFiltered = (entradasProductos || []).filter((item: any) => {
+        const fecha = new Date(item.fecha_ingreso);
+        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
+      });
+
+      const insumosFiltered = (entradasInsumos || []).filter((item: any) => {
+        const fecha = new Date(item.fecha_compra);
+        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
+      });
+
+      const facturasFiltered = (facturas || []).filter((item: any) => {
+        const fecha = new Date(item.created_at);
+        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
+      });
+
+      // Calcular totales
+      const totalProductos = productosFiltered.reduce(
+        (sum: number, item: any) => sum + (parseFloat(item.cantidad) * parseFloat(item.precio_compra)),
+        0
+      );
+
+      const totalInsumos = insumosFiltered.reduce(
+        (sum: number, item: any) => sum + (parseFloat(item.cantidad) * parseFloat(item.precio_compra)),
+        0
+      );
+
+      const totalInversion = totalProductos + totalInsumos;
+
+      const totalVentas = facturasFiltered.reduce(
+        (sum: number, item: any) => sum + parseFloat(item.total),
+        0
+      );
+
+      const ganancia = totalVentas - totalInversion;
+      const margenGanancia = totalVentas > 0 ? ((ganancia / totalVentas) * 100) : 0;
+
+      // Agrupar por día para el gráfico
+      const datosPorDia: Record<string, { fecha: string; inversion: number; ventas: number; ganancia: number }> = {};
+
+      // Agregar inversiones de productos por día
+      productosFiltered.forEach((item: any) => {
+        const fecha = format(new Date(item.fecha_ingreso), "yyyy-MM-dd");
+        if (!datosPorDia[fecha]) {
+          datosPorDia[fecha] = { fecha, inversion: 0, ventas: 0, ganancia: 0 };
+        }
+        datosPorDia[fecha].inversion += parseFloat(item.cantidad) * parseFloat(item.precio_compra);
+      });
+
+      // Agregar inversiones de insumos por día
+      insumosFiltered.forEach((item: any) => {
+        const fecha = format(new Date(item.fecha_compra), "yyyy-MM-dd");
+        if (!datosPorDia[fecha]) {
+          datosPorDia[fecha] = { fecha, inversion: 0, ventas: 0, ganancia: 0 };
+        }
+        datosPorDia[fecha].inversion += parseFloat(item.cantidad) * parseFloat(item.precio_compra);
+      });
+
+      // Agregar ventas por día
+      facturasFiltered.forEach((item: any) => {
+        const fecha = format(new Date(item.created_at), "yyyy-MM-dd");
+        if (!datosPorDia[fecha]) {
+          datosPorDia[fecha] = { fecha, inversion: 0, ventas: 0, ganancia: 0 };
+        }
+        datosPorDia[fecha].ventas += parseFloat(item.total);
+      });
+
+      // Calcular ganancia por día
+      Object.values(datosPorDia).forEach(dia => {
+        dia.ganancia = dia.ventas - dia.inversion;
+      });
+
+      const inversionPorDia = Object.values(datosPorDia)
+        .sort((a, b) => a.fecha.localeCompare(b.fecha))
+        .map(d => ({
+          ...d,
+          fecha: format(new Date(d.fecha), "dd/MM"),
+        }));
+
+      return {
+        totalInversion,
+        totalVentas,
+        ganancia,
+        margenGanancia,
+        detalleInversion: {
+          productos: totalProductos,
+          insumos: totalInsumos,
+        },
+        inversionPorDia,
+      };
+    },
+    enabled: isAdmin && !!fechaInicio && !!fechaFin,
+  });
+
   // Early returns AFTER all hooks
   if (isLoading || isFetching || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
@@ -362,6 +482,18 @@ export default function AdminReportes() {
           onExportCSV={handleExportCSV}
           sedes={sedes}
         />
+
+        {/* Reporte de Rentabilidad */}
+        {reporteRentabilidad && (
+          <ReporteRentabilidad
+            totalInversion={reporteRentabilidad.totalInversion}
+            totalVentas={reporteRentabilidad.totalVentas}
+            ganancia={reporteRentabilidad.ganancia}
+            margenGanancia={reporteRentabilidad.margenGanancia}
+            detalleInversion={reporteRentabilidad.detalleInversion}
+            inversionPorDia={reporteRentabilidad.inversionPorDia}
+          />
+        )}
 
         <VentasPorPeriodo data={ventasPorPeriodo} />
 
