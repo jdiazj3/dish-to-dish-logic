@@ -17,6 +17,10 @@ const chartConfig = {
     label: "Cantidad Vendida",
     color: "hsl(var(--primary))",
   },
+  total: {
+    label: "Total Ventas",
+    color: "hsl(var(--secondary))",
+  },
 };
 
 export function ProductosMasVendidosReporte({ data, tipo }: ProductosMasVendidosReporteProps) {
@@ -24,7 +28,7 @@ export function ProductosMasVendidosReporte({ data, tipo }: ProductosMasVendidos
     <Card>
       <CardHeader>
         <CardTitle>Productos {tipo === "mas" ? "Más" : "Menos"} Vendidos</CardTitle>
-        <CardDescription>Top 10 productos por cantidad vendida</CardDescription>
+        <CardDescription>Top 10 productos por cantidad vendida y total de ventas</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px]">
@@ -46,6 +50,7 @@ export function ProductosMasVendidosReporte({ data, tipo }: ProductosMasVendidos
               />
               <Legend />
               <Bar dataKey="cantidad" fill="var(--color-cantidad)" name="Cantidad" />
+              <Bar dataKey="total" fill="var(--color-total)" name="Total Ventas ($)" />
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
