@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, ShoppingCart } from "lucide-react";
+import { formatCOP } from "@/utils/formatCurrency";
 
 type ProductoSilla = {
   silla: number;
@@ -208,7 +209,7 @@ export default function CrearOrden() {
                   <SelectContent>
                     {productosMenu?.map(producto => (
                       <SelectItem key={producto.id} value={producto.id}>
-                        {producto.nombre} - ${Number(producto.precio).toFixed(2)}
+                        {producto.nombre} - {formatCOP(producto.precio)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -275,14 +276,14 @@ export default function CrearOrden() {
                       <div className="flex-1">
                         <p className="font-medium">{producto.producto_nombre}</p>
                         <p className="text-sm text-muted-foreground">
-                          Silla {producto.silla} • Cant: {producto.cantidad} • ${producto.precio.toFixed(2)} c/u
+                          Silla {producto.silla} • Cant: {producto.cantidad} • {formatCOP(producto.precio)} c/u
                         </p>
                         {producto.notas && (
                           <p className="text-xs text-amber-600 mt-1 italic">📝 {producto.notas}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold">${(producto.precio * producto.cantidad).toFixed(2)}</span>
+                        <span className="font-bold">{formatCOP(producto.precio * producto.cantidad)}</span>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -299,7 +300,7 @@ export default function CrearOrden() {
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total:</span>
-                  <span className="text-primary">${total.toFixed(2)}</span>
+                  <span className="text-primary">{formatCOP(total)}</span>
                 </div>
               </div>
 
