@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, ShoppingCart, TrendingUp, Users } from "lucide-react";
-import { format, startOfDay, endOfDay } from "date-fns";
+import { startOfDay, endOfDay } from "date-fns";
+import { formatCOP } from "@/utils/formatCurrency";
 
 export function EstadisticasVentas() {
   const { data: stats } = useQuery({
@@ -48,7 +49,7 @@ export function EstadisticasVentas() {
   const tarjetas = [
     {
       titulo: "Ventas Hoy",
-      valor: `$${(stats?.ventasHoy || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })}`,
+      valor: formatCOP(stats?.ventasHoy || 0),
       descripcion: `${stats?.numFacturas || 0} facturas emitidas`,
       icono: DollarSign,
       color: "text-green-600",
@@ -62,7 +63,7 @@ export function EstadisticasVentas() {
     },
     {
       titulo: "Ticket Promedio",
-      valor: `$${(stats?.promedioTicket || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })}`,
+      valor: formatCOP(stats?.promedioTicket || 0),
       descripcion: "Por factura",
       icono: TrendingUp,
       color: "text-purple-600",
