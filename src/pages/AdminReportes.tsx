@@ -15,6 +15,7 @@ import { RankingEmpleados } from "@/components/admin/reportes/RankingEmpleados";
 import { AnalisisPorTurno } from "@/components/admin/reportes/AnalisisPorTurno";
 import { AnalisisPorSede } from "@/components/admin/reportes/AnalisisPorSede";
 import { ReporteRentabilidad } from "@/components/admin/reportes/ReporteRentabilidad";
+import { GraficoMargenSemanal } from "@/components/admin/reportes/GraficoMargenSemanal";
 import { ConfiguracionAlertasRentabilidad } from "@/components/admin/reportes/ConfiguracionAlertasRentabilidad";
 import { AlertaMargenBajo } from "@/components/admin/reportes/AlertaMargenBajo";
 import { exportToCSV, prepararDatosExportacion } from "@/utils/exportReportes";
@@ -527,6 +528,9 @@ export default function AdminReportes() {
             fechaFin={fechaFin}
           />
         )}
+
+        {/* Gráfico histórico de margen semanal */}
+        <GraficoMargenSemanal />
 
         {/* Configuración de Alertas - Solo para admin_total */}
         <ConfiguracionAlertasRentabilidad />
