@@ -14,6 +14,7 @@ import { GraficoVentasPorDia } from "@/components/admin/GraficoVentasPorDia";
 import { ProductosMasVendidos } from "@/components/admin/ProductosMasVendidos";
 import { VentasPorCategoria } from "@/components/admin/VentasPorCategoria";
 import { OrdenesEnTiempoReal } from "@/components/admin/OrdenesEnTiempoReal";
+import { WidgetMargenRentabilidad } from "@/components/admin/WidgetMargenRentabilidad";
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
@@ -96,9 +97,10 @@ export default function AdminDashboard() {
               <ProductosMasVendidos />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <VentasPorCategoria />
               <OrdenesEnTiempoReal />
+              <WidgetMargenRentabilidad />
             </div>
           </TabsContent>
 
