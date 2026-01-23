@@ -1097,7 +1097,13 @@ export type Database = {
       reset_orden_counter: { Args: never; Returns: undefined }
     }
     Enums: {
-      app_role: "admin_total" | "admin_sede" | "cajero" | "mesero" | "cocina"
+      app_role:
+        | "admin_total"
+        | "admin_sede"
+        | "cajero"
+        | "mesero"
+        | "cocina"
+        | "mesero_externo"
       estado_orden: "recibida" | "tomada" | "entregada" | "facturada"
       turno: "manana" | "tarde" | "noche"
     }
@@ -1227,7 +1233,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin_total", "admin_sede", "cajero", "mesero", "cocina"],
+      app_role: [
+        "admin_total",
+        "admin_sede",
+        "cajero",
+        "mesero",
+        "cocina",
+        "mesero_externo",
+      ],
       estado_orden: ["recibida", "tomada", "entregada", "facturada"],
       turno: ["manana", "tarde", "noche"],
     },
