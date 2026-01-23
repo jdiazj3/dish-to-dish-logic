@@ -9,14 +9,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Package, Calendar } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Package, Calendar, Info } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface Producto {
+interface Insumo {
   id: string;
   nombre: string;
+  unidad_medida: string;
 }
 
 interface Proveedor {
@@ -24,18 +27,19 @@ interface Proveedor {
   nombre: string;
 }
 
-interface EntradaInventario {
+interface EntradaInsumo {
   id: string;
-  producto_id: string;
+  insumo_id: string;
   proveedor_id: string | null;
   cantidad: number;
+  peso: number | null;
   precio_compra: number;
-  fecha_ingreso: string;
+  fecha_compra: string;
   lote: string | null;
   fecha_vencimiento: string | null;
   notas: string | null;
   created_at: string;
-  productos: { nombre: string } | null;
+  insumos_restaurante: { nombre: string; unidad_medida: string } | null;
   proveedores: { nombre: string } | null;
 }
 
@@ -44,25 +48,27 @@ export const RegistroEntradas = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filtroFecha, setFiltroFecha] = useState("");
   const [formData, setFormData] = useState({
-    producto_id: "",
+    insumo_id: "",
     proveedor_id: "",
     cantidad: "",
+    peso: "",
     precio_compra: "",
-    fecha_ingreso: format(new Date(), "yyyy-MM-dd"),
+    fecha_compra: format(new Date(), "yyyy-MM-dd"),
     lote: "",
     fecha_vencimiento: "",
     notas: "",
   });
 
-  const { data: productos } = useQuery({
-    queryKey: ["productos-inventario"],
+  const { data: insumos } = useQuery({
+    queryKey: ["insumos-activos"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("productos")
-        .select("id, nombre")
+        .from("insumos_restaurante")
+        .select("id, nombre, unidad_medida")
+        .eq("activo", true)
         .order("nombre");
       if (error) throw error;
-      return data as Producto[];
+      return data as Insumo[];
     },
   });
 
@@ -80,37 +86,38 @@ export const RegistroEntradas = () => {
   });
 
   const { data: entradas, isLoading } = useQuery({
-    queryKey: ["inventario-entradas", filtroFecha],
+    queryKey: ["entradas-insumos", filtroFecha],
     queryFn: async () => {
       let query = supabase
-        .from("inventario_entradas")
+        .from("inventario_entradas_insumos")
         .select(`
           *,
-          productos:producto_id(nombre),
+          insumos_restaurante:insumo_id(nombre, unidad_medida),
           proveedores:proveedor_id(nombre)
         `)
-        .order("fecha_ingreso", { ascending: false })
+        .order("fecha_compra", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(100);
 
       if (filtroFecha) {
-        query = query.eq("fecha_ingreso", filtroFecha);
+        query = query.eq("fecha_compra", filtroFecha);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as EntradaInventario[];
+      return data as EntradaInsumo[];
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("inventario_entradas").insert([{
-        producto_id: data.producto_id,
+      const { error } = await supabase.from("inventario_entradas_insumos").insert([{
+        insumo_id: data.insumo_id,
         proveedor_id: data.proveedor_id || null,
         cantidad: parseFloat(data.cantidad),
+        peso: data.peso ? parseFloat(data.peso) : null,
         precio_compra: parseFloat(data.precio_compra),
-        fecha_ingreso: data.fecha_ingreso,
+        fecha_compra: data.fecha_compra,
         lote: data.lote || null,
         fecha_vencimiento: data.fecha_vencimiento || null,
         notas: data.notas || null,
@@ -118,9 +125,9 @@ export const RegistroEntradas = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["inventario-entradas"] });
-      queryClient.invalidateQueries({ queryKey: ["inventario-stock"] });
-      toast.success("Entrada registrada exitosamente");
+      queryClient.invalidateQueries({ queryKey: ["entradas-insumos"] });
+      queryClient.invalidateQueries({ queryKey: ["insumos-stock"] });
+      toast.success("Entrada de insumo registrada. Stock actualizado automáticamente.");
       resetForm();
     },
     onError: () => toast.error("Error al registrar entrada"),
@@ -128,11 +135,12 @@ export const RegistroEntradas = () => {
 
   const resetForm = () => {
     setFormData({
-      producto_id: "",
+      insumo_id: "",
       proveedor_id: "",
       cantidad: "",
+      peso: "",
       precio_compra: "",
-      fecha_ingreso: format(new Date(), "yyyy-MM-dd"),
+      fecha_compra: format(new Date(), "yyyy-MM-dd"),
       lote: "",
       fecha_vencimiento: "",
       notas: "",
@@ -141,8 +149,8 @@ export const RegistroEntradas = () => {
   };
 
   const handleSubmit = () => {
-    if (!formData.producto_id || !formData.cantidad || !formData.precio_compra) {
-      toast.error("Producto, cantidad y precio son requeridos");
+    if (!formData.insumo_id || !formData.cantidad || !formData.precio_compra) {
+      toast.error("Insumo, cantidad y precio son requeridos");
       return;
     }
     createMutation.mutate(formData);
@@ -154,6 +162,19 @@ export const RegistroEntradas = () => {
     return (cantidad * precio).toLocaleString("es-CO", { style: "currency", currency: "COP" });
   };
 
+  const getUnidadLabel = (unidad: string) => {
+    const unidades: Record<string, string> = {
+      kg: "kg",
+      g: "g",
+      lt: "lt",
+      ml: "ml",
+      unidad: "unid",
+    };
+    return unidades[unidad] || unidad;
+  };
+
+  const insumoSeleccionado = insumos?.find(i => i.id === formData.insumo_id);
+
   return (
     <Card>
       <CardHeader>
@@ -161,9 +182,11 @@ export const RegistroEntradas = () => {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Package className="w-5 h-5" />
-              Entradas de Inventario
+              Registro de Compras de Insumos
             </CardTitle>
-            <CardDescription>Registra las compras e ingresos a bodega/cocina</CardDescription>
+            <CardDescription>
+              Registra las compras de insumos y materias primas (no productos de venta)
+            </CardDescription>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -184,33 +207,43 @@ export const RegistroEntradas = () => {
               <DialogTrigger asChild>
                 <Button onClick={() => resetForm()}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Nueva Entrada
+                  Nueva Compra
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Registrar Entrada de Inventario</DialogTitle>
+                  <DialogTitle>Registrar Compra de Insumo</DialogTitle>
                   <DialogDescription>
-                    Ingresa los datos de la compra o ingreso a bodega
+                    El stock se actualizará automáticamente al registrar la compra
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                  <Alert>
+                    <Info className="w-4 h-4" />
+                    <AlertDescription>
+                      Solo registra insumos/materias primas aquí. Los productos del menú se gestionan por separado.
+                    </AlertDescription>
+                  </Alert>
+                  
                   <div className="space-y-2">
-                    <Label>Producto *</Label>
+                    <Label>Insumo *</Label>
                     <Select
-                      value={formData.producto_id}
-                      onValueChange={(v) => setFormData({ ...formData, producto_id: v })}
+                      value={formData.insumo_id}
+                      onValueChange={(v) => setFormData({ ...formData, insumo_id: v })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un producto" />
+                        <SelectValue placeholder="Selecciona un insumo" />
                       </SelectTrigger>
                       <SelectContent>
-                        {productos?.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+                        {insumos?.map((i) => (
+                          <SelectItem key={i.id} value={i.id}>
+                            {i.nombre} ({getUnidadLabel(i.unidad_medida)})
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+                  
                   <div className="space-y-2">
                     <Label>Proveedor</Label>
                     <Select
@@ -227,9 +260,10 @@ export const RegistroEntradas = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Cantidad *</Label>
+                      <Label>Cantidad * {insumoSeleccionado && `(${getUnidadLabel(insumoSeleccionado.unidad_medida)})`}</Label>
                       <Input
                         type="number"
                         min="0"
@@ -240,30 +274,47 @@ export const RegistroEntradas = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Precio Compra (unit) *</Label>
+                      <Label>Peso (opcional)</Label>
                       <Input
                         type="number"
                         min="0"
-                        step="100"
-                        value={formData.precio_compra}
-                        onChange={(e) => setFormData({ ...formData, precio_compra: e.target.value })}
-                        placeholder="0"
+                        step="0.01"
+                        value={formData.peso}
+                        onChange={(e) => setFormData({ ...formData, peso: e.target.value })}
+                        placeholder="kg"
                       />
                     </div>
                   </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Precio Total de Compra *</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="100"
+                      value={formData.precio_compra}
+                      onChange={(e) => setFormData({ ...formData, precio_compra: e.target.value })}
+                      placeholder="0"
+                    />
+                  </div>
+                  
                   {formData.cantidad && formData.precio_compra && (
                     <div className="p-3 bg-muted rounded-lg text-center">
-                      <span className="text-sm text-muted-foreground">Total: </span>
-                      <span className="font-semibold">{calcularTotal()}</span>
+                      <span className="text-sm text-muted-foreground">Precio por unidad: </span>
+                      <span className="font-semibold">
+                        {(parseFloat(formData.precio_compra) / parseFloat(formData.cantidad)).toLocaleString("es-CO", { style: "currency", currency: "COP" })}
+                        {insumoSeleccionado && ` / ${getUnidadLabel(insumoSeleccionado.unidad_medida)}`}
+                      </span>
                     </div>
                   )}
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Fecha Ingreso</Label>
+                      <Label>Fecha Compra</Label>
                       <Input
                         type="date"
-                        value={formData.fecha_ingreso}
-                        onChange={(e) => setFormData({ ...formData, fecha_ingreso: e.target.value })}
+                        value={formData.fecha_compra}
+                        onChange={(e) => setFormData({ ...formData, fecha_compra: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
@@ -275,6 +326,7 @@ export const RegistroEntradas = () => {
                       />
                     </div>
                   </div>
+                  
                   <div className="space-y-2">
                     <Label>Fecha Vencimiento</Label>
                     <Input
@@ -283,6 +335,7 @@ export const RegistroEntradas = () => {
                       onChange={(e) => setFormData({ ...formData, fecha_vencimiento: e.target.value })}
                     />
                   </div>
+                  
                   <div className="space-y-2">
                     <Label>Notas</Label>
                     <Textarea
@@ -295,7 +348,7 @@ export const RegistroEntradas = () => {
                 <DialogFooter>
                   <Button variant="outline" onClick={resetForm}>Cancelar</Button>
                   <Button onClick={handleSubmit} disabled={createMutation.isPending}>
-                    Registrar Entrada
+                    Registrar Compra
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -307,40 +360,53 @@ export const RegistroEntradas = () => {
         {isLoading ? (
           <p className="text-muted-foreground">Cargando entradas...</p>
         ) : !entradas?.length ? (
-          <p className="text-muted-foreground text-center py-8">No hay entradas registradas</p>
+          <p className="text-muted-foreground text-center py-8">No hay compras registradas</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Fecha</TableHead>
-                <TableHead>Producto</TableHead>
+                <TableHead>Insumo</TableHead>
                 <TableHead>Proveedor</TableHead>
                 <TableHead className="text-right">Cantidad</TableHead>
+                <TableHead className="text-right">Precio Total</TableHead>
                 <TableHead className="text-right">Precio Unit.</TableHead>
-                <TableHead className="text-right">Total</TableHead>
                 <TableHead>Lote</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {entradas.map((entrada) => (
-                <TableRow key={entrada.id}>
-                  <TableCell>
-                    {format(new Date(entrada.fecha_ingreso), "dd MMM yyyy", { locale: es })}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {entrada.productos?.nombre || "Producto eliminado"}
-                  </TableCell>
-                  <TableCell>{entrada.proveedores?.nombre || "-"}</TableCell>
-                  <TableCell className="text-right">{entrada.cantidad}</TableCell>
-                  <TableCell className="text-right">
-                    {entrada.precio_compra.toLocaleString("es-CO", { style: "currency", currency: "COP" })}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {(entrada.cantidad * entrada.precio_compra).toLocaleString("es-CO", { style: "currency", currency: "COP" })}
-                  </TableCell>
-                  <TableCell>{entrada.lote || "-"}</TableCell>
-                </TableRow>
-              ))}
+              {entradas.map((entrada) => {
+                const unidad = entrada.insumos_restaurante?.unidad_medida || "unidad";
+                const precioUnitario = entrada.cantidad > 0 ? entrada.precio_compra / entrada.cantidad : 0;
+                return (
+                  <TableRow key={entrada.id}>
+                    <TableCell>
+                      {format(new Date(entrada.fecha_compra), "dd MMM yyyy", { locale: es })}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">
+                          {entrada.insumos_restaurante?.nombre || "Insumo eliminado"}
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {getUnidadLabel(unidad)}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>{entrada.proveedores?.nombre || "-"}</TableCell>
+                    <TableCell className="text-right">
+                      {entrada.cantidad} {getUnidadLabel(unidad)}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {entrada.precio_compra.toLocaleString("es-CO", { style: "currency", currency: "COP" })}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      {precioUnitario.toLocaleString("es-CO", { style: "currency", currency: "COP" })}
+                    </TableCell>
+                    <TableCell>{entrada.lote || "-"}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}

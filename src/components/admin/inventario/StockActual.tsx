@@ -1,75 +1,68 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Boxes, AlertTriangle, Search } from "lucide-react";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useState } from "react";
 
-interface StockItem {
+interface InsumoStock {
   id: string;
-  producto_id: string;
-  cantidad_actual: number;
-  cantidad_minima: number;
-  ultima_actualizacion: string;
-  productos: { nombre: string; precio: number } | null;
+  nombre: string;
+  descripcion: string | null;
+  unidad_medida: string;
+  stock_actual: number;
+  stock_minimo: number;
+  precio_referencia: number;
+  updated_at: string;
+  tipos_insumos: { nombre: string } | null;
 }
 
 export const StockActual = () => {
-  const queryClient = useQueryClient();
   const [busqueda, setBusqueda] = useState("");
-  const [editandoMinimo, setEditandoMinimo] = useState<{ id: string; valor: string } | null>(null);
 
-  const { data: stock, isLoading } = useQuery({
-    queryKey: ["inventario-stock"],
+  const { data: insumos, isLoading } = useQuery({
+    queryKey: ["insumos-stock"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("inventario_stock")
+        .from("insumos_restaurante")
         .select(`
-          *,
-          productos:producto_id(nombre, precio)
+          id,
+          nombre,
+          descripcion,
+          unidad_medida,
+          stock_actual,
+          stock_minimo,
+          precio_referencia,
+          updated_at,
+          tipos_insumos:tipo_insumo_id(nombre)
         `)
-        .order("cantidad_actual", { ascending: true });
+        .eq("activo", true)
+        .order("stock_actual", { ascending: true });
       if (error) throw error;
-      return data as StockItem[];
+      return data as InsumoStock[];
     },
   });
 
-  const updateMinimoMutation = useMutation({
-    mutationFn: async ({ id, cantidad_minima }: { id: string; cantidad_minima: number }) => {
-      const { error } = await supabase
-        .from("inventario_stock")
-        .update({ cantidad_minima })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["inventario-stock"] });
-      toast.success("Cantidad mínima actualizada");
-      setEditandoMinimo(null);
-    },
-    onError: () => toast.error("Error al actualizar"),
-  });
-
-  const stockFiltrado = stock?.filter(item =>
-    item.productos?.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  const insumosFiltrados = insumos?.filter(item =>
+    item.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    item.tipos_insumos?.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const stockBajo = stock?.filter(item => item.cantidad_actual <= item.cantidad_minima) || [];
+  const stockBajo = insumos?.filter(item => item.stock_actual <= item.stock_minimo) || [];
 
-  const handleGuardarMinimo = (id: string) => {
-    if (!editandoMinimo) return;
-    const valor = parseFloat(editandoMinimo.valor);
-    if (isNaN(valor) || valor < 0) {
-      toast.error("Valor inválido");
-      return;
-    }
-    updateMinimoMutation.mutate({ id, cantidad_minima: valor });
+  const getUnidadLabel = (unidad: string) => {
+    const unidades: Record<string, string> = {
+      kg: "kg",
+      g: "g",
+      lt: "lt",
+      ml: "ml",
+      unidad: "unid",
+    };
+    return unidades[unidad] || unidad;
   };
 
   return (
@@ -79,14 +72,14 @@ export const StockActual = () => {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" />
-              Stock Bajo ({stockBajo.length} productos)
+              Stock Bajo ({stockBajo.length} insumos)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {stockBajo.map(item => (
                 <Badge key={item.id} variant="destructive" className="text-sm">
-                  {item.productos?.nombre}: {item.cantidad_actual} unid.
+                  {item.nombre}: {item.stock_actual} {getUnidadLabel(item.unidad_medida)}
                 </Badge>
               ))}
             </div>
@@ -100,14 +93,16 @@ export const StockActual = () => {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Boxes className="w-5 h-5" />
-                Stock Actual
+                Stock de Insumos
               </CardTitle>
-              <CardDescription>Inventario actual de productos en bodega/cocina</CardDescription>
+              <CardDescription>
+                Inventario actual de insumos y materias primas (no productos de venta)
+              </CardDescription>
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar producto..."
+                placeholder="Buscar insumo..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="pl-9 w-60"
@@ -118,69 +113,57 @@ export const StockActual = () => {
         <CardContent>
           {isLoading ? (
             <p className="text-muted-foreground">Cargando stock...</p>
-          ) : !stockFiltrado?.length ? (
+          ) : !insumosFiltrados?.length ? (
             <p className="text-muted-foreground text-center py-8">
-              {busqueda ? "No se encontraron productos" : "No hay stock registrado. Registra entradas de inventario."}
+              {busqueda ? "No se encontraron insumos" : "No hay insumos registrados. Ve a 'Gestión de Insumos' para crear insumos."}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead className="text-right">Precio Venta</TableHead>
+                  <TableHead>Insumo</TableHead>
+                  <TableHead>Tipo</TableHead>
                   <TableHead className="text-right">Stock Actual</TableHead>
                   <TableHead className="text-right">Stock Mínimo</TableHead>
+                  <TableHead className="text-right">Precio Ref.</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Última Actualización</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {stockFiltrado.map((item) => {
-                  const esBajo = item.cantidad_actual <= item.cantidad_minima;
+                {insumosFiltrados.map((item) => {
+                  const esBajo = item.stock_actual <= item.stock_minimo;
                   return (
                     <TableRow key={item.id} className={esBajo ? "bg-destructive/5" : ""}>
-                      <TableCell className="font-medium">
-                        {item.productos?.nombre || "Producto eliminado"}
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{item.nombre}</p>
+                          {item.descripcion && (
+                            <p className="text-xs text-muted-foreground">{item.descripcion}</p>
+                          )}
+                        </div>
                       </TableCell>
-                      <TableCell className="text-right">
-                        {item.productos?.precio.toLocaleString("es-CO", { style: "currency", currency: "COP" })}
+                      <TableCell>
+                        <Badge variant="outline">
+                          {item.tipos_insumos?.nombre || "Sin tipo"}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-right font-semibold">
-                        {item.cantidad_actual}
+                        {item.stock_actual} {getUnidadLabel(item.unidad_medida)}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {item.stock_minimo} {getUnidadLabel(item.unidad_medida)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {editandoMinimo?.id === item.id ? (
-                          <div className="flex items-center gap-2 justify-end">
-                            <Input
-                              type="number"
-                              min="0"
-                              value={editandoMinimo.valor}
-                              onChange={(e) => setEditandoMinimo({ id: item.id, valor: e.target.value })}
-                              className="w-20 h-8"
-                            />
-                            <Button size="sm" onClick={() => handleGuardarMinimo(item.id)}>
-                              OK
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={() => setEditandoMinimo(null)}>
-                              X
-                            </Button>
-                          </div>
-                        ) : (
-                          <span
-                            className="cursor-pointer hover:underline"
-                            onClick={() => setEditandoMinimo({ id: item.id, valor: item.cantidad_minima.toString() })}
-                          >
-                            {item.cantidad_minima}
-                          </span>
-                        )}
+                        {item.precio_referencia.toLocaleString("es-CO", { style: "currency", currency: "COP" })}
                       </TableCell>
                       <TableCell>
                         <Badge variant={esBajo ? "destructive" : "secondary"}>
                           {esBajo ? "Stock Bajo" : "Normal"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(item.ultima_actualizacion), "dd MMM yyyy HH:mm", { locale: es })}
+                      <TableCell className="text-muted-foreground text-sm">
+                        {format(new Date(item.updated_at), "dd MMM yyyy HH:mm", { locale: es })}
                       </TableCell>
                     </TableRow>
                   );
