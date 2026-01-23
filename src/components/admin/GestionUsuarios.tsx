@@ -20,6 +20,7 @@ const ROLES_DISPONIBLES: { value: AppRole; label: string }[] = [
   { value: "admin_sede", label: "Administrador de Sede" },
   { value: "cajero", label: "Cajero" },
   { value: "mesero", label: "Mesero" },
+  { value: "mesero_externo", label: "Mesero Externo (Domicilios)" },
   { value: "cocina", label: "Cocina" },
 ];
 

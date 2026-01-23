@@ -78,13 +78,14 @@ export default function Dashboard() {
   // Redirigir según el rol principal
   const primaryRole = roles[0];
   
-  const roleRoutes = {
+  const roleRoutes: Record<string, string> = {
     admin_total: '/admin',
     admin_sede: '/admin',
     mesero: '/mesero',
+    mesero_externo: '/mesero-externo',
     cocina: '/cocina',
     cajero: '/cajero',
   };
 
-  return <Navigate to={roleRoutes[primaryRole]} replace />;
+  return <Navigate to={roleRoutes[primaryRole] || '/'} replace />;
 }
