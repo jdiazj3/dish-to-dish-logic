@@ -64,6 +64,16 @@ const testUsers: TestUser[] = [
     telefono: '3003334455',
     direccion: 'Calle Sede 654',
     roles: ['admin_sede']
+  },
+  {
+    email: 'meseroexterno@test.com',
+    password: 'Test123456',
+    nombre: 'Luis',
+    apellido: 'Domicilios',
+    telefono: '3008889999',
+    direccion: 'Calle Externa 999',
+    roles: ['mesero_externo'],
+    turno: 'mañana'
   }
 ]
 
