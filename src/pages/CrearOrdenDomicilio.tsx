@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, ShoppingCart, MapPin, User, Info } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ShoppingCart, MapPin, User, Info, Building2 } from "lucide-react";
 import { formatCOP } from "@/utils/formatCurrency";
 
 type ProductoSilla = {
@@ -30,7 +30,11 @@ export default function CrearOrdenDomicilio() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
-  const [mesaId, setMesaId] = useState("");
+  // Campos para ubicación del domicilio
+  const [nombreUbicacion, setNombreUbicacion] = useState("");
+  const [direccionUbicacion, setDireccionUbicacion] = useState("");
+  const [contactoUbicacion, setContactoUbicacion] = useState("");
+  
   const [productos, setProductos] = useState<ProductoSilla[]>([]);
   const [sillaActual, setSillaActual] = useState(1);
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
@@ -39,16 +43,16 @@ export default function CrearOrdenDomicilio() {
   const [nombrePersona, setNombrePersona] = useState("");
   const [instruccionesEntrega, setInstruccionesEntrega] = useState("");
 
-  // Solo cargar mesas del salón "Domicilios"
-  const { data: mesas } = useQuery({
-    queryKey: ['mesas-domicilios'],
+  // Obtener una mesa del salón Domicilios para la orden (solo necesitamos una referencia)
+  const { data: mesaDomicilios } = useQuery({
+    queryKey: ['mesa-domicilios'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('mesas')
-        .select('*, salones!inner(nombre)')
+        .select('id, salones!inner(nombre)')
         .eq('salones.nombre', 'Domicilios')
-        .eq('disponible', true)
-        .order('numero');
+        .limit(1)
+        .single();
       if (error) throw error;
       return data;
     },
@@ -76,24 +80,36 @@ export default function CrearOrdenDomicilio() {
 
   const crearOrdenMutation = useMutation({
     mutationFn: async () => {
-      if (!mesaId || productos.length === 0) {
-        throw new Error("Selecciona una ubicación y agrega productos");
+      if (!nombreUbicacion.trim() || productos.length === 0) {
+        throw new Error("Ingresa el nombre del local/oficina y agrega productos");
+      }
+
+      if (!mesaDomicilios) {
+        throw new Error("No se encontró configuración de domicilios. Contacta al administrador.");
       }
 
       const total = productos.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
+
+      // Construir instrucciones completas con ubicación
+      const instruccionesCompletas = [
+        `📍 ${nombreUbicacion.trim()}`,
+        direccionUbicacion.trim() ? `🏢 ${direccionUbicacion.trim()}` : null,
+        contactoUbicacion.trim() ? `📞 ${contactoUbicacion.trim()}` : null,
+        instruccionesEntrega.trim() ? `📝 ${instruccionesEntrega.trim()}` : null
+      ].filter(Boolean).join('\n');
 
       // Crear la orden con campos de domicilio
       const { data: orden, error: ordenError } = await supabase
         .from('ordenes')
         .insert({
-          mesa_id: mesaId,
+          mesa_id: mesaDomicilios.id,
           mesero_id: user?.id,
           turno: turnoActual(),
           total,
           estado: 'recibida',
           es_domicilio: true,
-          instrucciones_entrega: instruccionesEntrega.trim() || null,
-          nombre_cliente: productos[0]?.nombre_persona || null
+          instrucciones_entrega: instruccionesCompletas,
+          nombre_cliente: nombreUbicacion.trim()
         })
         .select()
         .single();
@@ -187,35 +203,47 @@ export default function CrearOrdenDomicilio() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                Ubicación Externa
+                <Building2 className="w-5 h-5" />
+                Datos del Destino
               </CardTitle>
-              <CardDescription>Selecciona destino y datos del pedido</CardDescription>
+              <CardDescription>Información del local u oficina</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Ubicación (Oficina/Local) *</Label>
-                <Select value={mesaId} onValueChange={setMesaId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona una ubicación" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mesas?.map(mesa => (
-                      <SelectItem key={mesa.id} value={mesa.id}>
-                        Ubicación {mesa.numero} - {mesa.salones?.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Nombre del Local / Oficina *</Label>
+                <Input
+                  placeholder="Ej: Oficina Bancolombia Torre Norte, Consultorio Dr. García..."
+                  value={nombreUbicacion}
+                  onChange={(e) => setNombreUbicacion(e.target.value)}
+                  className="font-medium"
+                />
               </div>
 
               <div className="space-y-2">
-                <Label>Instrucciones de Entrega</Label>
+                <Label>Dirección / Ubicación</Label>
+                <Input
+                  placeholder="Ej: Calle 50 #45-23, Piso 5, Oficina 502"
+                  value={direccionUbicacion}
+                  onChange={(e) => setDireccionUbicacion(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Teléfono / Contacto</Label>
+                <Input
+                  placeholder="Ej: 3001234567 - Preguntar por María"
+                  value={contactoUbicacion}
+                  onChange={(e) => setContactoUbicacion(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Instrucciones Adicionales</Label>
                 <Textarea
-                  placeholder="Ej: Edificio Torre Norte, piso 5, oficina 502. Preguntar por María..."
+                  placeholder="Ej: Tocar timbre del piso 5, dejar en recepción..."
                   value={instruccionesEntrega}
                   onChange={(e) => setInstruccionesEntrega(e.target.value)}
-                  rows={3}
+                  rows={2}
                 />
               </div>
 
@@ -343,9 +371,22 @@ export default function CrearOrdenDomicilio() {
                 )}
               </div>
 
+              {nombreUbicacion && (
+                <div className="p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                  <p className="text-xs font-medium text-orange-800 dark:text-orange-200 mb-1">🏢 Destino:</p>
+                  <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">{nombreUbicacion}</p>
+                  {direccionUbicacion && (
+                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">📍 {direccionUbicacion}</p>
+                  )}
+                  {contactoUbicacion && (
+                    <p className="text-xs text-orange-600 dark:text-orange-400">📞 {contactoUbicacion}</p>
+                  )}
+                </div>
+              )}
+
               {instruccionesEntrega && (
                 <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                  <p className="text-xs font-medium text-amber-800 dark:text-amber-200 mb-1">📍 Instrucciones de entrega:</p>
+                  <p className="text-xs font-medium text-amber-800 dark:text-amber-200 mb-1">📝 Instrucciones adicionales:</p>
                   <p className="text-sm text-amber-700 dark:text-amber-300">{instruccionesEntrega}</p>
                 </div>
               )}
@@ -359,7 +400,7 @@ export default function CrearOrdenDomicilio() {
 
               <Button 
                 onClick={() => crearOrdenMutation.mutate()} 
-                disabled={productos.length === 0 || !mesaId || crearOrdenMutation.isPending}
+                disabled={productos.length === 0 || !nombreUbicacion.trim() || crearOrdenMutation.isPending}
                 className="w-full bg-gradient-success"
                 size="lg"
               >
