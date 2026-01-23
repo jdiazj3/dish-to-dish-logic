@@ -655,8 +655,10 @@ export type Database = {
         Row: {
           cocinero_id: string | null
           created_at: string
+          es_domicilio: boolean | null
           estado: Database["public"]["Enums"]["estado_orden"]
           id: string
+          instrucciones_entrega: string | null
           mesa_id: string | null
           mesero_id: string | null
           nombre_cliente: string | null
@@ -668,8 +670,10 @@ export type Database = {
         Insert: {
           cocinero_id?: string | null
           created_at?: string
+          es_domicilio?: boolean | null
           estado?: Database["public"]["Enums"]["estado_orden"]
           id?: string
+          instrucciones_entrega?: string | null
           mesa_id?: string | null
           mesero_id?: string | null
           nombre_cliente?: string | null
@@ -681,8 +685,10 @@ export type Database = {
         Update: {
           cocinero_id?: string | null
           created_at?: string
+          es_domicilio?: boolean | null
           estado?: Database["public"]["Enums"]["estado_orden"]
           id?: string
+          instrucciones_entrega?: string | null
           mesa_id?: string | null
           mesero_id?: string | null
           nombre_cliente?: string | null

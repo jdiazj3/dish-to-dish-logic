@@ -14,12 +14,14 @@ import AdminReportes from "./pages/AdminReportes";
 import AdminInventario from "./pages/AdminInventario";
 import AdminPuntos from "./pages/AdminPuntos";
 import MeseroDashboard from "./pages/MeseroDashboard";
+import MeseroExternoDashboard from "./pages/MeseroExternoDashboard";
 import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
 import CajeroFacturacion from "./pages/CajeroFacturacion";
 import CajeroCierre from "./pages/CajeroCierre";
 import CajeroClientes from "./pages/CajeroClientes";
 import CrearOrden from "./pages/CrearOrden";
+import CrearOrdenDomicilio from "./pages/CrearOrdenDomicilio";
 import EditarOrden from "./pages/EditarOrden";
 import CrearUsuariosPrueba from "./pages/CrearUsuariosPrueba";
 import UserProfile from "./pages/UserProfile";
@@ -82,6 +84,11 @@ const App = () => (
               <MeseroDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/mesero-externo" element={
+            <ProtectedRoute>
+              <MeseroExternoDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/cocina" element={
             <ProtectedRoute>
               <CocinaDashboard />
@@ -110,6 +117,11 @@ const App = () => (
           <Route path="/orden/nueva" element={
             <ProtectedRoute>
               <CrearOrden />
+            </ProtectedRoute>
+          } />
+          <Route path="/orden/domicilio" element={
+            <ProtectedRoute>
+              <CrearOrdenDomicilio />
             </ProtectedRoute>
           } />
           <Route path="/orden/:ordenId" element={
