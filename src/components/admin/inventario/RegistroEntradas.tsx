@@ -177,8 +177,8 @@ export const RegistroEntradas = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Package className="w-5 h-5" />
@@ -188,172 +188,170 @@ export const RegistroEntradas = () => {
               Registra las compras de insumos y materias primas (no productos de venta)
             </CardDescription>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <Input
-                type="date"
-                value={filtroFecha}
-                onChange={(e) => setFiltroFecha(e.target.value)}
-                className="w-40"
-              />
-              {filtroFecha && (
-                <Button variant="ghost" size="sm" onClick={() => setFiltroFecha("")}>
-                  Limpiar
-                </Button>
-              )}
-            </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => resetForm()}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nueva Compra
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Registrar Compra de Insumo</DialogTitle>
-                  <DialogDescription>
-                    El stock se actualizará automáticamente al registrar la compra
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <Alert>
-                    <Info className="w-4 h-4" />
-                    <AlertDescription>
-                      Solo registra insumos/materias primas aquí. Los productos del menú se gestionan por separado.
-                    </AlertDescription>
-                  </Alert>
-                  
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="shrink-0">
+                <Plus className="w-4 h-4 mr-2" />
+                Nueva Compra
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Registrar Compra de Insumo</DialogTitle>
+                <DialogDescription>
+                  El stock se actualizará automáticamente al registrar la compra
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <Alert>
+                  <Info className="w-4 h-4" />
+                  <AlertDescription>
+                    Solo registra insumos/materias primas aquí. Los productos del menú se gestionan por separado.
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="space-y-2">
+                  <Label>Insumo *</Label>
+                  <Select
+                    value={formData.insumo_id}
+                    onValueChange={(v) => setFormData({ ...formData, insumo_id: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona un insumo" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {insumos?.map((i) => (
+                        <SelectItem key={i.id} value={i.id}>
+                          {i.nombre} ({getUnidadLabel(i.unidad_medida)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Proveedor</Label>
+                  <Select
+                    value={formData.proveedor_id}
+                    onValueChange={(v) => setFormData({ ...formData, proveedor_id: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona un proveedor (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {proveedores?.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Insumo *</Label>
-                    <Select
-                      value={formData.insumo_id}
-                      onValueChange={(v) => setFormData({ ...formData, insumo_id: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un insumo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {insumos?.map((i) => (
-                          <SelectItem key={i.id} value={i.id}>
-                            {i.nombre} ({getUnidadLabel(i.unidad_medida)})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Proveedor</Label>
-                    <Select
-                      value={formData.proveedor_id}
-                      onValueChange={(v) => setFormData({ ...formData, proveedor_id: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un proveedor (opcional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {proveedores?.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Cantidad * {insumoSeleccionado && `(${getUnidadLabel(insumoSeleccionado.unidad_medida)})`}</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={formData.cantidad}
-                        onChange={(e) => setFormData({ ...formData, cantidad: e.target.value })}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Peso (opcional)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={formData.peso}
-                        onChange={(e) => setFormData({ ...formData, peso: e.target.value })}
-                        placeholder="kg"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Precio Total de Compra *</Label>
+                    <Label>Cantidad * {insumoSeleccionado && `(${getUnidadLabel(insumoSeleccionado.unidad_medida)})`}</Label>
                     <Input
                       type="number"
                       min="0"
-                      step="100"
-                      value={formData.precio_compra}
-                      onChange={(e) => setFormData({ ...formData, precio_compra: e.target.value })}
+                      step="0.01"
+                      value={formData.cantidad}
+                      onChange={(e) => setFormData({ ...formData, cantidad: e.target.value })}
                       placeholder="0"
                     />
                   </div>
-                  
-                  {formData.cantidad && formData.precio_compra && (
-                    <div className="p-3 bg-muted rounded-lg text-center">
-                      <span className="text-sm text-muted-foreground">Precio por unidad: </span>
-                      <span className="font-semibold">
-                        {(parseFloat(formData.precio_compra) / parseFloat(formData.cantidad)).toLocaleString("es-CO", { style: "currency", currency: "COP" })}
-                        {insumoSeleccionado && ` / ${getUnidadLabel(insumoSeleccionado.unidad_medida)}`}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Fecha Compra</Label>
-                      <Input
-                        type="date"
-                        value={formData.fecha_compra}
-                        onChange={(e) => setFormData({ ...formData, fecha_compra: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Lote</Label>
-                      <Input
-                        value={formData.lote}
-                        onChange={(e) => setFormData({ ...formData, lote: e.target.value })}
-                        placeholder="Número de lote"
-                      />
-                    </div>
-                  </div>
-                  
                   <div className="space-y-2">
-                    <Label>Fecha Vencimiento</Label>
+                    <Label>Peso (opcional)</Label>
                     <Input
-                      type="date"
-                      value={formData.fecha_vencimiento}
-                      onChange={(e) => setFormData({ ...formData, fecha_vencimiento: e.target.value })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Notas</Label>
-                    <Textarea
-                      value={formData.notas}
-                      onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
-                      placeholder="Notas adicionales"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.peso}
+                      onChange={(e) => setFormData({ ...formData, peso: e.target.value })}
+                      placeholder="kg"
                     />
                   </div>
                 </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={resetForm}>Cancelar</Button>
-                  <Button onClick={handleSubmit} disabled={createMutation.isPending}>
-                    Registrar Compra
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
+                
+                <div className="space-y-2">
+                  <Label>Precio Total de Compra *</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={formData.precio_compra}
+                    onChange={(e) => setFormData({ ...formData, precio_compra: e.target.value })}
+                    placeholder="0"
+                  />
+                </div>
+                
+                {formData.cantidad && formData.precio_compra && (
+                  <div className="p-3 bg-muted rounded-lg text-center">
+                    <span className="text-sm text-muted-foreground">Precio por unidad: </span>
+                    <span className="font-semibold">
+                      {(parseFloat(formData.precio_compra) / parseFloat(formData.cantidad)).toLocaleString("es-CO", { style: "currency", currency: "COP" })}
+                      {insumoSeleccionado && ` / ${getUnidadLabel(insumoSeleccionado.unidad_medida)}`}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Fecha Compra</Label>
+                    <Input
+                      type="date"
+                      value={formData.fecha_compra}
+                      onChange={(e) => setFormData({ ...formData, fecha_compra: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Lote</Label>
+                    <Input
+                      value={formData.lote}
+                      onChange={(e) => setFormData({ ...formData, lote: e.target.value })}
+                      placeholder="Número de lote"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Fecha Vencimiento</Label>
+                  <Input
+                    type="date"
+                    value={formData.fecha_vencimiento}
+                    onChange={(e) => setFormData({ ...formData, fecha_vencimiento: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Notas</Label>
+                  <Textarea
+                    value={formData.notas}
+                    onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
+                    placeholder="Notas adicionales"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={resetForm}>Cancelar</Button>
+                <Button onClick={handleSubmit} disabled={createMutation.isPending}>
+                  Registrar Compra
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-muted-foreground" />
+          <Input
+            type="date"
+            value={filtroFecha}
+            onChange={(e) => setFiltroFecha(e.target.value)}
+            className="w-40"
+          />
+          {filtroFecha && (
+            <Button variant="ghost" size="sm" onClick={() => setFiltroFecha("")}>
+              Limpiar
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
