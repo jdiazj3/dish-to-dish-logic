@@ -41,42 +41,46 @@ export default function Auth() {
   const [activeTab, setActiveTab] = useState("login");
   const [checkingSession, setCheckingSession] = useState(true);
 
-  // Verificar si la sesión es realmente válida antes de redirigir
+  // Limpiar sesión corrupta al cargar la página de auth
   useEffect(() => {
-    const verifySession = async () => {
-      if (loading) return;
-      
-      if (user) {
-        try {
-          // Verificar que la sesión sea válida haciendo una petición
-          const { data: { session }, error } = await supabase.auth.getSession();
+    const cleanupAndVerify = async () => {
+      // Primero intentar limpiar cualquier sesión corrupta
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        // Si hay sesión, verificar que sea válida haciendo una petición simple
+        if (session) {
+          const { error } = await supabase.from('profiles').select('id').limit(1);
           
-          if (error || !session) {
-            // Sesión inválida, limpiar localStorage
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => {
-              if (key.startsWith('sb-')) {
-                localStorage.removeItem(key);
-              }
-            });
+          if (error) {
+            // Sesión inválida - limpiar todo
+            console.log("Sesión inválida detectada, limpiando...");
+            localStorage.clear();
+            sessionStorage.clear();
             await supabase.auth.signOut({ scope: 'local' });
             setCheckingSession(false);
+            window.location.reload();
             return;
           }
           
-          // Sesión válida, redirigir
+          // Sesión válida, redirigir al dashboard
           navigate("/");
-        } catch (err) {
-          console.error("Error verificando sesión:", err);
-          setCheckingSession(false);
+          return;
         }
-      } else {
-        setCheckingSession(false);
+      } catch (err) {
+        console.error("Error verificando sesión:", err);
+        // Limpiar por si acaso
+        localStorage.clear();
+        sessionStorage.clear();
       }
+      
+      setCheckingSession(false);
     };
 
-    verifySession();
-  }, [user, loading, navigate]);
+    if (!loading) {
+      cleanupAndVerify();
+    }
+  }, [loading, navigate]);
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),

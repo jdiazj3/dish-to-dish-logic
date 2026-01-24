@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogOut } from "lucide-react";
@@ -6,29 +7,27 @@ import { toast } from "sonner";
 
 export default function Logout() {
   const { signOut } = useAuth();
+  const queryClient = useQueryClient();
 
   const handleSignOut = async () => {
     try {
-      const { error } = await signOut();
+      // Limpiar caché de React Query
+      queryClient.clear();
       
-      // Si hay error de sesión no encontrada, igual cerrar localmente
-      if (error) {
-        const isSessionError = error.message?.includes("session") || 
-                               error.name === "AuthSessionMissingError";
-        
-        if (!isSessionError) {
-          console.error("Error al cerrar sesión:", error);
-          toast.error("Error al cerrar sesión");
-          return;
-        }
-      }
+      // Limpiar todo el almacenamiento local
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Intentar signout (puede fallar si la sesión ya está corrupta)
+      await signOut();
       
       toast.success("Sesión cerrada exitosamente");
-      // Forzar redirección completa para limpiar estado
+      
+      // Forzar recarga completa para limpiar todo el estado
       window.location.href = "/auth";
     } catch (err) {
       console.error("Error inesperado:", err);
-      // Aún así redirigir para limpiar estado
+      // Aún así redirigir
       window.location.href = "/auth";
     }
   };
