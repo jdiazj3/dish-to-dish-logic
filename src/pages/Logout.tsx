@@ -1,6 +1,4 @@
-import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogOut } from "lucide-react";
@@ -8,7 +6,6 @@ import { toast } from "sonner";
 
 export default function Logout() {
   const { signOut } = useAuth();
-  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
@@ -19,7 +16,8 @@ export default function Logout() {
         return;
       }
       toast.success("Sesión cerrada exitosamente");
-      navigate("/auth");
+      // Forzar redirección completa para limpiar estado
+      window.location.href = "/auth";
     } catch (err) {
       console.error("Error inesperado:", err);
       toast.error("Error al cerrar sesión");
