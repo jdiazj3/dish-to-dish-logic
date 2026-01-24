@@ -1,35 +1,25 @@
-import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogOut } from "lucide-react";
-import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Logout() {
-  const { signOut } = useAuth();
   const queryClient = useQueryClient();
 
-  const handleSignOut = async () => {
-    try {
-      // Limpiar caché de React Query
-      queryClient.clear();
-      
-      // Limpiar todo el almacenamiento local
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Intentar signout (puede fallar si la sesión ya está corrupta)
-      await signOut();
-      
-      toast.success("Sesión cerrada exitosamente");
-      
-      // Forzar recarga completa para limpiar todo el estado
-      window.location.href = "/auth";
-    } catch (err) {
-      console.error("Error inesperado:", err);
-      // Aún así redirigir
-      window.location.href = "/auth";
-    }
+  const handleSignOut = () => {
+    // Limpiar caché de React Query
+    queryClient.clear();
+    
+    // Limpiar todo el almacenamiento local
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Signout local sin esperar respuesta del servidor
+    supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+    
+    // Redirigir inmediatamente
+    window.location.href = "/auth";
   };
 
   return (
