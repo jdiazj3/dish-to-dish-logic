@@ -36,16 +36,47 @@ type SignupForm = z.infer<typeof signupSchema>;
 type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
 export default function Auth() {
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, loading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("login");
+  const [checkingSession, setCheckingSession] = useState(true);
 
-  // Redirigir si ya está autenticado
+  // Verificar si la sesión es realmente válida antes de redirigir
   useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user, navigate]);
+    const verifySession = async () => {
+      if (loading) return;
+      
+      if (user) {
+        try {
+          // Verificar que la sesión sea válida haciendo una petición
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error || !session) {
+            // Sesión inválida, limpiar localStorage
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+              if (key.startsWith('sb-')) {
+                localStorage.removeItem(key);
+              }
+            });
+            await supabase.auth.signOut({ scope: 'local' });
+            setCheckingSession(false);
+            return;
+          }
+          
+          // Sesión válida, redirigir
+          navigate("/");
+        } catch (err) {
+          console.error("Error verificando sesión:", err);
+          setCheckingSession(false);
+        }
+      } else {
+        setCheckingSession(false);
+      }
+    };
+
+    verifySession();
+  }, [user, loading, navigate]);
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -111,6 +142,14 @@ export default function Auth() {
     });
     resetPasswordForm.reset();
   };
+
+  if (loading || checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-lg text-muted-foreground">Verificando sesión...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20 p-4">
