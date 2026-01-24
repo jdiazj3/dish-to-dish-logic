@@ -11,6 +11,14 @@ export function useAuth() {
     // Set up auth state listener FIRST - MUST be synchronous
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // Si la sesión es invalidada o hay signout, limpiar todo
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' && !session) {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        
         // Synchronous state updates only
         setSession(session);
         setUser(session?.user ?? null);
@@ -19,7 +27,15 @@ export function useAuth() {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      // Si hay error de sesión, limpiar estado
+      if (error || !session) {
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
