@@ -56,6 +56,7 @@ export const GestionInsumos = () => {
     peso_estandar: "",
     precio_referencia: "",
     stock_minimo: "",
+    stock_actual: "",
   });
 
   const { data: tipos } = useQuery({
@@ -96,6 +97,7 @@ export const GestionInsumos = () => {
         peso_estandar: parseFloat(data.peso_estandar) || 0,
         precio_referencia: parseFloat(data.precio_referencia) || 0,
         stock_minimo: parseFloat(data.stock_minimo) || 0,
+        stock_actual: parseFloat(data.stock_actual) || 0,
       }]);
       if (error) throw error;
     },
@@ -117,6 +119,7 @@ export const GestionInsumos = () => {
         peso_estandar: parseFloat(data.peso_estandar) || 0,
         precio_referencia: parseFloat(data.precio_referencia) || 0,
         stock_minimo: parseFloat(data.stock_minimo) || 0,
+        stock_actual: parseFloat(data.stock_actual) || 0,
       }).eq("id", id);
       if (error) throw error;
     },
@@ -160,6 +163,7 @@ export const GestionInsumos = () => {
       peso_estandar: "",
       precio_referencia: "",
       stock_minimo: "",
+      stock_actual: "",
     });
     setEditando(null);
     setDialogOpen(false);
@@ -175,6 +179,7 @@ export const GestionInsumos = () => {
       peso_estandar: insumo.peso_estandar?.toString() || "",
       precio_referencia: insumo.precio_referencia?.toString() || "",
       stock_minimo: insumo.stock_minimo?.toString() || "",
+      stock_actual: insumo.stock_actual?.toString() || "",
     });
     setDialogOpen(true);
   };
@@ -297,7 +302,7 @@ export const GestionInsumos = () => {
                         </Select>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Peso Estándar</Label>
                         <Input
@@ -317,6 +322,19 @@ export const GestionInsumos = () => {
                           step="100"
                           value={formData.precio_referencia}
                           onChange={(e) => setFormData({ ...formData, precio_referencia: e.target.value })}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Stock Actual</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={formData.stock_actual}
+                          onChange={(e) => setFormData({ ...formData, stock_actual: e.target.value })}
                           placeholder="0"
                         />
                       </div>
