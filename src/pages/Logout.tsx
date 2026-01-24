@@ -10,17 +10,26 @@ export default function Logout() {
   const handleSignOut = async () => {
     try {
       const { error } = await signOut();
+      
+      // Si hay error de sesión no encontrada, igual cerrar localmente
       if (error) {
-        console.error("Error al cerrar sesión:", error);
-        toast.error("Error al cerrar sesión");
-        return;
+        const isSessionError = error.message?.includes("session") || 
+                               error.name === "AuthSessionMissingError";
+        
+        if (!isSessionError) {
+          console.error("Error al cerrar sesión:", error);
+          toast.error("Error al cerrar sesión");
+          return;
+        }
       }
+      
       toast.success("Sesión cerrada exitosamente");
       // Forzar redirección completa para limpiar estado
       window.location.href = "/auth";
     } catch (err) {
       console.error("Error inesperado:", err);
-      toast.error("Error al cerrar sesión");
+      // Aún así redirigir para limpiar estado
+      window.location.href = "/auth";
     }
   };
 
