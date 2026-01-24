@@ -11,13 +11,19 @@ export default function Logout() {
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.error("Error al cerrar sesión:", error);
+        toast.error("Error al cerrar sesión");
+        return;
+      }
+      toast.success("Sesión cerrada exitosamente");
+      navigate("/auth");
+    } catch (err) {
+      console.error("Error inesperado:", err);
       toast.error("Error al cerrar sesión");
-      return;
     }
-    toast.success("Sesión cerrada exitosamente");
-    navigate("/auth");
   };
 
   return (
