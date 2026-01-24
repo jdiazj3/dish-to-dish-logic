@@ -57,8 +57,18 @@ export function useAuth() {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      // Limpiar estado local independientemente del resultado
+      setSession(null);
+      setUser(null);
+      return { error: null };
+    } catch (err) {
+      // Aún así limpiar estado local
+      setSession(null);
+      setUser(null);
+      return { error: null };
+    }
   };
 
   return { user, session, loading, signIn, signUp, signOut };
