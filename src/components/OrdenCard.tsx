@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, Truck, User } from "lucide-react";
+import { Clock, MapPin, Truck, User, Printer } from "lucide-react";
 import { formatCOP } from "@/utils/formatCurrency";
+import { imprimirComanda } from "@/utils/printComanda";
 
 type Orden = {
   id: string;
@@ -27,9 +28,10 @@ type OrdenCardProps = {
   onTomarOrden?: (id: string) => void;
   onEntregarOrden?: (id: string) => void;
   loading?: boolean;
+  showPrintButton?: boolean;
 };
 
-export function OrdenCard({ orden, estado, onTomarOrden, onEntregarOrden, loading }: OrdenCardProps) {
+export function OrdenCard({ orden, estado, onTomarOrden, onEntregarOrden, loading, showPrintButton = true }: OrdenCardProps) {
   const formatTime = (date: string) => {
     return new Date(date).toLocaleTimeString('es-ES', { 
       hour: '2-digit', 
@@ -143,24 +145,36 @@ export function OrdenCard({ orden, estado, onTomarOrden, onEntregarOrden, loadin
 
         <div className="flex justify-between items-center pt-2 border-t">
           <span className="font-bold text-lg">Total: {formatCOP(orden.total)}</span>
-          {estado === 'recibida' && onTomarOrden && (
-            <Button 
-              onClick={() => onTomarOrden(orden.id)}
-              disabled={loading}
-              className={esDomicilio ? "bg-orange-500 hover:bg-orange-600" : "bg-gradient-primary"}
-            >
-              Tomar Orden
-            </Button>
-          )}
-          {estado === 'tomada' && onEntregarOrden && (
-            <Button 
-              onClick={() => onEntregarOrden(orden.id)}
-              disabled={loading}
-              className={esDomicilio ? "bg-orange-500 hover:bg-orange-600" : "bg-gradient-success"}
-            >
-              {esDomicilio ? "Listo para Envío" : "Entregar"}
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {showPrintButton && (
+              <Button 
+                onClick={() => imprimirComanda(orden)}
+                variant="outline"
+                size="sm"
+                title="Imprimir comanda"
+              >
+                <Printer className="w-4 h-4" />
+              </Button>
+            )}
+            {estado === 'recibida' && onTomarOrden && (
+              <Button 
+                onClick={() => onTomarOrden(orden.id)}
+                disabled={loading}
+                className={esDomicilio ? "bg-orange-500 hover:bg-orange-600" : "bg-gradient-primary"}
+              >
+                Tomar Orden
+              </Button>
+            )}
+            {estado === 'tomada' && onEntregarOrden && (
+              <Button 
+                onClick={() => onEntregarOrden(orden.id)}
+                disabled={loading}
+                className={esDomicilio ? "bg-orange-500 hover:bg-orange-600" : "bg-gradient-success"}
+              >
+                {esDomicilio ? "Listo para Envío" : "Entregar"}
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
