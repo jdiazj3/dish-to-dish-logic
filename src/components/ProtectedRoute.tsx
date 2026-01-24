@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,26 +10,46 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [sessionValid, setSessionValid] = useState(true);
 
-  // Verificar sesión válida al montar y periodicamente
+  // Verificar sesión válida al montar
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
-        // Sesión inválida, redirigir a login
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error || !session) {
+          // Limpiar localStorage de Supabase
+          const keys = Object.keys(localStorage);
+          keys.forEach(key => {
+            if (key.startsWith('sb-')) {
+              localStorage.removeItem(key);
+            }
+          });
+          setSessionValid(false);
+          navigate("/auth", { replace: true });
+          return;
+        }
+
+        // Verificar que el token no esté expirado
+        const expiresAt = session.expires_at;
+        if (expiresAt && expiresAt * 1000 < Date.now()) {
+          // Token expirado, limpiar
+          await supabase.auth.signOut({ scope: 'local' });
+          setSessionValid(false);
+          navigate("/auth", { replace: true });
+        }
+      } catch (err) {
+        console.error("Error verificando sesión:", err);
+        setSessionValid(false);
         navigate("/auth", { replace: true });
       }
     };
 
-    // Verificar inmediatamente
-    if (!loading && user) {
+    if (!loading) {
       checkSession();
     }
-
-    // Verificar cada 30 segundos
-    const interval = setInterval(checkSession, 30000);
-    return () => clearInterval(interval);
-  }, [loading, user, navigate]);
+  }, [loading, navigate]);
 
   if (loading) {
     return (
@@ -39,7 +59,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!user) {
+  if (!user || !sessionValid) {
     return <Navigate to="/auth" replace />;
   }
 
