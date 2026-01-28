@@ -1,9 +1,25 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole = 'admin_total' | 'admin_sede' | 'cajero' | 'mesero' | 'mesero_externo' | 'cocina';
 
 export function useUserRole(userId?: string) {
+  const queryClient = useQueryClient();
+
+  // Limpiar caché de roles cuando cambia el usuario o se cierra sesión
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN') {
+        // Invalidar todos los cachés de roles al cambiar de usuario
+        queryClient.invalidateQueries({ queryKey: ['user-roles'] });
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['user-roles', userId],
     queryFn: async () => {
@@ -23,8 +39,9 @@ export function useUserRole(userId?: string) {
       }
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
-    retry: false, // No reintentar en caso de error
+    staleTime: 0, // NO cachear roles - siempre consultar para seguridad
+    gcTime: 0, // Eliminar inmediatamente del caché cuando no se usa
+    retry: false,
   });
 }
 
