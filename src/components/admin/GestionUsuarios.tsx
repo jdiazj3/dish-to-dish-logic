@@ -453,12 +453,12 @@ export function GestionUsuarios() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="sede">Sede</Label>
-                        <Select value={formData.sede_id} onValueChange={(value) => setFormData({ ...formData, sede_id: value })}>
+                        <Select value={formData.sede_id || "none"} onValueChange={(value) => setFormData({ ...formData, sede_id: value === "none" ? "" : value })}>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar sede" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Sin sede</SelectItem>
+                            <SelectItem value="none">Sin sede</SelectItem>
                             {sedes?.map((sede) => (
                               <SelectItem key={sede.id} value={sede.id}>
                                 {sede.nombre}
@@ -469,12 +469,12 @@ export function GestionUsuarios() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="turno">Turno</Label>
-                        <Select value={formData.turno} onValueChange={(value) => setFormData({ ...formData, turno: value })}>
+                        <Select value={formData.turno || "none"} onValueChange={(value) => setFormData({ ...formData, turno: value === "none" ? "" : value })}>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar turno" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Sin turno</SelectItem>
+                            <SelectItem value="none">Sin turno</SelectItem>
                             {TURNOS.map((turno) => (
                               <SelectItem key={turno.value} value={turno.value}>
                                 {turno.label}
