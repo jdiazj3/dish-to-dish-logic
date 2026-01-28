@@ -19,7 +19,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatCOP } from "@/utils/formatCurrency";
 
-export default function MeseroExternoFacturacion() {
+export default function CajeroFacturacionDomicilios() {
   const { user, loading: authLoading } = useAuth();
   const { data: roles, isLoading: rolesLoading, isFetching } = useUserRole(user?.id);
   const navigate = useNavigate();
@@ -242,7 +242,7 @@ export default function MeseroExternoFacturacion() {
     return <Navigate to="/auth" replace />;
   }
 
-  const canAccess = roles?.includes('mesero_externo') || roles?.includes('cajero') || roles?.includes('admin_total') || roles?.includes('admin_sede');
+  const canAccess = roles?.includes('cajero') || roles?.includes('admin_total') || roles?.includes('admin_sede');
   if (!canAccess) {
     return <Navigate to="/" replace />;
   }
@@ -290,7 +290,7 @@ export default function MeseroExternoFacturacion() {
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/cajero')}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">

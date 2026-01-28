@@ -15,7 +15,7 @@ import AdminInventario from "./pages/AdminInventario";
 import AdminPuntos from "./pages/AdminPuntos";
 import MeseroDashboard from "./pages/MeseroDashboard";
 import MeseroExternoDashboard from "./pages/MeseroExternoDashboard";
-import MeseroExternoFacturacion from "./pages/MeseroExternoFacturacion";
+import CajeroFacturacionDomicilios from "./pages/CajeroFacturacionDomicilios";
 import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
 import CajeroFacturacion from "./pages/CajeroFacturacion";
@@ -90,9 +90,9 @@ const App = () => (
               <MeseroExternoDashboard />
             </ProtectedRoute>
           } />
-          <Route path="/mesero-externo/facturacion" element={
+          <Route path="/cajero/facturacion-domicilios" element={
             <ProtectedRoute>
-              <MeseroExternoFacturacion />
+              <CajeroFacturacionDomicilios />
             </ProtectedRoute>
           } />
           <Route path="/cocina" element={

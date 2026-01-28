@@ -4,7 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff, ClipboardList, Users, Monitor } from "lucide-react";
+import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff, ClipboardList, Users, Monitor, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -318,6 +318,22 @@ export default function CajeroDashboard() {
                 <Button variant="outline" className="w-full">
                   <Users className="w-4 h-4 mr-2" />
                   Ver Clientes
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 border-accent" onClick={() => navigate('/cajero/facturacion-domicilios')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-accent-foreground" />
+                  Facturación por Local
+                </CardTitle>
+                <CardDescription>Factura consolidada de pedidos externos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="secondary" className="w-full">
+                  <Receipt className="w-4 h-4 mr-2" />
+                  Facturar Domicilios
                 </Button>
               </CardContent>
             </Card>

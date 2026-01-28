@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Plus, ClipboardList, MapPin, FileText } from "lucide-react";
+import { LogOut, Plus, ClipboardList, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { formatCOP } from "@/utils/formatCurrency";
 
@@ -97,21 +97,6 @@ export default function MeseroExternoDashboard() {
             </CardContent>
           </Card>
 
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-shadow border-2 border-accent"
-            onClick={() => navigate('/mesero-externo/facturacion')}
-          >
-            <CardHeader>
-              <FileText className="w-10 h-10 text-accent-foreground mb-2" />
-              <CardTitle>Facturar por Local</CardTitle>
-              <CardDescription>Factura consolidada de pedidos del día</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full pointer-events-none">
-                Facturar Pedidos
-              </Button>
-            </CardContent>
-          </Card>
         </div>
 
         <Card className="mt-6">
