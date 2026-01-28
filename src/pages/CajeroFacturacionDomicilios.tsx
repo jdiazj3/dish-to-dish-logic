@@ -33,13 +33,10 @@ export default function CajeroFacturacionDomicilios() {
   const [referenciaPago, setReferenciaPago] = useState("");
   const [procesando, setProcesando] = useState(false);
 
-  // Query para obtener órdenes de domicilio entregadas del día
+  // Query para obtener TODAS las órdenes de domicilio entregadas pendientes de facturar
   const { data: ordenesDomicilio, isLoading: ordenesLoading } = useQuery({
     queryKey: ['ordenes-domicilio-facturacion'],
     queryFn: async () => {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      
       const { data, error } = await supabase
         .from('ordenes')
         .select(`
@@ -49,8 +46,7 @@ export default function CajeroFacturacionDomicilios() {
         `)
         .eq('es_domicilio', true)
         .eq('estado', 'entregada')
-        .gte('created_at', hoy.toISOString())
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
