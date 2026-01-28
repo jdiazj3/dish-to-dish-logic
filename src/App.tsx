@@ -15,6 +15,7 @@ import AdminInventario from "./pages/AdminInventario";
 import AdminPuntos from "./pages/AdminPuntos";
 import MeseroDashboard from "./pages/MeseroDashboard";
 import MeseroExternoDashboard from "./pages/MeseroExternoDashboard";
+import MeseroExternoFacturacion from "./pages/MeseroExternoFacturacion";
 import CocinaDashboard from "./pages/CocinaDashboard";
 import CajeroDashboard from "./pages/CajeroDashboard";
 import CajeroFacturacion from "./pages/CajeroFacturacion";
@@ -87,6 +88,11 @@ const App = () => (
           <Route path="/mesero-externo" element={
             <ProtectedRoute>
               <MeseroExternoDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/mesero-externo/facturacion" element={
+            <ProtectedRoute>
+              <MeseroExternoFacturacion />
             </ProtectedRoute>
           } />
           <Route path="/cocina" element={
