@@ -109,6 +109,7 @@ export default function CrearOrden() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ordenes'] });
+      queryClient.invalidateQueries({ queryKey: ['ordenes-turnos'] });
       toast.success("Orden creada exitosamente", {
         description: "La cocina ha sido notificada"
       });
