@@ -136,6 +136,7 @@ export default function CrearOrdenDomicilio() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ordenes'] });
+      queryClient.invalidateQueries({ queryKey: ['ordenes-turnos'] });
       toast.success("Pedido externo creado exitosamente", {
         description: "La cocina ha sido notificada"
       });
