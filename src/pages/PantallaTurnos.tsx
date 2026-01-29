@@ -88,6 +88,10 @@ export default function PantallaTurnos() {
   const { data: ordenes = [] } = useQuery({
     queryKey: ['ordenes-turnos'],
     queryFn: async () => {
+      // Filtrar solo órdenes de hoy
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      
       const { data, error } = await supabase
         .from('ordenes')
         .select(`
@@ -101,6 +105,7 @@ export default function PantallaTurnos() {
           )
         `)
         .in('estado', ['recibida', 'tomada', 'entregada'])
+        .gte('created_at', hoy.toISOString())
         .order('numero_orden', { ascending: true });
 
       if (error) throw error;
