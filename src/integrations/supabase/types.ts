@@ -41,6 +41,33 @@ export type Database = {
         }
         Relationships: []
       }
+      caja_menor_config: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          id: string
+          monto_base: number
+          umbral_reposicion: number
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          id?: string
+          monto_base?: number
+          umbral_reposicion?: number
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          id?: string
+          monto_base?: number
+          umbral_reposicion?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       canjes_puntos: {
         Row: {
           cajero_id: string | null
@@ -117,6 +144,33 @@ export type Database = {
           descripcion?: string | null
           id?: string
           nombre?: string
+        }
+        Relationships: []
+      }
+      categorias_gastos: {
+        Row: {
+          activa: boolean | null
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          tipo: string
+        }
+        Insert: {
+          activa?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          tipo?: string
+        }
+        Update: {
+          activa?: boolean | null
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          tipo?: string
         }
         Relationships: []
       }
@@ -360,6 +414,56 @@ export type Database = {
           },
         ]
       }
+      gastos_recurrentes: {
+        Row: {
+          activo: boolean | null
+          categoria_gasto_id: string | null
+          created_at: string
+          dia_pago: number | null
+          frecuencia: string
+          id: string
+          monto_estimado: number
+          nombre: string
+          notas: string | null
+          proximo_pago: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          categoria_gasto_id?: string | null
+          created_at?: string
+          dia_pago?: number | null
+          frecuencia?: string
+          id?: string
+          monto_estimado: number
+          nombre: string
+          notas?: string | null
+          proximo_pago?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          categoria_gasto_id?: string | null
+          created_at?: string
+          dia_pago?: number | null
+          frecuencia?: string
+          id?: string
+          monto_estimado?: number
+          nombre?: string
+          notas?: string | null
+          proximo_pago?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gastos_recurrentes_categoria_gasto_id_fkey"
+            columns: ["categoria_gasto_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_gastos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insumos_restaurante: {
         Row: {
           activo: boolean | null
@@ -593,6 +697,62 @@ export type Database = {
             columns: ["salon_id"]
             isOneToOne: false
             referencedRelation: "salones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movimientos_caja: {
+        Row: {
+          aprobado_por: string | null
+          categoria_gasto_id: string | null
+          comprobante_url: string | null
+          created_at: string
+          descripcion: string
+          estado: Database["public"]["Enums"]["estado_movimiento"]
+          fecha_movimiento: string
+          id: string
+          monto: number
+          notas: string | null
+          registrado_por: string
+          tipo: Database["public"]["Enums"]["tipo_movimiento_caja"]
+          updated_at: string
+        }
+        Insert: {
+          aprobado_por?: string | null
+          categoria_gasto_id?: string | null
+          comprobante_url?: string | null
+          created_at?: string
+          descripcion: string
+          estado?: Database["public"]["Enums"]["estado_movimiento"]
+          fecha_movimiento?: string
+          id?: string
+          monto: number
+          notas?: string | null
+          registrado_por: string
+          tipo: Database["public"]["Enums"]["tipo_movimiento_caja"]
+          updated_at?: string
+        }
+        Update: {
+          aprobado_por?: string | null
+          categoria_gasto_id?: string | null
+          comprobante_url?: string | null
+          created_at?: string
+          descripcion?: string
+          estado?: Database["public"]["Enums"]["estado_movimiento"]
+          fecha_movimiento?: string
+          id?: string
+          monto?: number
+          notas?: string | null
+          registrado_por?: string
+          tipo?: Database["public"]["Enums"]["tipo_movimiento_caja"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimientos_caja_categoria_gasto_id_fkey"
+            columns: ["categoria_gasto_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_gastos"
             referencedColumns: ["id"]
           },
         ]
@@ -1110,7 +1270,9 @@ export type Database = {
         | "mesero"
         | "cocina"
         | "mesero_externo"
+      estado_movimiento: "pendiente" | "aprobado" | "rechazado"
       estado_orden: "recibida" | "tomada" | "entregada" | "facturada"
+      tipo_movimiento_caja: "entrada" | "salida" | "reposicion"
       turno: "manana" | "tarde" | "noche"
     }
     CompositeTypes: {
@@ -1247,7 +1409,9 @@ export const Constants = {
         "cocina",
         "mesero_externo",
       ],
+      estado_movimiento: ["pendiente", "aprobado", "rechazado"],
       estado_orden: ["recibida", "tomada", "entregada", "facturada"],
+      tipo_movimiento_caja: ["entrada", "salida", "reposicion"],
       turno: ["manana", "tarde", "noche"],
     },
   },
