@@ -18,6 +18,15 @@ interface CategoriaGasto {
   tipo: string;
 }
 
+interface Cuenta {
+  id: string;
+  nombre: string;
+  tipo: string;
+  saldo_actual: number;
+  color: string;
+  activa: boolean;
+}
+
 export function RegistroMovimiento() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -25,6 +34,7 @@ export function RegistroMovimiento() {
   const [tipo, setTipo] = useState<"salida" | "entrada" | "reposicion">("salida");
   const [monto, setMonto] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
+  const [cuentaId, setCuentaId] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [notas, setNotas] = useState("");
   const [comprobante, setComprobante] = useState<File | null>(null);
@@ -41,6 +51,20 @@ export function RegistroMovimiento() {
       
       if (error) throw error;
       return data as CategoriaGasto[];
+    }
+  });
+
+  const { data: cuentas = [] } = useQuery({
+    queryKey: ['cuentas-flujo-activas'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cuentas_flujo')
+        .select('*')
+        .eq('activa', true)
+        .order('nombre');
+      
+      if (error) throw error;
+      return data as Cuenta[];
     }
   });
 
@@ -76,6 +100,7 @@ export function RegistroMovimiento() {
           tipo,
           monto: parseFloat(monto),
           categoria_gasto_id: categoriaId || null,
+          cuenta_id: cuentaId || null,
           descripcion,
           notas: notas || null,
           comprobante_url: comprobanteUrl,
@@ -88,10 +113,13 @@ export function RegistroMovimiento() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['movimientos-caja'] });
       queryClient.invalidateQueries({ queryKey: ['flujo-caja-resumen'] });
+      queryClient.invalidateQueries({ queryKey: ['cuentas-flujo'] });
+      queryClient.invalidateQueries({ queryKey: ['cuentas-flujo-activas'] });
       toast.success("Movimiento registrado correctamente");
       // Reset form
       setMonto("");
       setCategoriaId("");
+      setCuentaId("");
       setDescripcion("");
       setNotas("");
       setComprobante(null);
@@ -163,6 +191,25 @@ export function RegistroMovimiento() {
               />
               {monto && <p className="text-sm text-muted-foreground">{formatCOP(parseFloat(monto))}</p>}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Cuenta / Medio *</Label>
+            <Select value={cuentaId} onValueChange={setCuentaId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar cuenta" />
+              </SelectTrigger>
+              <SelectContent>
+                {cuentas.map((cuenta) => (
+                  <SelectItem key={cuenta.id} value={cuenta.id}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cuenta.color }} />
+                      {cuenta.nombre} - {formatCOP(cuenta.saldo_actual)}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {tipo === "salida" && (
