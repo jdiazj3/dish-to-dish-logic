@@ -303,6 +303,48 @@ export type Database = {
         }
         Relationships: []
       }
+      cuentas_flujo: {
+        Row: {
+          activa: boolean | null
+          color: string | null
+          created_at: string
+          descripcion: string | null
+          icono: string | null
+          id: string
+          nombre: string
+          saldo_actual: number
+          saldo_inicial: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          activa?: boolean | null
+          color?: string | null
+          created_at?: string
+          descripcion?: string | null
+          icono?: string | null
+          id?: string
+          nombre: string
+          saldo_actual?: number
+          saldo_inicial?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          activa?: boolean | null
+          color?: string | null
+          created_at?: string
+          descripcion?: string | null
+          icono?: string | null
+          id?: string
+          nombre?: string
+          saldo_actual?: number
+          saldo_inicial?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       factura_items: {
         Row: {
           cantidad: number
@@ -707,6 +749,7 @@ export type Database = {
           categoria_gasto_id: string | null
           comprobante_url: string | null
           created_at: string
+          cuenta_id: string | null
           descripcion: string
           estado: Database["public"]["Enums"]["estado_movimiento"]
           fecha_movimiento: string
@@ -722,6 +765,7 @@ export type Database = {
           categoria_gasto_id?: string | null
           comprobante_url?: string | null
           created_at?: string
+          cuenta_id?: string | null
           descripcion: string
           estado?: Database["public"]["Enums"]["estado_movimiento"]
           fecha_movimiento?: string
@@ -737,6 +781,7 @@ export type Database = {
           categoria_gasto_id?: string | null
           comprobante_url?: string | null
           created_at?: string
+          cuenta_id?: string | null
           descripcion?: string
           estado?: Database["public"]["Enums"]["estado_movimiento"]
           fecha_movimiento?: string
@@ -753,6 +798,13 @@ export type Database = {
             columns: ["categoria_gasto_id"]
             isOneToOne: false
             referencedRelation: "categorias_gastos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_caja_cuenta_id_fkey"
+            columns: ["cuenta_id"]
+            isOneToOne: false
+            referencedRelation: "cuentas_flujo"
             referencedColumns: ["id"]
           },
         ]
@@ -1228,6 +1280,54 @@ export type Database = {
           nombre?: string
         }
         Relationships: []
+      }
+      transferencias_cuentas: {
+        Row: {
+          created_at: string
+          cuenta_destino_id: string
+          cuenta_origen_id: string
+          descripcion: string | null
+          id: string
+          monto: number
+          notas: string | null
+          registrado_por: string
+        }
+        Insert: {
+          created_at?: string
+          cuenta_destino_id: string
+          cuenta_origen_id: string
+          descripcion?: string | null
+          id?: string
+          monto: number
+          notas?: string | null
+          registrado_por: string
+        }
+        Update: {
+          created_at?: string
+          cuenta_destino_id?: string
+          cuenta_origen_id?: string
+          descripcion?: string | null
+          id?: string
+          monto?: number
+          notas?: string | null
+          registrado_por?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transferencias_cuentas_cuenta_destino_id_fkey"
+            columns: ["cuenta_destino_id"]
+            isOneToOne: false
+            referencedRelation: "cuentas_flujo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_cuentas_cuenta_origen_id_fkey"
+            columns: ["cuenta_origen_id"]
+            isOneToOne: false
+            referencedRelation: "cuentas_flujo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

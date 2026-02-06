@@ -9,6 +9,8 @@ import { RegistroMovimiento } from "@/components/cajero/flujocaja/RegistroMovimi
 import { HistorialMovimientos } from "@/components/cajero/flujocaja/HistorialMovimientos";
 import { GastosRecurrentes } from "@/components/cajero/flujocaja/GastosRecurrentes";
 import { GraficoFlujoSemanal } from "@/components/cajero/flujocaja/GraficoFlujoSemanal";
+import { GestionCuentas } from "@/components/cajero/flujocaja/GestionCuentas";
+import { TransferenciasCuentas } from "@/components/cajero/flujocaja/TransferenciasCuentas";
 
 export default function CajeroFlujoCaja() {
   const { user } = useAuth();
@@ -43,10 +45,12 @@ export default function CajeroFlujoCaja() {
 
         {/* Contenido principal con tabs */}
         <Tabs defaultValue="registrar" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="registrar">Registrar Movimiento</TabsTrigger>
+          <TabsList className="flex-wrap h-auto gap-1">
+            <TabsTrigger value="registrar">Registrar</TabsTrigger>
+            <TabsTrigger value="cuentas">Cuentas</TabsTrigger>
+            <TabsTrigger value="transferencias">Transferencias</TabsTrigger>
             <TabsTrigger value="historial">Historial</TabsTrigger>
-            <TabsTrigger value="recurrentes">Gastos Programados</TabsTrigger>
+            <TabsTrigger value="recurrentes">Programados</TabsTrigger>
             <TabsTrigger value="analisis">Análisis</TabsTrigger>
           </TabsList>
 
@@ -55,6 +59,14 @@ export default function CajeroFlujoCaja() {
               <RegistroMovimiento />
               <GraficoFlujoSemanal />
             </div>
+          </TabsContent>
+
+          <TabsContent value="cuentas">
+            <GestionCuentas />
+          </TabsContent>
+
+          <TabsContent value="transferencias">
+            <TransferenciasCuentas />
           </TabsContent>
 
           <TabsContent value="historial">
@@ -68,7 +80,6 @@ export default function CajeroFlujoCaja() {
           <TabsContent value="analisis">
             <div className="grid gap-6">
               <GraficoFlujoSemanal />
-              {/* Aquí se pueden agregar más gráficos de análisis */}
             </div>
           </TabsContent>
         </Tabs>
