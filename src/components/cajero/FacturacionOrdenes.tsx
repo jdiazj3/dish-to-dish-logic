@@ -17,6 +17,20 @@ import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet, Printer, Che
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatCOP } from "@/utils/formatCurrency";
+import { z } from "zod";
+
+const facturaInputSchema = z.object({
+  ordenId: z.string().uuid(),
+  totales: z.object({
+    subtotal: z.number().min(0).max(100000000),
+    impuestos: z.number().min(0).max(100000000),
+    propina: z.number().min(0).max(100000000),
+    total: z.number().min(0).max(100000000),
+  }),
+  metodoPago: z.enum(['efectivo', 'debito', 'credito', 'nequi', 'daviplata']),
+  referenciaPago: z.string().max(100).optional(),
+  clienteId: z.string().uuid().nullable().optional(),
+});
 
 interface ClienteData {
   nombre: string;
@@ -209,6 +223,15 @@ export function FacturacionOrdenes() {
 
   const facturarMutation = useMutation({
     mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago, sillasFacturadas, clienteId, turnoOrden }: any) => {
+      // Validate input before inserting
+      const validated = facturaInputSchema.parse({
+        ordenId,
+        totales,
+        metodoPago,
+        referenciaPago: referenciaPago || undefined,
+        clienteId: clienteId || null,
+      });
+
       // Crear la factura
       const { data: factura, error: facturaError } = await supabase
         .from('facturas')
