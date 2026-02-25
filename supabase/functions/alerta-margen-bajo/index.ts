@@ -1,6 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
+const AlertaRequestSchema = z.object({
+  margenActual: z.number().min(-100).max(100),
+  margenMinimo: z.number().min(0).max(100),
+  totalInversion: z.number().min(0),
+  totalVentas: z.number().min(0),
+  ganancia: z.number(),
+  periodo: z.string().trim().min(1).max(100),
+});
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -63,7 +73,11 @@ const handler = async (req: Request): Promise<Response> => {
     }
     // --- End auth validation ---
 
-    const { margenActual, margenMinimo, totalInversion, totalVentas, ganancia, periodo }: AlertaRequest = await req.json();
+    const parsed = AlertaRequestSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: 'Datos de entrada inválidos' }), { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } });
+    }
+    const { margenActual, margenMinimo, totalInversion, totalVentas, ganancia, periodo } = parsed.data;
 
     const { data: config, error: configError } = await supabase
       .from("alertas_rentabilidad_config")

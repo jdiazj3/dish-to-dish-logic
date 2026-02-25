@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
+const FacturaRequestSchema = z.object({
+  facturaId: z.string().uuid("ID de factura debe ser UUID válido"),
+  enviarCorreo: z.boolean().optional().default(false),
+  correoDestino: z.string().email("Correo destino inválido").max(255).optional(),
+});
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -214,17 +221,11 @@ serve(async (req) => {
     }
     // --- End auth validation ---
 
-    const { facturaId, enviarCorreo, correoDestino }: FacturaRequest = await req.json();
-
-    if (!facturaId || typeof facturaId !== 'string') {
-      throw new Error('ID de factura requerido');
+    const parsed = FacturaRequestSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: 'Datos de entrada inválidos', details: parsed.error.flatten().fieldErrors }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(facturaId)) {
-      throw new Error('ID de factura inválido');
-    }
+    const { facturaId, enviarCorreo, correoDestino } = parsed.data;
 
     console.log('Procesando factura:', facturaId);
 
