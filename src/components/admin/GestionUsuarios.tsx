@@ -85,38 +85,30 @@ export function GestionUsuarios() {
 
   const crearUsuarioMutation = useMutation({
     mutationFn: async (data: typeof formData & { roles: AppRole[] }) => {
-      // Crear usuario con auth.admin
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: data.email,
-        email_confirm: true,
-        user_metadata: {
+      // Create user via server-side edge function
+      const { data: result, error } = await supabase.functions.invoke('manage-users', {
+        body: {
+          action: 'create',
+          email: data.email,
           nombre: data.nombre,
           apellido: data.apellido,
-        }
+          telefono: data.telefono,
+          direccion: data.direccion,
+          sede_id: data.sede_id,
+          turno: data.turno,
+          roles: data.roles,
+        },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("No se pudo crear el usuario");
+      if (error) throw error;
+      if (!result?.success) throw new Error(result?.error || 'Error al crear usuario');
 
-      // Actualizar perfil
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          nombre: data.nombre,
-          apellido: data.apellido,
-          telefono: data.telefono || null,
-          direccion: data.direccion || null,
-          sede_id: data.sede_id || null,
-          turno: (data.turno as any) || null,
-        })
-        .eq('id', authData.user.id);
+      const userId = result.user.id;
 
-      if (profileError) throw profileError;
-
-      // Subir foto si existe
+      // Subir foto si existe (still client-side, storage has its own RLS)
       if (fotoFile) {
         const fileExt = fotoFile.name.split('.').pop();
-        const fileName = `${authData.user.id}-${Date.now()}.${fileExt}`;
+        const fileName = `${userId}-${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('avatares')
@@ -130,25 +122,11 @@ export function GestionUsuarios() {
           await supabase
             .from('profiles')
             .update({ foto_url: publicUrl })
-            .eq('id', authData.user.id);
+            .eq('id', userId);
         }
       }
 
-      // Asignar roles
-      if (data.roles.length > 0) {
-        const rolesData = data.roles.map(role => ({
-          user_id: authData.user.id,
-          role,
-        }));
-
-        const { error: rolesError } = await supabase
-          .from('user_roles')
-          .insert(rolesData);
-
-        if (rolesError) throw rolesError;
-      }
-
-      return authData.user;
+      return { id: userId };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios-completos'] });
@@ -231,8 +209,11 @@ export function GestionUsuarios() {
 
   const eliminarUsuarioMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      const { data, error } = await supabase.functions.invoke('manage-users', {
+        body: { action: 'delete', userId },
+      });
       if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Error al eliminar usuario');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios-completos'] });

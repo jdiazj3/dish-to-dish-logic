@@ -1,4 +1,13 @@
 project_id = "wtleadyouiznwpfztstz"
 
 [functions.generar-factura-pdf]
-verify_jwt = true
+verify_jwt = false
+
+[functions.alerta-margen-bajo]
+verify_jwt = false
+
+[functions.crear-usuarios-prueba]
+verify_jwt = false
+
+[functions.manage-users]
+verify_jwt = false

@@ -4,7 +4,7 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface FacturaRequest {
@@ -123,26 +123,11 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
 
       <div class="factura-info">
         <table>
-          <tr>
-            <td>Factura No:</td>
-            <td><strong>#${factura.consecutivo}</strong></td>
-          </tr>
-          <tr>
-            <td>Fecha:</td>
-            <td>${new Date(factura.created_at).toLocaleString('es-CO')}</td>
-          </tr>
-          <tr>
-            <td>Cliente:</td>
-            <td>${factura.nombre_cliente}</td>
-          </tr>
-          <tr>
-            <td>Mesa:</td>
-            <td>${factura.ordenes?.mesas?.numero || 'N/A'} - ${factura.ordenes?.mesas?.salones?.nombre || ''}</td>
-          </tr>
-          <tr>
-            <td>Cajero:</td>
-            <td>${cajero ? `${cajero.nombre} ${cajero.apellido}` : 'N/A'}</td>
-          </tr>
+          <tr><td>Factura No:</td><td><strong>#${factura.consecutivo}</strong></td></tr>
+          <tr><td>Fecha:</td><td>${new Date(factura.created_at).toLocaleString('es-CO')}</td></tr>
+          <tr><td>Cliente:</td><td>${factura.nombre_cliente}</td></tr>
+          <tr><td>Mesa:</td><td>${factura.ordenes?.mesas?.numero || 'N/A'} - ${factura.ordenes?.mesas?.salones?.nombre || ''}</td></tr>
+          <tr><td>Cajero:</td><td>${cajero ? `${cajero.nombre} ${cajero.apellido}` : 'N/A'}</td></tr>
           <tr>
             <td>Método de Pago:</td>
             <td>${(() => {
@@ -150,12 +135,7 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
               return metodos[factura.metodo_pago as string] || 'Efectivo';
             })()}</td>
           </tr>
-          ${factura.referencia_pago ? `
-          <tr>
-            <td>Referencia:</td>
-            <td><strong>${factura.referencia_pago}</strong></td>
-          </tr>
-          ` : ''}
+          ${factura.referencia_pago ? `<tr><td>Referencia:</td><td><strong>${factura.referencia_pago}</strong></td></tr>` : ''}
         </table>
       </div>
 
@@ -168,29 +148,15 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
             <th style="text-align: right;">Subtotal</th>
           </tr>
         </thead>
-        <tbody>
-          ${generarItemsHTML()}
-        </tbody>
+        <tbody>${generarItemsHTML()}</tbody>
       </table>
 
       <div class="totales">
         <table>
-          <tr>
-            <td>Subtotal:</td>
-            <td>${formatCOP(factura.subtotal)}</td>
-          </tr>
-          <tr>
-            <td>Impuestos (19%):</td>
-            <td>${formatCOP(factura.impuestos)}</td>
-          </tr>
-          <tr>
-            <td>Propina:</td>
-            <td>${formatCOP(factura.propina || 0)}</td>
-          </tr>
-          <tr class="total-final">
-            <td>TOTAL:</td>
-            <td>${formatCOP(factura.total)}</td>
-          </tr>
+          <tr><td>Subtotal:</td><td>${formatCOP(factura.subtotal)}</td></tr>
+          <tr><td>Impuestos (19%):</td><td>${formatCOP(factura.impuestos)}</td></tr>
+          <tr><td>Propina:</td><td>${formatCOP(factura.propina || 0)}</td></tr>
+          <tr class="total-final"><td>TOTAL:</td><td>${formatCOP(factura.total)}</td></tr>
         </table>
       </div>
 
@@ -216,24 +182,55 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // --- Auth validation ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const callerUserId = claimsData.claims.sub as string;
+
+    // Check role: cajero or admin
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data: hasAccess } = await supabase.rpc('has_role', { _user_id: callerUserId, _role: 'cajero' });
+    const { data: isAdmin } = await supabase.rpc('is_admin', { _user_id: callerUserId });
+
+    if (!hasAccess && !isAdmin) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    // --- End auth validation ---
 
     const { facturaId, enviarCorreo, correoDestino }: FacturaRequest = await req.json();
 
-    if (!facturaId) {
+    if (!facturaId || typeof facturaId !== 'string') {
       throw new Error('ID de factura requerido');
+    }
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(facturaId)) {
+      throw new Error('ID de factura inválido');
     }
 
     console.log('Procesando factura:', facturaId);
 
-    // Obtener datos de la factura
     const { data: factura, error: facturaError } = await supabase
       .from('facturas')
-      .select(`
-        *,
-        ordenes(mesas(numero, salones(nombre)))
-      `)
+      .select(`*, ordenes(mesas(numero, salones(nombre)))`)
       .eq('id', facturaId)
       .single();
 
@@ -241,44 +238,36 @@ serve(async (req) => {
       throw new Error('Factura no encontrada');
     }
 
-    // Obtener cajero
     const { data: cajero } = await supabase
       .from('profiles')
       .select('nombre, apellido')
       .eq('id', factura.cajero_id)
       .single();
 
-    // Obtener items de la factura con notas y número de silla
     const { data: items } = await supabase
       .from('factura_items')
       .select('*, orden_productos(numero_silla, notas)')
       .eq('factura_id', facturaId);
 
-    // Formatear items para incluir notas y número de silla
     const itemsFormateados = items?.map(item => ({
       ...item,
       numero_silla: item.orden_productos?.numero_silla || 0,
       notas: item.orden_productos?.notas || null
     })) || [];
 
-    // Obtener configuración del restaurante
     const { data: config } = await supabase
       .from('configuracion_restaurante')
       .select('*')
       .limit(1)
       .single();
 
-    // Generar URL del código QR
     const urlConsulta = `${supabaseUrl.replace('supabase.co', 'lovableproject.com')}/factura/${facturaId}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(urlConsulta)}`;
 
-    // Generar HTML de la factura
     const htmlFactura = generarHTMLFactura(factura, cajero, itemsFormateados, config, qrUrl);
 
-    // Enviar por correo si se solicitó
     if (enviarCorreo && correoDestino) {
       const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-      
       console.log('Enviando factura por correo a:', correoDestino);
 
       await resend.emails.send({
@@ -297,19 +286,13 @@ serve(async (req) => {
         html: htmlFactura,
         mensaje: enviarCorreo ? 'Factura enviada por correo exitosamente' : 'Factura generada exitosamente',
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error: any) {
     console.error('Error procesando factura:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Error procesando factura' }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });

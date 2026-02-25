@@ -7,7 +7,7 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface AlertaRequest {
@@ -29,32 +29,51 @@ const formatCurrency = (amount: number): string => {
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // --- Auth validation ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const callerUserId = claimsData.claims.sub as string;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { data: isAdmin } = await supabase.rpc('is_admin', { _user_id: callerUserId });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Forbidden: admin role required' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    // --- End auth validation ---
 
     const { margenActual, margenMinimo, totalInversion, totalVentas, ganancia, periodo }: AlertaRequest = await req.json();
 
-    // Obtener configuración de alertas para el email del admin
     const { data: config, error: configError } = await supabase
       .from("alertas_rentabilidad_config")
       .select("email_admin")
       .single();
 
     if (configError || !config?.email_admin) {
-      console.log("No hay email de admin configurado para alertas");
       return new Response(
         JSON.stringify({ message: "No hay email configurado" }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
@@ -91,34 +110,12 @@ const handler = async (req: Request): Promise<Response> => {
               <p>Se ha detectado un margen de ganancia por debajo del umbral configurado</p>
             </div>
             <div class="content">
-              <div class="stat-box">
-                <div class="stat-label">Período analizado</div>
-                <div class="stat-value">${periodo}</div>
-              </div>
-              
-              <div class="stat-box">
-                <div class="stat-label">Margen actual vs Mínimo configurado</div>
-                <div class="stat-value" style="color: ${colorMargen};">${margenActual.toFixed(1)}% vs ${margenMinimo}%</div>
-              </div>
-              
-              <div class="stat-box">
-                <div class="stat-label">Inversión total</div>
-                <div class="stat-value negative">${formatCurrency(totalInversion)}</div>
-              </div>
-              
-              <div class="stat-box">
-                <div class="stat-label">Ventas totales</div>
-                <div class="stat-value positive">${formatCurrency(totalVentas)}</div>
-              </div>
-              
-              <div class="stat-box">
-                <div class="stat-label">${esNegativo ? 'Pérdida' : 'Ganancia'}</div>
-                <div class="stat-value ${esNegativo ? 'negative' : 'warning'}">${formatCurrency(Math.abs(ganancia))}</div>
-              </div>
-              
-              <p style="margin-top: 20px;">
-                <strong>Recomendación:</strong> Revise los costos de inventario y las estrategias de precios para mejorar el margen de rentabilidad.
-              </p>
+              <div class="stat-box"><div class="stat-label">Período analizado</div><div class="stat-value">${periodo}</div></div>
+              <div class="stat-box"><div class="stat-label">Margen actual vs Mínimo configurado</div><div class="stat-value" style="color: ${colorMargen};">${margenActual.toFixed(1)}% vs ${margenMinimo}%</div></div>
+              <div class="stat-box"><div class="stat-label">Inversión total</div><div class="stat-value negative">${formatCurrency(totalInversion)}</div></div>
+              <div class="stat-box"><div class="stat-label">Ventas totales</div><div class="stat-value positive">${formatCurrency(totalVentas)}</div></div>
+              <div class="stat-box"><div class="stat-label">${esNegativo ? 'Pérdida' : 'Ganancia'}</div><div class="stat-value ${esNegativo ? 'negative' : 'warning'}">${formatCurrency(Math.abs(ganancia))}</div></div>
+              <p style="margin-top: 20px;"><strong>Recomendación:</strong> Revise los costos de inventario y las estrategias de precios para mejorar el margen de rentabilidad.</p>
             </div>
             <div class="footer">
               <p>Este es un correo automático generado por el sistema de alertas.</p>
@@ -139,11 +136,8 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error en alerta-margen-bajo:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ error: "Error interno del servidor" }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
