@@ -1,4 +1,24 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.79.0'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
+
+const validRoles = ['admin_total', 'admin_sede', 'cajero', 'mesero', 'cocina', 'mesero_externo'] as const
+
+const CreateUserSchema = z.object({
+  action: z.literal('create'),
+  email: z.string().email().max(255),
+  nombre: z.string().trim().min(1).max(100),
+  apellido: z.string().trim().min(1).max(100),
+  telefono: z.string().max(20).optional().nullable(),
+  direccion: z.string().max(255).optional().nullable(),
+  sede_id: z.string().uuid().optional().nullable(),
+  turno: z.enum(['manana', 'tarde', 'noche']).optional().nullable(),
+  roles: z.array(z.enum(validRoles)).min(1, 'At least one role required'),
+})
+
+const DeleteUserSchema = z.object({
+  action: z.literal('delete'),
+  userId: z.string().uuid(),
+})
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,14 +63,14 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Forbidden: admin role required' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const { action, ...payload } = await req.json()
+    const body = await req.json()
 
-    if (action === 'create') {
-      const { email, nombre, apellido, telefono, direccion, sede_id, turno, roles } = payload
-
-      if (!email || !nombre || !apellido) {
-        return new Response(JSON.stringify({ error: 'email, nombre, and apellido are required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    if (body.action === 'create') {
+      const parsed = CreateUserSchema.safeParse(body)
+      if (!parsed.success) {
+        return new Response(JSON.stringify({ error: 'Invalid input', details: parsed.error.flatten().fieldErrors }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
+      const { email, nombre, apellido, telefono, direccion, sede_id, turno, roles } = parsed.data
 
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email,
@@ -80,11 +100,12 @@ Deno.serve(async (req) => {
       })
     }
 
-    if (action === 'delete') {
-      const { userId: targetUserId } = payload
-      if (!targetUserId) {
-        return new Response(JSON.stringify({ error: 'userId is required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    if (body.action === 'delete') {
+      const parsed = DeleteUserSchema.safeParse(body)
+      if (!parsed.success) {
+        return new Response(JSON.stringify({ error: 'Invalid input' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
+      const { userId: targetUserId } = parsed.data
 
       // Prevent self-deletion
       if (targetUserId === userId) {
