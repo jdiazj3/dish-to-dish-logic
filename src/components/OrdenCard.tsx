@@ -18,7 +18,7 @@ type Orden = {
     cantidad: number;
     numero_silla: number;
     notas?: string | null;
-    productos: { nombre: string } | null;
+    productos: { nombre: string; foto_url?: string | null } | null;
   }>;
 };
 
