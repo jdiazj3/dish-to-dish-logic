@@ -128,15 +128,27 @@ export function OrdenCard({ orden, estado, onTomarOrden, onEntregarOrden, loadin
             <p className="font-semibold text-sm mb-1">
               {esDomicilio ? `Persona ${silla}` : `Silla ${silla}`}
             </p>
-            <div className="space-y-1">
+            <div className="space-y-2">
               {productos.map((p, idx) => (
-                <div key={idx}>
-                  <p className="text-sm">
-                    • {p.cantidad}x {p.productos?.nombre}
-                  </p>
-                  {p.notas && (
-                    <p className="text-xs text-amber-600 ml-3 italic">📝 {p.notas}</p>
+                <div key={idx} className="flex items-start gap-2">
+                  {p.productos?.foto_url ? (
+                    <img
+                      src={p.productos.foto_url}
+                      alt={p.productos.nombre}
+                      className="w-10 h-10 rounded object-cover border shrink-0"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-background border shrink-0" />
                   )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm">
+                      • {p.cantidad}x {p.productos?.nombre}
+                    </p>
+                    {p.notas && (
+                      <p className="text-xs text-amber-600 ml-3 italic">📝 {p.notas}</p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
