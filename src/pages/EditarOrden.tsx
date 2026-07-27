@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, ShoppingCart, Save } from "lucide-react";
 import { formatCOP } from "@/utils/formatCurrency";
+import { ProductoPicker } from "@/components/ProductoPicker";
 
 type ProductoOrden = {
   id?: string;
