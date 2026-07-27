@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, ShoppingCart, MapPin, User, Info, Building2 } from "lucide-react";
 import { formatCOP } from "@/utils/formatCurrency";
+import { ProductoPicker } from "@/components/ProductoPicker";
 
 type ProductoSilla = {
   silla: number;
