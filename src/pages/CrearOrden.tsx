@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { formatCOP } from "@/utils/formatCurrency";
+import { ProductoPicker } from "@/components/ProductoPicker";
 
 type ProductoSilla = {
   silla: number;
