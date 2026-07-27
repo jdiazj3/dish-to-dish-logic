@@ -291,18 +291,7 @@ export default function EditarOrden() {
 
               <div className="space-y-2">
                 <Label>Producto</Label>
-                <Select value={productoSeleccionado} onValueChange={setProductoSeleccionado}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un producto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {productosMenu?.map(producto => (
-                      <SelectItem key={producto.id} value={producto.id}>
-                        {producto.nombre} - {formatCOP(producto.precio)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ProductoPicker value={productoSeleccionado} onChange={setProductoSeleccionado} />
               </div>
 
               <div className="space-y-2">
