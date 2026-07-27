@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, ShoppingCart, MapPin, User, Info, Building2 } from "lucide-react";
 import { formatCOP } from "@/utils/formatCurrency";
+import { ProductoPicker } from "@/components/ProductoPicker";
 
 type ProductoSilla = {
   silla: number;
@@ -275,18 +276,7 @@ export default function CrearOrdenDomicilio() {
 
                 <div className="space-y-2">
                   <Label>Producto</Label>
-                  <Select value={productoSeleccionado} onValueChange={setProductoSeleccionado}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona un producto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {productosMenu?.map(producto => (
-                        <SelectItem key={producto.id} value={producto.id}>
-                          {producto.nombre} - {formatCOP(producto.precio)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ProductoPicker value={productoSeleccionado} onChange={setProductoSeleccionado} />
                 </div>
 
                 <div className="space-y-2">
