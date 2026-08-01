@@ -42,8 +42,8 @@ export function generarHTMLComanda(orden: OrdenData): string {
   }, {} as Record<number, OrdenProducto[]>);
 
   const ubicacion = esDomicilio 
-    ? `DOMICILIO - Ubicación ${escapeHtml(orden.mesas?.numero || 'N/A')}`
-    : `Mesa ${escapeHtml(orden.mesas?.numero || 'N/A')} - ${escapeHtml(orden.mesas?.salones?.nombre || '')}`;
+    ? `DOMICILIO - Ubicación ${orden.mesas?.numero || 'N/A'}`
+    : `Mesa ${orden.mesas?.numero || 'N/A'} - ${orden.mesas?.salones?.nombre || ''}`;
 
   let productosHTML = '';
   
