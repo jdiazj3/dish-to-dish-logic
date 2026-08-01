@@ -30,7 +30,7 @@ const SHOT_SCENES: Shot[] = [
     title: "Menú y categorías",
     sub: "Cada plato con foto, precio y disponibilidad, organizado por categoría.",
     src: SHOTS.productos,
-    dur: 115,
+    dur: 130,
     chips: [
       { label: "Fotos de producto", color: COLORS.orange },
       { label: "Precios en COP", color: COLORS.amber },
@@ -42,7 +42,7 @@ const SHOT_SCENES: Shot[] = [
     sub: "Compras, entradas, stock y proveedores en un mismo lugar.",
     src: SHOTS.inventario,
     accent: COLORS.amber,
-    dur: 115,
+    dur: 130,
     chips: [
       { label: "Stock actual", color: COLORS.green },
       { label: "Costo por insumo", color: COLORS.amber },
@@ -76,7 +76,7 @@ const SHOT_SCENES: Shot[] = [
     title: "Órdenes por mesa",
     sub: "Ve sus mesas activas y crea pedidos en segundos.",
     src: SHOTS.mesero,
-    dur: 110,
+    dur: 125,
     chips: [{ label: "Estado en espera / listo", color: COLORS.orange }],
   },
   {
@@ -117,7 +117,7 @@ const SHOT_SCENES: Shot[] = [
     sub: "Cobra al instante o carga el consumo a la cuenta de una mesa.",
     src: SHOTS.mostrador,
     accent: COLORS.green,
-    dur: 115,
+    dur: 130,
     chips: [{ label: "Cobro inmediato", color: COLORS.green }, { label: "Cargar a mesa", color: COLORS.orange }],
   },
   {
@@ -135,7 +135,7 @@ export const MainVideo: React.FC = () => {
   return (
     <AbsoluteFill style={{ fontFamily, backgroundColor: COLORS.bg }}>
       <TransitionSeries>
-        <TransitionSeries.Sequence durationInFrames={110}>
+        <TransitionSeries.Sequence durationInFrames={140}>
           <SceneIntro />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={timing} />
@@ -150,7 +150,7 @@ export const MainVideo: React.FC = () => {
             />
           </React.Fragment>
         ))}
-        <TransitionSeries.Sequence durationInFrames={150}>
+        <TransitionSeries.Sequence durationInFrames={200}>
           <SceneOutro />
         </TransitionSeries.Sequence>
       </TransitionSeries>
@@ -159,4 +159,4 @@ export const MainVideo: React.FC = () => {
 };
 
 export const TOTAL_FRAMES =
-  110 + 150 + SHOT_SCENES.reduce((a, s) => a + s.dur, 0) - T * (SHOT_SCENES.length + 1);
+  140 + 200 + SHOT_SCENES.reduce((a, s) => a + s.dur, 0) - T * (SHOT_SCENES.length + 1);
