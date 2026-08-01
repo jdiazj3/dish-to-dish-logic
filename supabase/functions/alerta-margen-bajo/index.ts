@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { buildCorsHeaders } from "../_shared/cors.ts";
 
 const AlertaRequestSchema = z.object({
   margenActual: z.number().min(-100).max(100),
@@ -39,6 +40,7 @@ const formatCurrency = (amount: number): string => {
 };
 
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = buildCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

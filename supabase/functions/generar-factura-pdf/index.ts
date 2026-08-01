@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { buildCorsHeaders } from "../_shared/cors.ts";
 
 const FacturaRequestSchema = z.object({
   facturaId: z.string().uuid("ID de factura debe ser UUID válido"),
@@ -191,6 +192,7 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
 };
 
 serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
