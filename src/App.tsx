@@ -22,6 +22,7 @@ import CajeroFacturacion from "./pages/CajeroFacturacion";
 import CajeroCierre from "./pages/CajeroCierre";
 import CajeroClientes from "./pages/CajeroClientes";
 import CajeroFlujoCaja from "./pages/CajeroFlujoCaja";
+import CajeroMostrador from "./pages/CajeroMostrador";
 import CrearOrden from "./pages/CrearOrden";
 import CrearOrdenDomicilio from "./pages/CrearOrdenDomicilio";
 import EditarOrden from "./pages/EditarOrden";
@@ -109,6 +110,11 @@ const App = () => (
           <Route path="/cajero/facturacion" element={
             <ProtectedRoute>
               <CajeroFacturacion />
+            </ProtectedRoute>
+          } />
+          <Route path="/cajero/mostrador" element={
+            <ProtectedRoute>
+              <CajeroMostrador />
             </ProtectedRoute>
           } />
           <Route path="/cajero/cierre" element={
