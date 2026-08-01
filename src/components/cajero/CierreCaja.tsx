@@ -17,6 +17,15 @@ import { es } from "date-fns/locale";
 import jsPDF from "jspdf";
 import { formatCOP } from "@/utils/formatCurrency";
 
+const escapeHtml = (value: unknown): string =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+
 // Función local para formatear COP en el PDF (sin importar de utils)
 const formatCOPLocal = (value: number | string | null | undefined): string => {
   const numValue = typeof value === 'string' ? parseFloat(value) : (value ?? 0);
@@ -422,7 +431,7 @@ const printCierreReport = (cierre: any, fecha: string) => {
         ${cierre.notas ? `
         <div class="notas">
           <div class="notas-title">NOTAS:</div>
-          <div>${cierre.notas}</div>
+          <div>${escapeHtml(cierre.notas)}</div>
         </div>
         ` : ''}
         
