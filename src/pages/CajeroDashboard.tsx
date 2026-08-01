@@ -4,7 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff, ClipboardList, Users, Monitor, Building2, Wallet } from "lucide-react";
+import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff, ClipboardList, Users, Monitor, Building2, Wallet, ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -293,6 +293,22 @@ export default function CajeroDashboard() {
                 <Button className="w-full">
                   <Receipt className="w-4 h-4 mr-2" />
                   Ir a Facturación
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 border-primary/30" onClick={() => navigate('/cajero/mostrador')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-primary" />
+                  Venta en Mostrador
+                </CardTitle>
+                <CardDescription>Vende productos y cobra o carga a una mesa</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Nueva Venta
                 </Button>
               </CardContent>
             </Card>
