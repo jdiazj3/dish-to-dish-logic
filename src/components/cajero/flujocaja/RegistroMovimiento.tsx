@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Upload, X } from "lucide-react";
 import { formatCOP } from "@/utils/formatCurrency";
+import { logError } from "@/utils/errorLogger";
 
 interface CategoriaGasto {
   id: string;
@@ -125,7 +126,7 @@ export function RegistroMovimiento() {
       setComprobante(null);
     },
     onError: (error) => {
-      console.error("Error al registrar movimiento:", error);
+      logError("Error al registrar movimiento:", error)
       toast.error("Error al registrar el movimiento");
     }
   });

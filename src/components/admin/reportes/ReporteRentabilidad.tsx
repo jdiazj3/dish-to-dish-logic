@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, PieChart, Pie, 
 import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
+import { logError } from "@/utils/errorLogger";
 
 interface ReporteRentabilidadProps {
   totalInversion: number;
@@ -170,7 +171,7 @@ export function ReporteRentabilidad({
       doc.save(nombreArchivo);
       toast.success("Reporte exportado exitosamente");
     } catch (error) {
-      console.error("Error al exportar PDF:", error);
+      logError("Error al exportar PDF:", error)
       toast.error("Error al generar el PDF");
     }
   };

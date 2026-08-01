@@ -12,6 +12,7 @@ import { Search, Eye, Receipt, Download, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { formatCOP } from "@/utils/formatCurrency";
+import { logError } from "@/utils/errorLogger";
 
 export function ConsultaFacturas() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +34,7 @@ export function ConsultaFacturas() {
           .order('consecutivo', { ascending: false });
         
         if (error) {
-          console.error('Error al cargar facturas:', error);
+          logError('Error al cargar facturas:', error)
           throw error;
         }
         
@@ -47,7 +48,7 @@ export function ConsultaFacturas() {
             .in('id', cajeroIds);
           
           if (profilesError) {
-            console.error('Error al cargar perfiles:', profilesError);
+            logError('Error al cargar perfiles:', profilesError)
           }
           
           const profilesMap = new Map(profiles?.map(p => [p.id, p]));
@@ -60,7 +61,7 @@ export function ConsultaFacturas() {
         
         return data?.map(factura => ({ ...factura, cajero: null }));
       } catch (err) {
-        console.error('Error en queryFn facturas:', err);
+        logError('Error en queryFn facturas:', err)
         throw err;
       }
     },

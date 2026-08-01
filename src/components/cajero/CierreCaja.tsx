@@ -16,6 +16,16 @@ import { format, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import jsPDF from "jspdf";
 import { formatCOP } from "@/utils/formatCurrency";
+import { logError } from "@/utils/errorLogger";
+
+const escapeHtml = (value: unknown): string =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
 
 // Función local para formatear COP en el PDF (sin importar de utils)
 const formatCOPLocal = (value: number | string | null | undefined): string => {
@@ -422,7 +432,7 @@ const printCierreReport = (cierre: any, fecha: string) => {
         ${cierre.notas ? `
         <div class="notas">
           <div class="notas-title">NOTAS:</div>
-          <div>${cierre.notas}</div>
+          <div>${escapeHtml(cierre.notas)}</div>
         </div>
         ` : ''}
         
@@ -548,7 +558,7 @@ export function CierreCaja() {
       resetForm();
     },
     onError: (error: any) => {
-      console.error('Error en cierre:', error);
+      logError('Error en cierre:', error)
       toast.error(error.message || "Error al registrar el cierre");
     },
   });

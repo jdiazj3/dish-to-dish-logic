@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Loader2, Users, CheckCircle, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/utils/errorLogger";
 
 interface UserResult {
   email: string;
@@ -32,7 +33,7 @@ export default function CrearUsuariosPrueba() {
         throw new Error(data.error || "Error al crear usuarios");
       }
     } catch (error: any) {
-      console.error("Error:", error);
+      logError("Error:", error)
       toast.error(error.message || "Error al crear usuarios de prueba");
     } finally {
       setLoading(false);

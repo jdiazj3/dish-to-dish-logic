@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChefHat, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/utils/errorLogger";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Correo electrónico inválido" }),
@@ -68,7 +69,7 @@ export default function Auth() {
           return;
         }
       } catch (err) {
-        console.error("Error verificando sesión:", err);
+        logError("Error verificando sesión:", err)
         // Limpiar por si acaso
         localStorage.clear();
         sessionStorage.clear();

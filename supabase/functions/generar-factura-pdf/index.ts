@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { buildCorsHeaders } from "../_shared/cors.ts";
 
 const FacturaRequestSchema = z.object({
   facturaId: z.string().uuid("ID de factura debe ser UUID válido"),
@@ -32,6 +33,14 @@ const formatCOP = (value: number | string | null | undefined): string => {
   });
 };
 
+const escapeHtml = (value: unknown): string =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
 const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any, qrUrl: string) => {
   // Agrupar items por silla
   const itemsPorSilla = items?.reduce((acc: any, item: any) => {
@@ -49,10 +58,10 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
       return items?.map(item => `
         <tr>
           <td style="padding: 8px; border-bottom: 1px solid #eee;">
-            ${item.producto_nombre}
-            ${item.notas ? `<br><small style="color: #f59e0b; font-style: italic;">📝 ${item.notas}</small>` : ''}
+            ${escapeHtml(item.producto_nombre)}
+            ${item.notas ? `<br><small style="color: #f59e0b; font-style: italic;">📝 ${escapeHtml(item.notas)}</small>` : ''}
           </td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.cantidad}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${escapeHtml(item.cantidad)}</td>
           <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCOP(item.precio_unitario)}</td>
           <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCOP(item.subtotal)}</td>
         </tr>
@@ -73,10 +82,10 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
         ${sillaItems.map((item: any) => `
           <tr>
             <td style="padding: 8px; border-bottom: 1px solid #eee; padding-left: 20px;">
-              ${item.producto_nombre}
-              ${item.notas ? `<br><small style="color: #f59e0b; font-style: italic;">📝 ${item.notas}</small>` : ''}
+              ${escapeHtml(item.producto_nombre)}
+              ${item.notas ? `<br><small style="color: #f59e0b; font-style: italic;">📝 ${escapeHtml(item.notas)}</small>` : ''}
             </td>
-            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.cantidad}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${escapeHtml(item.cantidad)}</td>
             <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCOP(item.precio_unitario)}</td>
             <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCOP(item.subtotal)}</td>
           </tr>
@@ -120,21 +129,21 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
     </head>
     <body>
       <div class="header">
-        ${config?.logo_url ? `<img src="${config.logo_url}" alt="Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
-        <h1>${config?.nombre || 'ANCESTRALE'}</h1>
-        ${config?.direccion ? `<p>📍 ${config.direccion}</p>` : ''}
-        ${config?.telefono ? `<p>📞 ${config.telefono}</p>` : ''}
+        ${config?.logo_url ? `<img src="${escapeHtml(config.logo_url)}" alt="Logo" style="max-height: 60px; margin-bottom: 10px;">` : ''}
+        <h1>${escapeHtml(config?.nombre || 'ANCESTRALE')}</h1>
+        ${config?.direccion ? `<p>📍 ${escapeHtml(config.direccion)}</p>` : ''}
+        ${config?.telefono ? `<p>📞 ${escapeHtml(config.telefono)}</p>` : ''}
       </div>
 
       <h2 style="text-align: center; margin: 20px 0; background: #f5f5f5; padding: 10px;">FACTURA DE VENTA</h2>
 
       <div class="factura-info">
         <table>
-          <tr><td>Factura No:</td><td><strong>#${factura.consecutivo}</strong></td></tr>
+          <tr><td>Factura No:</td><td><strong>#${escapeHtml(factura.consecutivo)}</strong></td></tr>
           <tr><td>Fecha:</td><td>${new Date(factura.created_at).toLocaleString('es-CO')}</td></tr>
-          <tr><td>Cliente:</td><td>${factura.nombre_cliente}</td></tr>
-          <tr><td>Mesa:</td><td>${factura.ordenes?.mesas?.numero || 'N/A'} - ${factura.ordenes?.mesas?.salones?.nombre || ''}</td></tr>
-          <tr><td>Cajero:</td><td>${cajero ? `${cajero.nombre} ${cajero.apellido}` : 'N/A'}</td></tr>
+          <tr><td>Cliente:</td><td>${escapeHtml(factura.nombre_cliente)}</td></tr>
+          <tr><td>Mesa:</td><td>${escapeHtml(factura.ordenes?.mesas?.numero || 'N/A')} - ${escapeHtml(factura.ordenes?.mesas?.salones?.nombre || '')}</td></tr>
+          <tr><td>Cajero:</td><td>${cajero ? `${escapeHtml(cajero.nombre)} ${escapeHtml(cajero.apellido)}` : 'N/A'}</td></tr>
           <tr>
             <td>Método de Pago:</td>
             <td>${(() => {
@@ -142,7 +151,7 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
               return metodos[factura.metodo_pago as string] || 'Efectivo';
             })()}</td>
           </tr>
-          ${factura.referencia_pago ? `<tr><td>Referencia:</td><td><strong>${factura.referencia_pago}</strong></td></tr>` : ''}
+          ${factura.referencia_pago ? `<tr><td>Referencia:</td><td><strong>${escapeHtml(factura.referencia_pago)}</strong></td></tr>` : ''}
         </table>
       </div>
 
@@ -168,14 +177,14 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
       </div>
 
       <div class="qr-section">
-        <img src="${qrUrl}" alt="Código QR"/>
+        <img src="${escapeHtml(qrUrl)}" alt="Código QR"/>
         <p style="font-size: 11px; margin-top: 8px; color: #666;">Escanea para consultar</p>
       </div>
 
       <div class="footer">
         <p style="font-size: 18px; margin: 10px 0;"><strong>¡Gracias por su visita!</strong></p>
-        ${config?.instagram ? `<p style="font-size: 12px;">📷 @${config.instagram.replace('@', '')}</p>` : ''}
-        ${config?.pagina_web ? `<p style="font-size: 12px;">🌐 ${config.pagina_web}</p>` : ''}
+        ${config?.instagram ? `<p style="font-size: 12px;">📷 @${escapeHtml(config.instagram.replace('@', ''))}</p>` : ''}
+        ${config?.pagina_web ? `<p style="font-size: 12px;">🌐 ${escapeHtml(config.pagina_web)}</p>` : ''}
       </div>
     </body>
     </html>
@@ -183,6 +192,7 @@ const generarHTMLFactura = (factura: any, cajero: any, items: any[], config: any
 };
 
 serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

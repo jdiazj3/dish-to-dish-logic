@@ -18,6 +18,7 @@ import { GestionPremios } from "@/components/admin/GestionPremios";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatCOP } from "@/utils/formatCurrency";
+import { logError } from "@/utils/errorLogger";
 
 const turnoLabels: { [key: string]: { label: string; icon: any; color: string } } = {
   manana: { label: "Mañana", icon: Sun, color: "text-yellow-500" },
@@ -103,7 +104,7 @@ export default function AdminPuntos() {
       setEditingConfig(null);
     },
     onError: (error) => {
-      console.error('Error:', error);
+      logError('Error:', error)
       toast.error("Error al actualizar configuración");
     },
   });
@@ -113,6 +114,9 @@ export default function AdminPuntos() {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 
+  // NOTA DE SEGURIDAD: esta verificación es solo para la interfaz (UX).
+  // La seguridad real se aplica en el servidor mediante políticas RLS y las
+  // funciones edge (manage-users, generar-factura-pdf) que validan el rol.
   const isAdmin = roles?.includes('admin_total') || roles?.includes('admin_sede');
   
   if (!isAdmin) {

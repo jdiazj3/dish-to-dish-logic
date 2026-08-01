@@ -8,6 +8,7 @@ import { Settings, Bell, Mail, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { logError } from "@/utils/errorLogger";
 
 interface ConfigAlerta {
   id: string;
@@ -59,7 +60,7 @@ export function ConfiguracionAlertasRentabilidad() {
       toast.success("Configuración guardada correctamente");
     },
     onError: (error) => {
-      console.error("Error al guardar:", error);
+      logError("Error al guardar:", error)
       toast.error("Error al guardar la configuración");
     },
   });

@@ -11,6 +11,7 @@ import { LogOut, Clock, CheckCircle2, Package, Bell, BellOff } from "lucide-reac
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { OrdenCard } from "@/components/OrdenCard";
+import { logError } from "@/utils/errorLogger";
 
 // Sonido para pedidos internos - tono agudo clásico
 const playInternalOrderSound = () => {
@@ -51,7 +52,7 @@ const playInternalOrderSound = () => {
     }, 120);
     
   } catch (error) {
-    console.error('Error playing internal order sound:', error);
+    logError('Error playing internal order sound:', error)
   }
 };
 
@@ -113,7 +114,7 @@ const playDeliveryOrderSound = () => {
     }, 400);
     
   } catch (error) {
-    console.error('Error playing delivery order sound:', error);
+    logError('Error playing delivery order sound:', error)
   }
 };
 export default function CocinaDashboard() {

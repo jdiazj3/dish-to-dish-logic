@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Pencil, Trash2, Users, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import type { AppRole } from "@/hooks/useUserRole";
+import { logError } from "@/utils/errorLogger";
 
 const ROLES_DISPONIBLES: { value: AppRole; label: string }[] = [
   { value: "admin_total", label: "Administrador Total" },
@@ -134,7 +135,7 @@ export function GestionUsuarios() {
       resetForm();
     },
     onError: (error: any) => {
-      console.error('Error al crear usuario:', error);
+      logError('Error al crear usuario:', error)
       toast.error(error.message || "Error al crear el usuario");
     },
   });
@@ -202,7 +203,7 @@ export function GestionUsuarios() {
       resetForm();
     },
     onError: (error: any) => {
-      console.error('Error al actualizar usuario:', error);
+      logError('Error al actualizar usuario:', error)
       toast.error("Error al actualizar el usuario");
     },
   });

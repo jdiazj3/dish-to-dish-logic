@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/utils/errorLogger";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -40,7 +41,7 @@ export function useAuth() {
       setUser(session?.user ?? null);
       setLoading(false);
     }).catch((err) => {
-      console.error('Session check failed:', err);
+      logError('Session check failed:', err)
       setSession(null);
       setUser(null);
       setLoading(false);

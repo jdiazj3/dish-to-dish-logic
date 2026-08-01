@@ -15,6 +15,7 @@ import { ExportarVentas } from "@/components/cajero/ExportarVentas";
 import { ReporteMetodosPago } from "@/components/cajero/ReporteMetodosPago";
 import { useState } from "react";
 import { formatCOP } from "@/utils/formatCurrency";
+import { logError } from "@/utils/errorLogger";
 
 // Función para crear sonido de notificación usando Web Audio API
 const playNotificationSound = () => {
@@ -59,7 +60,7 @@ const playNotificationSound = () => {
     }, 150);
     
   } catch (error) {
-    console.error('Error playing notification sound:', error);
+    logError('Error playing notification sound:', error)
   }
 };
 

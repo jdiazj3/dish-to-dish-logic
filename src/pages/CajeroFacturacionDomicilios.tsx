@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatCOP } from "@/utils/formatCurrency";
+import { logError } from "@/utils/errorLogger";
 
 export default function CajeroFacturacionDomicilios() {
   const { user, loading: authLoading } = useAuth();
@@ -214,7 +215,7 @@ export default function CajeroFacturacionDomicilios() {
           }
         }
       } catch (e) {
-        console.error('Error al generar PDF:', e);
+        logError('Error al generar PDF:', e)
       }
 
       // Resetear estado
@@ -225,7 +226,7 @@ export default function CajeroFacturacionDomicilios() {
       setReferenciaPago("");
     },
     onError: (error: any) => {
-      console.error('Error al facturar:', error);
+      logError('Error al facturar:', error)
       toast.error(error.message || "Error al generar la factura consolidada");
     },
   });
@@ -238,6 +239,9 @@ export default function CajeroFacturacionDomicilios() {
     return <Navigate to="/auth" replace />;
   }
 
+  // NOTA DE SEGURIDAD: esta verificación es solo para la interfaz (UX).
+  // La seguridad real se aplica en el servidor mediante políticas RLS y las
+  // funciones edge (manage-users, generar-factura-pdf) que validan el rol.
   const canAccess = roles?.includes('cajero') || roles?.includes('admin_total') || roles?.includes('admin_sede');
   if (!canAccess) {
     return <Navigate to="/" replace />;

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatCOP } from "@/utils/formatCurrency";
 import { z } from "zod";
+import { logError } from "@/utils/errorLogger";
 
 const facturaInputSchema = z.object({
   ordenId: z.string().uuid(),
@@ -133,7 +134,7 @@ export function FacturacionOrdenes() {
           .order('numero_orden', { ascending: false });
         
         if (error) {
-          console.error('Error al cargar órdenes:', error);
+          logError('Error al cargar órdenes:', error)
           throw error;
         }
         
@@ -145,7 +146,7 @@ export function FacturacionOrdenes() {
         
         return ordenesConProductosPendientes;
       } catch (err) {
-        console.error('Error en queryFn:', err);
+        logError('Error en queryFn:', err)
         throw err;
       }
     },
@@ -289,7 +290,7 @@ export function FacturacionOrdenes() {
               });
             
             if (puntosError) {
-              console.error('Error al asignar puntos:', puntosError);
+              logError('Error al asignar puntos:', puntosError)
             }
           }
         }
@@ -380,7 +381,7 @@ export function FacturacionOrdenes() {
       }
     },
     onError: (error) => {
-      console.error('Error al facturar:', error);
+      logError('Error al facturar:', error)
       toast.error("Error al generar la factura");
     },
   });
@@ -499,7 +500,7 @@ export function FacturacionOrdenes() {
       .single();
     
     if (error) {
-      console.error('Error al guardar cliente:', error);
+      logError('Error al guardar cliente:', error)
       return null;
     }
     

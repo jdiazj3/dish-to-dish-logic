@@ -10,6 +10,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
+import { logError } from "@/utils/errorLogger";
 
 function escapeCSVValue(value: any): string {
   if (value === null || value === undefined) return '';
@@ -134,7 +135,7 @@ export function ExportarVentas() {
       toast.success("Archivo exportado correctamente");
       setDialogOpen(false);
     } catch (error: any) {
-      console.error('Error exportando:', error);
+      logError('Error exportando:', error)
       toast.error(error.message || "Error al exportar");
     } finally {
       setIsExporting(false);

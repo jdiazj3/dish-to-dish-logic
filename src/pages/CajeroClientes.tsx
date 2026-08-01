@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { CanjePuntos } from "@/components/cajero/CanjePuntos";
 import { useQueryClient } from "@tanstack/react-query";
+import { logError } from "@/utils/errorLogger";
 
 export default function CajeroClientes() {
   const { user } = useAuth();
@@ -125,6 +126,9 @@ export default function CajeroClientes() {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 
+  // NOTA DE SEGURIDAD: esta verificación es solo para la interfaz (UX).
+  // La seguridad real se aplica en el servidor mediante políticas RLS y las
+  // funciones edge (manage-users, generar-factura-pdf) que validan el rol.
   const isCajeroOrAdmin = roles.includes('cajero') || roles.includes('admin_total') || roles.includes('admin_sede');
   
   if (!isCajeroOrAdmin) {
@@ -196,7 +200,7 @@ export default function CajeroClientes() {
       
       toast.success("Reporte exportado exitosamente", { id: "export" });
     } catch (error) {
-      console.error("Error al exportar:", error);
+      logError("Error al exportar:", error)
       toast.error("Error al generar el reporte", { id: "export" });
     }
   };

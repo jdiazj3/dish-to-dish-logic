@@ -15,6 +15,9 @@ export default function CajeroCierre() {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 
+  // NOTA DE SEGURIDAD: esta verificación es solo para la interfaz (UX).
+  // La seguridad real se aplica en el servidor mediante políticas RLS y las
+  // funciones edge (manage-users, generar-factura-pdf) que validan el rol.
   if (!roles?.includes('cajero') && !roles?.includes('admin_total') && !roles?.includes('admin_sede')) {
     return <Navigate to="/" replace />;
   }
