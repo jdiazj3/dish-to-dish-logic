@@ -18,6 +18,16 @@ type OrdenData = {
   orden_productos: OrdenProducto[];
 };
 
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export function generarHTMLComanda(orden: OrdenData): string {
   const esDomicilio = orden.es_domicilio;
   const fechaHora = format(new Date(orden.created_at), "dd/MM/yyyy HH:mm");
@@ -32,8 +42,8 @@ export function generarHTMLComanda(orden: OrdenData): string {
   }, {} as Record<number, OrdenProducto[]>);
 
   const ubicacion = esDomicilio 
-    ? `DOMICILIO - Ubicación ${orden.mesas?.numero || 'N/A'}`
-    : `Mesa ${orden.mesas?.numero || 'N/A'} - ${orden.mesas?.salones?.nombre || ''}`;
+    ? `DOMICILIO - Ubicación ${escapeHtml(orden.mesas?.numero || 'N/A')}`
+    : `Mesa ${escapeHtml(orden.mesas?.numero || 'N/A')} - ${escapeHtml(orden.mesas?.salones?.nombre || '')}`;
 
   let productosHTML = '';
   
@@ -41,13 +51,13 @@ export function generarHTMLComanda(orden: OrdenData): string {
     const sillaLabel = esDomicilio ? `Persona ${silla}` : `Silla ${silla}`;
     productosHTML += `
       <div class="silla-group">
-        <div class="silla-header">${sillaLabel}</div>
+        <div class="silla-header">${escapeHtml(sillaLabel)}</div>
         ${productos.map(p => `
           <div class="producto">
-            <span class="cantidad">${p.cantidad}x</span>
-            <span class="nombre">${p.productos?.nombre || 'Producto'}</span>
+            <span class="cantidad">${escapeHtml(p.cantidad)}x</span>
+            <span class="nombre">${escapeHtml(p.productos?.nombre || 'Producto')}</span>
           </div>
-          ${p.notas ? `<div class="notas">📝 ${p.notas}</div>` : ''}
+          ${p.notas ? `<div class="notas">📝 ${escapeHtml(p.notas)}</div>` : ''}
         `).join('')}
       </div>
     `;
@@ -56,12 +66,12 @@ export function generarHTMLComanda(orden: OrdenData): string {
   const instruccionesHTML = esDomicilio && orden.instrucciones_entrega ? `
     <div class="instrucciones">
       <div class="instrucciones-title">📍 INSTRUCCIONES DE ENTREGA:</div>
-      <div class="instrucciones-text">${orden.instrucciones_entrega}</div>
+      <div class="instrucciones-text">${escapeHtml(orden.instrucciones_entrega)}</div>
     </div>
   ` : '';
 
   const clienteHTML = orden.nombre_cliente ? `
-    <div class="cliente">👤 ${orden.nombre_cliente}</div>
+    <div class="cliente">👤 ${escapeHtml(orden.nombre_cliente)}</div>
   ` : '';
 
   return `
@@ -69,7 +79,7 @@ export function generarHTMLComanda(orden: OrdenData): string {
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>Comanda #${orden.numero_orden || 'N/A'}</title>
+      <title>Comanda #${escapeHtml(orden.numero_orden || 'N/A')}</title>
       <style>
         @page {
           size: 80mm auto;
@@ -235,7 +245,7 @@ export function generarHTMLComanda(orden: OrdenData): string {
     <body>
       <div class="header">
         <div class="titulo">ANCESTRALE</div>
-        <div class="numero-orden">${orden.numero_orden || 'N/A'}</div>
+        <div class="numero-orden">${escapeHtml(orden.numero_orden || 'N/A')}</div>
         <div class="tipo-orden">
           ${esDomicilio ? '🚚 DOMICILIO' : '🍽️ COMANDA'}
         </div>
@@ -244,7 +254,7 @@ export function generarHTMLComanda(orden: OrdenData): string {
       
       ${esDomicilio ? '<div class="domicilio-badge">🚚 PEDIDO EXTERNO</div>' : ''}
       
-      <div class="ubicacion">${ubicacion}</div>
+      <div class="ubicacion">${escapeHtml(ubicacion)}</div>
       
       ${clienteHTML}
       
