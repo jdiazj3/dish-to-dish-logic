@@ -16,6 +16,7 @@ import { format, startOfDay, endOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import jsPDF from "jspdf";
 import { formatCOP } from "@/utils/formatCurrency";
+import { logError } from "@/utils/errorLogger";
 
 const escapeHtml = (value: unknown): string =>
   String(value ?? "")
@@ -557,7 +558,7 @@ export function CierreCaja() {
       resetForm();
     },
     onError: (error: any) => {
-      console.error('Error en cierre:', error);
+      logError('Error en cierre:', error)
       toast.error(error.message || "Error al registrar el cierre");
     },
   });

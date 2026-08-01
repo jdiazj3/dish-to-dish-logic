@@ -5,6 +5,7 @@ import { formatCOP as formatCurrency } from "@/utils/formatCurrency";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logError } from "@/utils/errorLogger";
 
 interface AlertaMargenBajoProps {
   margenActual: number;
@@ -58,7 +59,7 @@ export function AlertaMargenBajo({
       if (error) throw error;
       toast.success("Alerta enviada por correo electrónico");
     } catch (error) {
-      console.error("Error al enviar alerta:", error);
+      logError("Error al enviar alerta:", error)
       toast.error("Error al enviar el correo de alerta");
     } finally {
       setEnviandoEmail(false);

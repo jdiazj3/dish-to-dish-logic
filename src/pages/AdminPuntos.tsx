@@ -18,6 +18,7 @@ import { GestionPremios } from "@/components/admin/GestionPremios";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatCOP } from "@/utils/formatCurrency";
+import { logError } from "@/utils/errorLogger";
 
 const turnoLabels: { [key: string]: { label: string; icon: any; color: string } } = {
   manana: { label: "Mañana", icon: Sun, color: "text-yellow-500" },
@@ -103,7 +104,7 @@ export default function AdminPuntos() {
       setEditingConfig(null);
     },
     onError: (error) => {
-      console.error('Error:', error);
+      logError('Error:', error)
       toast.error("Error al actualizar configuración");
     },
   });

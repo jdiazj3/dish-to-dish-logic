@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatCOP } from "@/utils/formatCurrency";
 import { Plus, Pencil, Banknote, Smartphone, Building2, Wallet } from "lucide-react";
+import { logError } from "@/utils/errorLogger";
 
 interface Cuenta {
   id: string;
@@ -96,7 +97,7 @@ export function GestionCuentas() {
       setDialogOpen(false);
     },
     onError: (error) => {
-      console.error("Error:", error);
+      logError("Error:", error)
       toast.error("Error al guardar la cuenta");
     }
   });

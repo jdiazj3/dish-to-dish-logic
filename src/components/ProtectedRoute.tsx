@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/utils/errorLogger";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -40,7 +41,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
           navigate("/auth", { replace: true });
         }
       } catch (err) {
-        console.error("Error verificando sesión:", err);
+        logError("Error verificando sesión:", err)
         setSessionValid(false);
         navigate("/auth", { replace: true });
       }

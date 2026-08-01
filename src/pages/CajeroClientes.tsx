@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { CanjePuntos } from "@/components/cajero/CanjePuntos";
 import { useQueryClient } from "@tanstack/react-query";
+import { logError } from "@/utils/errorLogger";
 
 export default function CajeroClientes() {
   const { user } = useAuth();
@@ -196,7 +197,7 @@ export default function CajeroClientes() {
       
       toast.success("Reporte exportado exitosamente", { id: "export" });
     } catch (error) {
-      console.error("Error al exportar:", error);
+      logError("Error al exportar:", error)
       toast.error("Error al generar el reporte", { id: "export" });
     }
   };

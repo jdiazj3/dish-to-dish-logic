@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { formatCOP } from "@/utils/formatCurrency";
+import { logError } from "@/utils/errorLogger";
 
 export default function CajeroFacturacionDomicilios() {
   const { user, loading: authLoading } = useAuth();
@@ -214,7 +215,7 @@ export default function CajeroFacturacionDomicilios() {
           }
         }
       } catch (e) {
-        console.error('Error al generar PDF:', e);
+        logError('Error al generar PDF:', e)
       }
 
       // Resetear estado
@@ -225,7 +226,7 @@ export default function CajeroFacturacionDomicilios() {
       setReferenciaPago("");
     },
     onError: (error: any) => {
-      console.error('Error al facturar:', error);
+      logError('Error al facturar:', error)
       toast.error(error.message || "Error al generar la factura consolidada");
     },
   });

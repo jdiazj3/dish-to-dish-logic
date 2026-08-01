@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/utils/errorLogger";
 
 export type AppRole = 'admin_total' | 'admin_sede' | 'cajero' | 'mesero' | 'mesero_externo' | 'cocina';
 
@@ -34,7 +35,7 @@ export function useUserRole(userId?: string) {
         if (error) throw error;
         return (data || []).map(r => r.role as AppRole);
       } catch (error) {
-        console.error('Error fetching user roles:', error);
+        logError('Error fetching user roles:', error)
         return [];
       }
     },
@@ -61,7 +62,7 @@ export function useProfile(userId?: string) {
         if (error) throw error;
         return data;
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        logError('Error fetching profile:', error)
         return null;
       }
     },

@@ -14,6 +14,7 @@ import { formatCOP } from "@/utils/formatCurrency";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ArrowRight, Loader2 } from "lucide-react";
+import { logError } from "@/utils/errorLogger";
 
 interface Cuenta {
   id: string;
@@ -110,7 +111,7 @@ export function TransferenciasCuentas() {
       setNotas("");
     },
     onError: (error) => {
-      console.error("Error al transferir:", error);
+      logError("Error al transferir:", error)
       toast.error("Error al realizar la transferencia");
     }
   });
