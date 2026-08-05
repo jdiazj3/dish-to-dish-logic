@@ -9,6 +9,9 @@
   "peerDependencies": {
     "typescript": "5.6.3"
   },
+  "resolutions": {
+    "typescript": "5.6.3"
+  },
   "dependencies": {
     "@remotion/bundler": "^4.0.503",
     "@remotion/cli": "^4.0.503",

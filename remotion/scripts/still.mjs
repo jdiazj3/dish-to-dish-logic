@@ -4,18 +4,30 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const frames = process.argv.slice(2).map(Number);
 
-const bundled = await bundle({ entryPoint: path.resolve(__dirname, "../src/index.ts"), webpackOverride: (c) => c });
+const bundled = await bundle({
+  entryPoint: path.resolve(__dirname, "../src/index.ts"),
+  webpackOverride: (c) => c,
+});
+
 const browser = await openBrowser("chrome", {
   browserExecutable: process.env.PUPPETEER_EXECUTABLE_PATH ?? "/bin/chromium",
   chromiumOptions: { args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"] },
   chromeMode: "chrome-for-testing",
 });
-const composition = await selectComposition({ serveUrl: bundled, id: "main", puppeteerInstance: browser });
-console.log("duration", composition.durationInFrames);
-for (const f of frames) {
-  await renderStill({ composition, serveUrl: bundled, output: `/tmp/still-${f}.png`, frame: f, puppeteerInstance: browser, overwrite: true });
-  console.log("still", f);
-}
+
+const id = process.argv[2] ?? "main-vertical";
+const frame = Number(process.argv[3] ?? 60);
+const output = process.argv[4] ?? `/tmp/${id}-${frame}.png`;
+
+const composition = await selectComposition({ serveUrl: bundled, id, puppeteerInstance: browser });
+await renderStill({
+  composition,
+  serveUrl: bundled,
+  output,
+  puppeteerInstance: browser,
+  frame,
+});
+
 await browser.close({ silent: false });
+console.log("still saved to", output);
