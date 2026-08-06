@@ -211,12 +211,13 @@ export const SceneDashboardMotion: React.FC = () => {
         </div>
         <Subhead delay={14}>Ventas del día, ticket promedio y órdenes activas por sede.</Subhead>
       </AbsoluteFill>
-      <MetricCard value="$1.8M" label="Ventas hoy" color={COLORS.green} delay={24} x={isHorizontal ? 120 : 80} y={isHorizontal ? 360 : 300} />
-      <MetricCard value="$42K" label="Ticket promedio" color={COLORS.orange} delay={32} x={isHorizontal ? 380 : 80} y={isHorizontal ? 360 : 420} />
-      <MetricCard value="86" label="Órdenes activas" color={COLORS.amber} delay={40} x={isHorizontal ? 640 : 80} y={isHorizontal ? 360 : 540} />
-      <div style={{ position: "absolute", left: isHorizontal ? 120 : 80, top: isHorizontal ? 540 : 680 }}>
-        <LineChart values={[40, 55, 48, 70, 65, 85, 90]} delay={48} width={isHorizontal ? 720 : 520} color={COLORS.green} />
+      <MetricCard value="$1.8M" label="Ventas hoy" color={COLORS.green} delay={24} x={isHorizontal ? 120 : 80} y={isHorizontal ? 360 : 340} />
+      <MetricCard value="$42K" label="Ticket promedio" color={COLORS.orange} delay={32} x={isHorizontal ? 380 : 80} y={isHorizontal ? 360 : 510} />
+      <MetricCard value="86" label="Órdenes activas" color={COLORS.amber} delay={40} x={isHorizontal ? 640 : 80} y={isHorizontal ? 360 : 680} />
+      <div style={{ position: "absolute", left: isHorizontal ? 120 : 80, top: isHorizontal ? 540 : 900 }}>
+        <LineChart values={[40, 55, 48, 70, 65, 85, 90]} delay={48} width={isHorizontal ? 720 : 900} height={isHorizontal ? 220 : 400} color={COLORS.green} />
       </div>
+
     </AbsoluteFill>
   );
 };
