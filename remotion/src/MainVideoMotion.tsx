@@ -25,15 +25,15 @@ const timing = springTiming({ config: { damping: 200 }, durationInFrames: T });
 type SceneDef = { component: React.FC; dur: number };
 
 const SCENES: SceneDef[] = [
-  { component: SceneIntroMotion, dur: 140 },
-  { component: SceneProductsMotion, dur: 150 },
-  { component: SceneInventoryMotion, dur: 150 },
-  { component: SceneDashboardMotion, dur: 150 },
-  { component: SceneProfitabilityMotion, dur: 180 },
-  { component: SceneWaiterMotion, dur: 150 },
-  { component: SceneKitchenMotion, dur: 150 },
-  { component: SceneCashierMotion, dur: 150 },
-  { component: SceneOutroMotion, dur: 200 },
+  { component: SceneIntroMotion, dur: 187 },
+  { component: SceneProductsMotion, dur: 254 },
+  { component: SceneInventoryMotion, dur: 155 },
+  { component: SceneDashboardMotion, dur: 153 },
+  { component: SceneProfitabilityMotion, dur: 189 },
+  { component: SceneWaiterMotion, dur: 147 },
+  { component: SceneKitchenMotion, dur: 234 },
+  { component: SceneCashierMotion, dur: 171 },
+  { component: SceneOutroMotion, dur: 169 },
 ];
 
 export const MainVideoMotion: React.FC = () => {
