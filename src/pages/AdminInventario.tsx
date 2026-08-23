@@ -31,22 +31,18 @@ const AdminInventario = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="insumos" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl grid-cols-6">
+          <TabsList className="grid w-full max-w-3xl grid-cols-5">
             <TabsTrigger value="insumos" className="flex items-center gap-2">
               <UtensilsCrossed className="w-4 h-4" />
               <span className="hidden sm:inline">Insumos</span>
             </TabsTrigger>
             <TabsTrigger value="entradas-insumos" className="flex items-center gap-2">
               <ShoppingCart className="w-4 h-4" />
-              <span className="hidden sm:inline">Compras</span>
+              <span className="hidden sm:inline">Compras Insumos</span>
             </TabsTrigger>
-            <TabsTrigger value="tipos" className="flex items-center gap-2">
-              <Tags className="w-4 h-4" />
-              <span className="hidden sm:inline">Tipos</span>
-            </TabsTrigger>
-            <TabsTrigger value="entradas" className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">Entradas</span>
+            <TabsTrigger value="entradas-productos" className="flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4" />
+              <span className="hidden sm:inline">Compras Productos</span>
             </TabsTrigger>
             <TabsTrigger value="stock" className="flex items-center gap-2">
               <Boxes className="w-4 h-4" />
@@ -59,20 +55,20 @@ const AdminInventario = () => {
           </TabsList>
 
           <TabsContent value="insumos">
-            <GestionInsumos />
+            <div className="space-y-6">
+              <GestionInsumos />
+              <GestionTiposInsumos />
+            </div>
           </TabsContent>
 
           <TabsContent value="entradas-insumos">
             <EntradasInsumos />
           </TabsContent>
 
-          <TabsContent value="tipos">
-            <GestionTiposInsumos />
+          <TabsContent value="entradas-productos">
+            <EntradasProductos />
           </TabsContent>
 
-          <TabsContent value="entradas">
-            <RegistroEntradas />
-          </TabsContent>
 
           <TabsContent value="stock">
             <StockActual />
