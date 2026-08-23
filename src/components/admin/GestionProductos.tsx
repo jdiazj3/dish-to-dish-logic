@@ -173,6 +173,7 @@ export function GestionProductos() {
     setPrecio("");
     setCategoriaId("");
     setDisponible(true);
+    setControlaInventario(false);
     setFotoFile(null);
     setFotoPreview("");
     setEditingProducto(null);
@@ -186,9 +187,12 @@ export function GestionProductos() {
     setPrecio(producto.precio.toString());
     setCategoriaId(producto.categoria_id || "");
     setDisponible(producto.disponible);
+    setControlaInventario(!!producto.controla_inventario);
     setFotoPreview(producto.foto_url || "");
     setDialogOpen(true);
   };
+
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
