@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Truck, Boxes, UtensilsCrossed, ShoppingCart, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Truck, Boxes, UtensilsCrossed, ShoppingCart, ShoppingBag, ChefHat } from "lucide-react";
 import { GestionProveedores } from "@/components/admin/inventario/GestionProveedores";
 import { EntradasProductos } from "@/components/admin/inventario/EntradasProductos";
 import { StockActual } from "@/components/admin/inventario/StockActual";
 import { GestionTiposInsumos } from "@/components/admin/inventario/GestionTiposInsumos";
 import { GestionInsumos } from "@/components/admin/inventario/GestionInsumos";
 import { EntradasInsumos } from "@/components/admin/inventario/EntradasInsumos";
+import { RecetasProductos } from "@/components/admin/inventario/RecetasProductos";
 
 
 const AdminInventario = () => {
@@ -31,7 +32,7 @@ const AdminInventario = () => {
 
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="insumos" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl grid-cols-5">
+          <TabsList className="grid w-full max-w-4xl grid-cols-6">
             <TabsTrigger value="insumos" className="flex items-center gap-2">
               <UtensilsCrossed className="w-4 h-4" />
               <span className="hidden sm:inline">Insumos</span>
@@ -43,6 +44,10 @@ const AdminInventario = () => {
             <TabsTrigger value="entradas-productos" className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Compras Productos</span>
+            </TabsTrigger>
+            <TabsTrigger value="recetas" className="flex items-center gap-2">
+              <ChefHat className="w-4 h-4" />
+              <span className="hidden sm:inline">Recetas</span>
             </TabsTrigger>
             <TabsTrigger value="stock" className="flex items-center gap-2">
               <Boxes className="w-4 h-4" />
@@ -69,6 +74,10 @@ const AdminInventario = () => {
             <EntradasProductos />
           </TabsContent>
 
+
+          <TabsContent value="recetas">
+            <RecetasProductos />
+          </TabsContent>
 
           <TabsContent value="stock">
             <StockActual />

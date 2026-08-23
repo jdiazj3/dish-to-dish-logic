@@ -16,6 +16,7 @@ import { AnalisisPorTurno } from "@/components/admin/reportes/AnalisisPorTurno";
 import { AnalisisPorSede } from "@/components/admin/reportes/AnalisisPorSede";
 import { ReporteRentabilidad } from "@/components/admin/reportes/ReporteRentabilidad";
 import { GraficoMargenSemanal } from "@/components/admin/reportes/GraficoMargenSemanal";
+import { RentabilidadPorProducto } from "@/components/admin/reportes/RentabilidadPorProducto";
 import { ConfiguracionAlertasRentabilidad } from "@/components/admin/reportes/ConfiguracionAlertasRentabilidad";
 import { AlertaMargenBajo } from "@/components/admin/reportes/AlertaMargenBajo";
 import { exportToCSV, prepararDatosExportacion } from "@/utils/exportReportes";
@@ -528,6 +529,13 @@ export default function AdminReportes() {
             fechaFin={fechaFin}
           />
         )}
+
+        {/* Rentabilidad real por producto/plato */}
+        <RentabilidadPorProducto
+          fechaInicio={fechaInicio}
+          fechaFin={fechaFin}
+          margenMinimo={alertasConfig?.margen_minimo ?? 20}
+        />
 
         {/* Gráfico histórico de margen semanal */}
         <GraficoMargenSemanal />
