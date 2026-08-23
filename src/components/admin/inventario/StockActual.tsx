@@ -21,6 +21,13 @@ interface InsumoStock {
   tipos_insumos: { nombre: string } | null;
 }
 
+interface ProductoStock {
+  id: string;
+  nombre: string;
+  controla_inventario: boolean;
+  inventario_stock: { cantidad_actual: number; cantidad_minima: number | null; ultima_actualizacion: string }[] | null;
+}
+
 export const StockActual = () => {
   const [busqueda, setBusqueda] = useState("");
 
@@ -47,12 +54,34 @@ export const StockActual = () => {
     },
   });
 
+  const { data: productos, isLoading: cargandoProductos } = useQuery({
+    queryKey: ["productos-stock"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("productos")
+        .select("id, nombre, controla_inventario, inventario_stock(cantidad_actual, cantidad_minima, ultima_actualizacion)")
+        .eq("controla_inventario", true)
+        .order("nombre");
+      if (error) throw error;
+      return data as unknown as ProductoStock[];
+    },
+  });
+
   const insumosFiltrados = insumos?.filter(item =>
     item.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     item.tipos_insumos?.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  const productosFiltrados = productos?.filter(item =>
+    item.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
   const stockBajo = insumos?.filter(item => item.stock_actual <= item.stock_minimo) || [];
+  const productosBajos = productos?.filter(p => {
+    const s = p.inventario_stock?.[0];
+    return (s?.cantidad_actual ?? 0) <= (s?.cantidad_minima ?? 0);
+  }) || [];
+
 
   const getUnidadLabel = (unidad: string) => {
     const unidades: Record<string, string> = {
