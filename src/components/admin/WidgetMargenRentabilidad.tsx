@@ -64,28 +64,23 @@ export function WidgetMargenRentabilidad() {
   }, [costos]);
 
 
-  // Suscripción a cambios en tiempo real
+  // Suscripción a cambios en tiempo real (compras e insumos afectan el costo real)
   useEffect(() => {
+    const refrescar = () =>
+      queryClient.invalidateQueries({ queryKey: ["costos-productos-widget"] });
+
     const channel = supabase
       .channel('rentabilidad-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'inventario_entradas'
-        },
-        () => {
-          // Refetch cuando hay cambios
-          window.location.reload();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario_entradas' }, refrescar)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario_entradas_insumos' }, refrescar)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'recetas_productos' }, refrescar)
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [queryClient]);
+
 
   const margenMinimo = config?.margen_minimo || 20;
   const productosMargenBajo = productosConMargen.filter(p => p.margen < margenMinimo);
