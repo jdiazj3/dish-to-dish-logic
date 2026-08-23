@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Package, Truck, Boxes, Tags, UtensilsCrossed, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Truck, Boxes, Tags, UtensilsCrossed, ShoppingCart, ShoppingBag } from "lucide-react";
 import { GestionProveedores } from "@/components/admin/inventario/GestionProveedores";
-import { RegistroEntradas } from "@/components/admin/inventario/RegistroEntradas";
+import { EntradasProductos } from "@/components/admin/inventario/EntradasProductos";
 import { StockActual } from "@/components/admin/inventario/StockActual";
 import { GestionTiposInsumos } from "@/components/admin/inventario/GestionTiposInsumos";
 import { GestionInsumos } from "@/components/admin/inventario/GestionInsumos";
 import { EntradasInsumos } from "@/components/admin/inventario/EntradasInsumos";
+
 
 const AdminInventario = () => {
   const navigate = useNavigate();
