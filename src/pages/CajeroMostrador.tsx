@@ -124,11 +124,13 @@ export default function CajeroMostrador() {
 
       const items = cart.map((c) => ({
         factura_id: factura.id,
+        producto_id: c.producto_id,
         producto_nombre: c.nombre,
         cantidad: c.cantidad,
         precio_unitario: c.precio,
         subtotal: c.precio * c.cantidad,
       }));
+
       const { error: itemsError } = await supabase.from("factura_items").insert(items);
       if (itemsError) throw itemsError;
 
