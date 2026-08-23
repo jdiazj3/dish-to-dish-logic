@@ -353,6 +353,7 @@ export type Database = {
           id: string
           orden_producto_id: string | null
           precio_unitario: number
+          producto_id: string | null
           producto_nombre: string
           subtotal: number
         }
@@ -363,6 +364,7 @@ export type Database = {
           id?: string
           orden_producto_id?: string | null
           precio_unitario: number
+          producto_id?: string | null
           producto_nombre: string
           subtotal: number
         }
@@ -373,6 +375,7 @@ export type Database = {
           id?: string
           orden_producto_id?: string | null
           precio_unitario?: number
+          producto_id?: string | null
           producto_nombre?: string
           subtotal?: number
         }
@@ -389,6 +392,13 @@ export type Database = {
             columns: ["orden_producto_id"]
             isOneToOne: false
             referencedRelation: "orden_productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "factura_items_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
             referencedColumns: ["id"]
           },
         ]
@@ -975,6 +985,7 @@ export type Database = {
       productos: {
         Row: {
           categoria_id: string | null
+          controla_inventario: boolean
           created_at: string
           descripcion: string | null
           disponible: boolean | null
@@ -986,6 +997,7 @@ export type Database = {
         }
         Insert: {
           categoria_id?: string | null
+          controla_inventario?: boolean
           created_at?: string
           descripcion?: string | null
           disponible?: boolean | null
@@ -997,6 +1009,7 @@ export type Database = {
         }
         Update: {
           categoria_id?: string | null
+          controla_inventario?: boolean
           created_at?: string
           descripcion?: string | null
           disponible?: boolean | null
