@@ -116,6 +116,28 @@ export const StockActual = () => {
         </Card>
       )}
 
+      {productosBajos.length > 0 && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              Productos de reventa por agotarse ({productosBajos.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {productosBajos.map(p => (
+                <Badge key={p.id} variant="destructive" className="text-sm">
+                  {p.nombre}: {p.inventario_stock?.[0]?.cantidad_actual ?? 0} unid
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
