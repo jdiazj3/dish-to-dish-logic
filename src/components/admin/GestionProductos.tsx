@@ -365,7 +365,25 @@ export function GestionProductos() {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2 col-span-2 rounded-lg border p-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="controla_inventario">Controla inventario</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Actívalo para productos de reventa (cervezas, gaseosas, helados): se compran ya
+                        listos y sus existencias bajan solas al facturar.
+                      </p>
+                    </div>
+                    <Switch
+                      id="controla_inventario"
+                      checked={controlaInventario}
+                      onCheckedChange={setControlaInventario}
+                    />
+                  </div>
+                </div>
               </div>
+
 
               <Button 
                 onClick={handleSubmit} 
