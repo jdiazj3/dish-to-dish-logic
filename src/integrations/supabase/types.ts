@@ -401,6 +401,13 @@ export type Database = {
             referencedRelation: "productos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "factura_items_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "vista_costos_productos"
+            referencedColumns: ["producto_id"]
+          },
         ]
       }
       facturas: {
@@ -618,6 +625,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inventario_entradas_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "vista_costos_productos"
+            referencedColumns: ["producto_id"]
+          },
+          {
             foreignKeyName: "inventario_entradas_proveedor_id_fkey"
             columns: ["proveedor_id"]
             isOneToOne: false
@@ -678,6 +692,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inventario_entradas_insumos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "vista_costos_insumos"
+            referencedColumns: ["insumo_id"]
+          },
+          {
             foreignKeyName: "inventario_entradas_insumos_proveedor_id_fkey"
             columns: ["proveedor_id"]
             isOneToOne: false
@@ -715,6 +736,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventario_stock_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: true
+            referencedRelation: "vista_costos_productos"
+            referencedColumns: ["producto_id"]
           },
         ]
       }
@@ -871,6 +899,13 @@ export type Database = {
             referencedRelation: "productos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "orden_productos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "vista_costos_productos"
+            referencedColumns: ["producto_id"]
+          },
         ]
       }
       ordenes: {
@@ -979,6 +1014,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "premios_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "vista_costos_productos"
+            referencedColumns: ["producto_id"]
           },
         ]
       }
@@ -1193,6 +1235,65 @@ export type Database = {
         }
         Relationships: []
       }
+      recetas_productos: {
+        Row: {
+          cantidad: number
+          created_at: string
+          id: string
+          insumo_id: string
+          notas: string | null
+          producto_id: string
+          updated_at: string
+        }
+        Insert: {
+          cantidad: number
+          created_at?: string
+          id?: string
+          insumo_id: string
+          notas?: string | null
+          producto_id: string
+          updated_at?: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          id?: string
+          insumo_id?: string
+          notas?: string | null
+          producto_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recetas_productos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "insumos_restaurante"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recetas_productos_insumo_id_fkey"
+            columns: ["insumo_id"]
+            isOneToOne: false
+            referencedRelation: "vista_costos_insumos"
+            referencedColumns: ["insumo_id"]
+          },
+          {
+            foreignKeyName: "recetas_productos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recetas_productos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "vista_costos_productos"
+            referencedColumns: ["producto_id"]
+          },
+        ]
+      }
       salones: {
         Row: {
           created_at: string
@@ -1362,7 +1463,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vista_costos_insumos: {
+        Row: {
+          costo_unitario: number | null
+          insumo_id: string | null
+          nombre: string | null
+          tiene_compras: boolean | null
+          unidad_medida: string | null
+        }
+        Relationships: []
+      }
+      vista_costos_productos: {
+        Row: {
+          controla_inventario: boolean | null
+          costo_unitario: number | null
+          insumos_en_receta: number | null
+          margen: number | null
+          nombre: string | null
+          origen_costo: string | null
+          precio: number | null
+          producto_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
