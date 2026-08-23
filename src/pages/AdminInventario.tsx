@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Truck, Boxes, Tags, UtensilsCrossed, ShoppingCart, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Truck, Boxes, UtensilsCrossed, ShoppingCart, ShoppingBag } from "lucide-react";
 import { GestionProveedores } from "@/components/admin/inventario/GestionProveedores";
 import { EntradasProductos } from "@/components/admin/inventario/EntradasProductos";
 import { StockActual } from "@/components/admin/inventario/StockActual";
