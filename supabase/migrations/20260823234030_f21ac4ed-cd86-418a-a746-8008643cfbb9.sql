@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.descontar_stock_venta() FROM authenticated;
