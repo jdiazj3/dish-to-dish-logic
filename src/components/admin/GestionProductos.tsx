@@ -22,6 +22,8 @@ export function GestionProductos() {
   const [precio, setPrecio] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [disponible, setDisponible] = useState(true);
+  const [controlaInventario, setControlaInventario] = useState(false);
+
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
