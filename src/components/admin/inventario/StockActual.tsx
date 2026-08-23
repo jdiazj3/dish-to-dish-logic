@@ -224,6 +224,65 @@ export const StockActual = () => {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Boxes className="w-5 h-5" />
+            Stock de Productos de Reventa
+          </CardTitle>
+          <CardDescription>
+            Bebidas, helados y demás productos que se venden tal cual se compran. Bajan solos al facturar.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {cargandoProductos ? (
+            <p className="text-muted-foreground">Cargando existencias...</p>
+          ) : !productosFiltrados?.length ? (
+            <p className="text-muted-foreground text-center py-8">
+              No hay productos con control de inventario. Actívalo en Gestión de Productos.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Producto</TableHead>
+                  <TableHead className="text-right">Existencias</TableHead>
+                  <TableHead className="text-right">Mínimo</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Última Actualización</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productosFiltrados.map((p) => {
+                  const s = p.inventario_stock?.[0];
+                  const actual = s?.cantidad_actual ?? 0;
+                  const minimo = s?.cantidad_minima ?? 0;
+                  const esBajo = actual <= minimo;
+                  return (
+                    <TableRow key={p.id} className={esBajo ? "bg-destructive/5" : ""}>
+                      <TableCell className="font-medium">{p.nombre}</TableCell>
+                      <TableCell className="text-right font-semibold">{actual} unid</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{minimo} unid</TableCell>
+                      <TableCell>
+                        <Badge variant={esBajo ? "destructive" : "secondary"}>
+                          {esBajo ? "Stock Bajo" : "Normal"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {s?.ultima_actualizacion
+                          ? format(new Date(s.ultima_actualizacion), "dd MMM yyyy HH:mm", { locale: es })
+                          : "Sin movimientos"}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
+
   );
 };
