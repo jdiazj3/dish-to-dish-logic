@@ -29,28 +29,14 @@ export function WidgetMargenRentabilidad() {
     },
   });
 
-  // Obtener productos con sus costos
-  const { data: productos } = useQuery({
-    queryKey: ["productos-rentabilidad-widget"],
+  // Obtener costos reales por producto (receta de insumos o costo promedio de compra)
+  const { data: costos } = useQuery({
+    queryKey: ["costos-productos-widget"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("productos")
-        .select("id, nombre, precio")
-        .eq("disponible", true);
-      
-      if (error) throw error;
-      return data || [];
-    },
-  });
+        .from("vista_costos_productos")
+        .select("producto_id, nombre, precio, costo_unitario, origen_costo");
 
-  // Obtener entradas de inventario para calcular costos
-  const { data: entradas } = useQuery({
-    queryKey: ["entradas-inventario-widget"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("inventario_entradas")
-        .select("producto_id, precio_compra, cantidad");
-      
       if (error) throw error;
       return data || [];
     },
@@ -58,37 +44,25 @@ export function WidgetMargenRentabilidad() {
 
   // Calcular márgenes cuando cambian los datos
   useEffect(() => {
-    if (!productos || !entradas) return;
+    if (!costos) return;
 
-    const costosPromedio: Record<string, number> = {};
-    
-    entradas.forEach((entrada) => {
-      if (entrada.producto_id) {
-        if (!costosPromedio[entrada.producto_id]) {
-          costosPromedio[entrada.producto_id] = entrada.precio_compra;
-        } else {
-          costosPromedio[entrada.producto_id] = 
-            (costosPromedio[entrada.producto_id] + entrada.precio_compra) / 2;
-        }
-      }
-    });
-
-    const productosCalculados = productos
-      .filter(p => costosPromedio[p.id])
-      .map(producto => {
-        const costo = costosPromedio[producto.id] || 0;
-        const margen = costo > 0 ? ((producto.precio - costo) / producto.precio) * 100 : 100;
+    const productosCalculados = costos
+      .filter((c) => c.origen_costo !== "sin_datos" && Number(c.precio) > 0)
+      .map((c) => {
+        const costo = Number(c.costo_unitario || 0);
+        const precio = Number(c.precio || 0);
         return {
-          id: producto.id,
-          nombre: producto.nombre,
-          precio: producto.precio,
+          id: c.producto_id as string,
+          nombre: c.nombre as string,
+          precio,
           costo,
-          margen,
+          margen: ((precio - costo) / precio) * 100,
         };
       });
 
     setProductosConMargen(productosCalculados);
-  }, [productos, entradas]);
+  }, [costos]);
+
 
   // Suscripción a cambios en tiempo real
   useEffect(() => {
