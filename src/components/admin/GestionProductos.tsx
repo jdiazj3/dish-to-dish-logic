@@ -424,6 +424,10 @@ export function GestionProductos() {
                 {producto.categorias && (
                   <p className="text-xs text-muted-foreground">{producto.categorias.nombre}</p>
                 )}
+                {producto.controla_inventario && (
+                  <Badge variant="outline" className="mt-1 text-xs">Con inventario</Badge>
+                )}
+
                 <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                   {producto.descripcion || "Sin descripción"}
                 </p>
