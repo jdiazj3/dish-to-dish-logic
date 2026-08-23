@@ -96,8 +96,10 @@ export function GestionProductos() {
           precio: parseFloat(precio),
           categoria_id: categoriaId || null,
           disponible,
+          controla_inventario: controlaInventario,
           foto_url: fotoUrl || null,
         });
+
 
       if (error) throw error;
     },
