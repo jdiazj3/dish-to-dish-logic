@@ -259,11 +259,13 @@ export function FacturacionOrdenes() {
       const facturaItems = items.map((item: any) => ({
         factura_id: factura.id,
         orden_producto_id: item.id,
+        producto_id: item.producto_id ?? null,
         producto_nombre: item.productos.nombre,
         cantidad: item.cantidad,
         precio_unitario: item.precio_unitario,
         subtotal: item.subtotal,
       }));
+
 
       const { error: itemsError } = await supabase
         .from('factura_items')
