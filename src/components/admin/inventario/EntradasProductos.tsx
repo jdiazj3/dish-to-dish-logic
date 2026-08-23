@@ -9,17 +9,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Package, Calendar, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ShoppingBag, Plus, Calendar, Info } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { formatCOP } from "@/utils/formatCurrency";
 
-interface Insumo {
+interface ProductoReventa {
   id: string;
   nombre: string;
-  unidad_medida: string;
 }
 
 interface Proveedor {
@@ -27,48 +26,42 @@ interface Proveedor {
   nombre: string;
 }
 
-interface EntradaInsumo {
+interface EntradaProducto {
   id: string;
-  insumo_id: string;
-  proveedor_id: string | null;
   cantidad: number;
-  peso: number | null;
   precio_compra: number;
-  fecha_compra: string;
+  fecha_ingreso: string;
   lote: string | null;
   fecha_vencimiento: string | null;
-  notas: string | null;
-  created_at: string;
-  insumos_restaurante: { nombre: string; unidad_medida: string } | null;
+  productos: { nombre: string } | null;
   proveedores: { nombre: string } | null;
 }
 
-export const RegistroEntradas = () => {
+export const EntradasProductos = () => {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filtroFecha, setFiltroFecha] = useState("");
   const [formData, setFormData] = useState({
-    insumo_id: "",
+    producto_id: "",
     proveedor_id: "",
     cantidad: "",
-    peso: "",
     precio_compra: "",
-    fecha_compra: format(new Date(), "yyyy-MM-dd"),
+    fecha_ingreso: format(new Date(), "yyyy-MM-dd"),
     lote: "",
     fecha_vencimiento: "",
     notas: "",
   });
 
-  const { data: insumos } = useQuery({
-    queryKey: ["insumos-activos"],
+  const { data: productos } = useQuery({
+    queryKey: ["productos-reventa"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("insumos_restaurante")
-        .select("id, nombre, unidad_medida")
-        .eq("activo", true)
+        .from("productos")
+        .select("id, nombre")
+        .eq("controla_inventario", true)
         .order("nombre");
       if (error) throw error;
-      return data as Insumo[];
+      return data as ProductoReventa[];
     },
   });
 
@@ -86,61 +79,61 @@ export const RegistroEntradas = () => {
   });
 
   const { data: entradas, isLoading } = useQuery({
-    queryKey: ["entradas-insumos", filtroFecha],
+    queryKey: ["entradas-productos", filtroFecha],
     queryFn: async () => {
       let query = supabase
-        .from("inventario_entradas_insumos")
+        .from("inventario_entradas")
         .select(`
-          *,
-          insumos_restaurante:insumo_id(nombre, unidad_medida),
+          id, cantidad, precio_compra, fecha_ingreso, lote, fecha_vencimiento,
+          productos:producto_id(nombre),
           proveedores:proveedor_id(nombre)
         `)
-        .order("fecha_compra", { ascending: false })
+        .order("fecha_ingreso", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(100);
 
       if (filtroFecha) {
-        query = query.eq("fecha_compra", filtroFecha);
+        query = query.eq("fecha_ingreso", filtroFecha);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as EntradaInsumo[];
+      return data as unknown as EntradaProducto[];
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("inventario_entradas_insumos").insert([{
-        insumo_id: data.insumo_id,
+      const { data: userData } = await supabase.auth.getUser();
+      const { error } = await supabase.from("inventario_entradas").insert([{
+        producto_id: data.producto_id,
         proveedor_id: data.proveedor_id || null,
         cantidad: parseFloat(data.cantidad),
-        peso: data.peso ? parseFloat(data.peso) : null,
         precio_compra: parseFloat(data.precio_compra),
-        fecha_compra: data.fecha_compra,
+        fecha_ingreso: data.fecha_ingreso,
         lote: data.lote || null,
         fecha_vencimiento: data.fecha_vencimiento || null,
         notas: data.notas || null,
+        registrado_por: userData.user?.id ?? null,
       }]);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["entradas-insumos"] });
-      queryClient.invalidateQueries({ queryKey: ["insumos-stock"] });
-      toast.success("Entrada de insumo registrada. Stock actualizado automáticamente.");
+      queryClient.invalidateQueries({ queryKey: ["entradas-productos"] });
+      queryClient.invalidateQueries({ queryKey: ["productos-stock"] });
+      toast.success("Compra registrada. Existencias actualizadas automáticamente.");
       resetForm();
     },
-    onError: () => toast.error("Error al registrar entrada"),
+    onError: () => toast.error("Error al registrar la compra"),
   });
 
   const resetForm = () => {
     setFormData({
-      insumo_id: "",
+      producto_id: "",
       proveedor_id: "",
       cantidad: "",
-      peso: "",
       precio_compra: "",
-      fecha_compra: format(new Date(), "yyyy-MM-dd"),
+      fecha_ingreso: format(new Date(), "yyyy-MM-dd"),
       lote: "",
       fecha_vencimiento: "",
       notas: "",
@@ -149,31 +142,12 @@ export const RegistroEntradas = () => {
   };
 
   const handleSubmit = () => {
-    if (!formData.insumo_id || !formData.cantidad || !formData.precio_compra) {
-      toast.error("Insumo, cantidad y precio son requeridos");
+    if (!formData.producto_id || !formData.cantidad || !formData.precio_compra) {
+      toast.error("Producto, cantidad y precio son requeridos");
       return;
     }
     createMutation.mutate(formData);
   };
-
-  const calcularTotal = () => {
-    const cantidad = parseFloat(formData.cantidad) || 0;
-    const precio = parseFloat(formData.precio_compra) || 0;
-    return (cantidad * precio).toLocaleString("es-CO", { style: "currency", currency: "COP" });
-  };
-
-  const getUnidadLabel = (unidad: string) => {
-    const unidades: Record<string, string> = {
-      kg: "kg",
-      g: "g",
-      lt: "lt",
-      ml: "ml",
-      unidad: "unid",
-    };
-    return unidades[unidad] || unidad;
-  };
-
-  const insumoSeleccionado = insumos?.find(i => i.id === formData.insumo_id);
 
   return (
     <Card>
@@ -181,11 +155,11 @@ export const RegistroEntradas = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Registro de Compras de Insumos
+              <ShoppingBag className="w-5 h-5" />
+              Compras de Productos de Reventa
             </CardTitle>
             <CardDescription>
-              Registra las compras de insumos y materias primas (no productos de venta)
+              Cervezas, gaseosas, helados y demás productos que se venden tal como se compran
             </CardDescription>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -197,38 +171,42 @@ export const RegistroEntradas = () => {
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Registrar Compra de Insumo</DialogTitle>
+                <DialogTitle>Registrar Compra de Producto</DialogTitle>
                 <DialogDescription>
-                  El stock se actualizará automáticamente al registrar la compra
+                  Las existencias suben automáticamente y bajan al facturar la venta
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <Alert>
                   <Info className="w-4 h-4" />
                   <AlertDescription>
-                    Solo registra insumos/materias primas aquí. Los productos del menú se gestionan por separado.
+                    Solo aparecen productos del menú marcados con "Controla inventario".
+                    Actívalo en Gestión de Productos para bebidas, helados y similares.
                   </AlertDescription>
                 </Alert>
-                
+
                 <div className="space-y-2">
-                  <Label>Insumo *</Label>
+                  <Label>Producto *</Label>
                   <Select
-                    value={formData.insumo_id}
-                    onValueChange={(v) => setFormData({ ...formData, insumo_id: v })}
+                    value={formData.producto_id}
+                    onValueChange={(v) => setFormData({ ...formData, producto_id: v })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecciona un insumo" />
+                      <SelectValue placeholder="Selecciona un producto" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
-                      {insumos?.map((i) => (
-                        <SelectItem key={i.id} value={i.id}>
-                          {i.nombre} ({getUnidadLabel(i.unidad_medida)})
-                        </SelectItem>
+                      {productos?.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {productos?.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      No hay productos con control de inventario todavía.
+                    </p>
+                  )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Proveedor</Label>
                   <Select
@@ -245,61 +223,48 @@ export const RegistroEntradas = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Cantidad * {insumoSeleccionado && `(${getUnidadLabel(insumoSeleccionado.unidad_medida)})`}</Label>
+                    <Label>Cantidad (unidades) *</Label>
                     <Input
                       type="number"
                       min="0"
-                      step="0.01"
+                      step="1"
                       value={formData.cantidad}
                       onChange={(e) => setFormData({ ...formData, cantidad: e.target.value })}
                       placeholder="0"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Peso (opcional)</Label>
+                    <Label>Precio Total de Compra *</Label>
                     <Input
                       type="number"
                       min="0"
-                      step="0.01"
-                      value={formData.peso}
-                      onChange={(e) => setFormData({ ...formData, peso: e.target.value })}
-                      placeholder="kg"
+                      step="100"
+                      value={formData.precio_compra}
+                      onChange={(e) => setFormData({ ...formData, precio_compra: e.target.value })}
+                      placeholder="0"
                     />
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label>Precio Total de Compra *</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="100"
-                    value={formData.precio_compra}
-                    onChange={(e) => setFormData({ ...formData, precio_compra: e.target.value })}
-                    placeholder="0"
-                  />
-                </div>
-                
-                {formData.cantidad && formData.precio_compra && (
+
+                {formData.cantidad && formData.precio_compra && parseFloat(formData.cantidad) > 0 && (
                   <div className="p-3 bg-muted rounded-lg text-center">
-                    <span className="text-sm text-muted-foreground">Precio por unidad: </span>
+                    <span className="text-sm text-muted-foreground">Costo por unidad: </span>
                     <span className="font-semibold">
-                      {(parseFloat(formData.precio_compra) / parseFloat(formData.cantidad)).toLocaleString("es-CO", { style: "currency", currency: "COP" })}
-                      {insumoSeleccionado && ` / ${getUnidadLabel(insumoSeleccionado.unidad_medida)}`}
+                      {formatCOP(parseFloat(formData.precio_compra) / parseFloat(formData.cantidad))}
                     </span>
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Fecha Compra</Label>
+                    <Label>Fecha de Ingreso</Label>
                     <Input
                       type="date"
-                      value={formData.fecha_compra}
-                      onChange={(e) => setFormData({ ...formData, fecha_compra: e.target.value })}
+                      value={formData.fecha_ingreso}
+                      onChange={(e) => setFormData({ ...formData, fecha_ingreso: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -311,7 +276,7 @@ export const RegistroEntradas = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Fecha Vencimiento</Label>
                   <Input
@@ -320,7 +285,7 @@ export const RegistroEntradas = () => {
                     onChange={(e) => setFormData({ ...formData, fecha_vencimiento: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Notas</Label>
                   <Textarea
@@ -356,55 +321,42 @@ export const RegistroEntradas = () => {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-muted-foreground">Cargando entradas...</p>
+          <p className="text-muted-foreground">Cargando compras...</p>
         ) : !entradas?.length ? (
-          <p className="text-muted-foreground text-center py-8">No hay compras registradas</p>
+          <p className="text-muted-foreground text-center py-8">No hay compras de productos registradas</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Fecha</TableHead>
-                <TableHead>Insumo</TableHead>
+                <TableHead>Producto</TableHead>
                 <TableHead>Proveedor</TableHead>
                 <TableHead className="text-right">Cantidad</TableHead>
                 <TableHead className="text-right">Precio Total</TableHead>
-                <TableHead className="text-right">Precio Unit.</TableHead>
+                <TableHead className="text-right">Costo Unit.</TableHead>
                 <TableHead>Lote</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {entradas.map((entrada) => {
-                const unidad = entrada.insumos_restaurante?.unidad_medida || "unidad";
-                const precioUnitario = entrada.cantidad > 0 ? entrada.precio_compra / entrada.cantidad : 0;
-                return (
-                  <TableRow key={entrada.id}>
-                    <TableCell>
-                      {format(new Date(entrada.fecha_compra), "dd MMM yyyy", { locale: es })}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {entrada.insumos_restaurante?.nombre || "Insumo eliminado"}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {getUnidadLabel(unidad)}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>{entrada.proveedores?.nombre || "-"}</TableCell>
-                    <TableCell className="text-right">
-                      {entrada.cantidad} {getUnidadLabel(unidad)}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {entrada.precio_compra.toLocaleString("es-CO", { style: "currency", currency: "COP" })}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {precioUnitario.toLocaleString("es-CO", { style: "currency", currency: "COP" })}
-                    </TableCell>
-                    <TableCell>{entrada.lote || "-"}</TableCell>
-                  </TableRow>
-                );
-              })}
+              {entradas.map((entrada) => (
+                <TableRow key={entrada.id}>
+                  <TableCell>
+                    {format(new Date(entrada.fecha_ingreso), "dd MMM yyyy", { locale: es })}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {entrada.productos?.nombre || "Producto eliminado"}
+                  </TableCell>
+                  <TableCell>{entrada.proveedores?.nombre || "-"}</TableCell>
+                  <TableCell className="text-right">{entrada.cantidad}</TableCell>
+                  <TableCell className="text-right font-medium">
+                    {formatCOP(entrada.precio_compra)}
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {formatCOP(entrada.cantidad > 0 ? entrada.precio_compra / entrada.cantidad : 0)}
+                  </TableCell>
+                  <TableCell>{entrada.lote || "-"}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         )}

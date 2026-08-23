@@ -21,6 +21,13 @@ interface InsumoStock {
   tipos_insumos: { nombre: string } | null;
 }
 
+interface ProductoStock {
+  id: string;
+  nombre: string;
+  controla_inventario: boolean;
+  inventario_stock: { cantidad_actual: number; cantidad_minima: number | null; ultima_actualizacion: string }[] | null;
+}
+
 export const StockActual = () => {
   const [busqueda, setBusqueda] = useState("");
 
@@ -47,12 +54,34 @@ export const StockActual = () => {
     },
   });
 
+  const { data: productos, isLoading: cargandoProductos } = useQuery({
+    queryKey: ["productos-stock"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("productos")
+        .select("id, nombre, controla_inventario, inventario_stock(cantidad_actual, cantidad_minima, ultima_actualizacion)")
+        .eq("controla_inventario", true)
+        .order("nombre");
+      if (error) throw error;
+      return data as unknown as ProductoStock[];
+    },
+  });
+
   const insumosFiltrados = insumos?.filter(item =>
     item.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     item.tipos_insumos?.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  const productosFiltrados = productos?.filter(item =>
+    item.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
   const stockBajo = insumos?.filter(item => item.stock_actual <= item.stock_minimo) || [];
+  const productosBajos = productos?.filter(p => {
+    const s = p.inventario_stock?.[0];
+    return (s?.cantidad_actual ?? 0) <= (s?.cantidad_minima ?? 0);
+  }) || [];
+
 
   const getUnidadLabel = (unidad: string) => {
     const unidades: Record<string, string> = {
@@ -86,6 +115,28 @@ export const StockActual = () => {
           </CardContent>
         </Card>
       )}
+
+      {productosBajos.length > 0 && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              Productos de reventa por agotarse ({productosBajos.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {productosBajos.map(p => (
+                <Badge key={p.id} variant="destructive" className="text-sm">
+                  {p.nombre}: {p.inventario_stock?.[0]?.cantidad_actual ?? 0} unid
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+
 
       <Card>
         <CardHeader>
@@ -173,6 +224,65 @@ export const StockActual = () => {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Boxes className="w-5 h-5" />
+            Stock de Productos de Reventa
+          </CardTitle>
+          <CardDescription>
+            Bebidas, helados y demás productos que se venden tal cual se compran. Bajan solos al facturar.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {cargandoProductos ? (
+            <p className="text-muted-foreground">Cargando existencias...</p>
+          ) : !productosFiltrados?.length ? (
+            <p className="text-muted-foreground text-center py-8">
+              No hay productos con control de inventario. Actívalo en Gestión de Productos.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Producto</TableHead>
+                  <TableHead className="text-right">Existencias</TableHead>
+                  <TableHead className="text-right">Mínimo</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Última Actualización</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productosFiltrados.map((p) => {
+                  const s = p.inventario_stock?.[0];
+                  const actual = s?.cantidad_actual ?? 0;
+                  const minimo = s?.cantidad_minima ?? 0;
+                  const esBajo = actual <= minimo;
+                  return (
+                    <TableRow key={p.id} className={esBajo ? "bg-destructive/5" : ""}>
+                      <TableCell className="font-medium">{p.nombre}</TableCell>
+                      <TableCell className="text-right font-semibold">{actual} unid</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{minimo} unid</TableCell>
+                      <TableCell>
+                        <Badge variant={esBajo ? "destructive" : "secondary"}>
+                          {esBajo ? "Stock Bajo" : "Normal"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {s?.ultima_actualizacion
+                          ? format(new Date(s.ultima_actualizacion), "dd MMM yyyy HH:mm", { locale: es })
+                          : "Sin movimientos"}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
+
   );
 };

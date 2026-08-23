@@ -22,6 +22,8 @@ export function GestionProductos() {
   const [precio, setPrecio] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [disponible, setDisponible] = useState(true);
+  const [controlaInventario, setControlaInventario] = useState(false);
+
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,8 +96,10 @@ export function GestionProductos() {
           precio: parseFloat(precio),
           categoria_id: categoriaId || null,
           disponible,
+          controla_inventario: controlaInventario,
           foto_url: fotoUrl || null,
         });
+
 
       if (error) throw error;
     },
@@ -126,7 +130,9 @@ export function GestionProductos() {
           precio: parseFloat(precio),
           categoria_id: categoriaId || null,
           disponible,
+          controla_inventario: controlaInventario,
           foto_url: fotoUrl || null,
+
         })
         .eq('id', editingProducto.id);
 
@@ -167,6 +173,7 @@ export function GestionProductos() {
     setPrecio("");
     setCategoriaId("");
     setDisponible(true);
+    setControlaInventario(false);
     setFotoFile(null);
     setFotoPreview("");
     setEditingProducto(null);
@@ -180,9 +187,12 @@ export function GestionProductos() {
     setPrecio(producto.precio.toString());
     setCategoriaId(producto.categoria_id || "");
     setDisponible(producto.disponible);
+    setControlaInventario(!!producto.controla_inventario);
     setFotoPreview(producto.foto_url || "");
     setDialogOpen(true);
   };
+
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -355,7 +365,25 @@ export function GestionProductos() {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2 col-span-2 rounded-lg border p-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label htmlFor="controla_inventario">Controla inventario</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Actívalo para productos de reventa (cervezas, gaseosas, helados): se compran ya
+                        listos y sus existencias bajan solas al facturar.
+                      </p>
+                    </div>
+                    <Switch
+                      id="controla_inventario"
+                      checked={controlaInventario}
+                      onCheckedChange={setControlaInventario}
+                    />
+                  </div>
+                </div>
               </div>
+
 
               <Button 
                 onClick={handleSubmit} 
@@ -396,6 +424,10 @@ export function GestionProductos() {
                 {producto.categorias && (
                   <p className="text-xs text-muted-foreground">{producto.categorias.nombre}</p>
                 )}
+                {producto.controla_inventario && (
+                  <Badge variant="outline" className="mt-1 text-xs">Con inventario</Badge>
+                )}
+
                 <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                   {producto.descripcion || "Sin descripción"}
                 </p>
