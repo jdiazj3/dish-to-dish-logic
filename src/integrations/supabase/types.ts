@@ -416,6 +416,7 @@ export type Database = {
           cliente_id: string | null
           consecutivo: number
           created_at: string
+          es_venta_valera: boolean
           id: string
           impuestos: number
           metodo_pago: string | null
@@ -425,12 +426,14 @@ export type Database = {
           referencia_pago: string | null
           subtotal: number
           total: number
+          valera_id: string | null
         }
         Insert: {
           cajero_id?: string | null
           cliente_id?: string | null
           consecutivo?: number
           created_at?: string
+          es_venta_valera?: boolean
           id?: string
           impuestos: number
           metodo_pago?: string | null
@@ -440,12 +443,14 @@ export type Database = {
           referencia_pago?: string | null
           subtotal: number
           total: number
+          valera_id?: string | null
         }
         Update: {
           cajero_id?: string | null
           cliente_id?: string | null
           consecutivo?: number
           created_at?: string
+          es_venta_valera?: boolean
           id?: string
           impuestos?: number
           metodo_pago?: string | null
@@ -455,6 +460,7 @@ export type Database = {
           referencia_pago?: string | null
           subtotal?: number
           total?: number
+          valera_id?: string | null
         }
         Relationships: [
           {
@@ -469,6 +475,13 @@ export type Database = {
             columns: ["orden_id"]
             isOneToOne: false
             referencedRelation: "ordenes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facturas_valera_id_fkey"
+            columns: ["valera_id"]
+            isOneToOne: false
+            referencedRelation: "valeras"
             referencedColumns: ["id"]
           },
         ]
@@ -1461,6 +1474,191 @@ export type Database = {
         }
         Relationships: []
       }
+      valera_consumos: {
+        Row: {
+          cajero_id: string | null
+          cantidad: number
+          created_at: string
+          factura_id: string | null
+          id: string
+          notas: string | null
+          valera_id: string
+        }
+        Insert: {
+          cajero_id?: string | null
+          cantidad: number
+          created_at?: string
+          factura_id?: string | null
+          id?: string
+          notas?: string | null
+          valera_id: string
+        }
+        Update: {
+          cajero_id?: string | null
+          cantidad?: number
+          created_at?: string
+          factura_id?: string | null
+          id?: string
+          notas?: string | null
+          valera_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valera_consumos_factura_id_fkey"
+            columns: ["factura_id"]
+            isOneToOne: false
+            referencedRelation: "facturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "valera_consumos_valera_id_fkey"
+            columns: ["valera_id"]
+            isOneToOne: false
+            referencedRelation: "valeras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      valeras: {
+        Row: {
+          cantidad_total: number
+          cantidad_usada: number
+          cliente_id: string | null
+          codigo: string
+          created_at: string
+          estado: string
+          factura_venta_id: string | null
+          fecha_vencimiento: string | null
+          id: string
+          metodo_pago_venta: string
+          motivo_anulacion: string | null
+          nombre_cliente: string | null
+          notas: string | null
+          precio_unitario: number
+          producto_id: string | null
+          producto_nombre: string
+          qr_token: string
+          total_pagado: number
+          updated_at: string
+          vendida_por: string | null
+        }
+        Insert: {
+          cantidad_total: number
+          cantidad_usada?: number
+          cliente_id?: string | null
+          codigo: string
+          created_at?: string
+          estado?: string
+          factura_venta_id?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          metodo_pago_venta?: string
+          motivo_anulacion?: string | null
+          nombre_cliente?: string | null
+          notas?: string | null
+          precio_unitario: number
+          producto_id?: string | null
+          producto_nombre: string
+          qr_token?: string
+          total_pagado: number
+          updated_at?: string
+          vendida_por?: string | null
+        }
+        Update: {
+          cantidad_total?: number
+          cantidad_usada?: number
+          cliente_id?: string | null
+          codigo?: string
+          created_at?: string
+          estado?: string
+          factura_venta_id?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          metodo_pago_venta?: string
+          motivo_anulacion?: string | null
+          nombre_cliente?: string | null
+          notas?: string | null
+          precio_unitario?: number
+          producto_id?: string | null
+          producto_nombre?: string
+          qr_token?: string
+          total_pagado?: number
+          updated_at?: string
+          vendida_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valeras_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "valeras_factura_venta_id_fkey"
+            columns: ["factura_venta_id"]
+            isOneToOne: false
+            referencedRelation: "facturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "valeras_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "valeras_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "vista_costos_productos"
+            referencedColumns: ["producto_id"]
+          },
+        ]
+      }
+      valeras_config: {
+        Row: {
+          created_at: string
+          id: string
+          prefijo: string
+          producto_default_id: string | null
+          updated_at: string
+          vigencia_dias: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prefijo?: string
+          producto_default_id?: string | null
+          updated_at?: string
+          vigencia_dias?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prefijo?: string
+          producto_default_id?: string | null
+          updated_at?: string
+          vigencia_dias?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valeras_config_producto_default_id_fkey"
+            columns: ["producto_default_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "valeras_config_producto_default_id_fkey"
+            columns: ["producto_default_id"]
+            isOneToOne: false
+            referencedRelation: "vista_costos_productos"
+            referencedColumns: ["producto_id"]
+          },
+        ]
+      }
     }
     Views: {
       vista_costos_insumos: {
@@ -1488,6 +1686,69 @@ export type Database = {
       }
     }
     Functions: {
+      buscar_valera: {
+        Args: { _codigo: string }
+        Returns: {
+          cantidad_total: number
+          cantidad_usada: number
+          cliente_id: string | null
+          codigo: string
+          created_at: string
+          estado: string
+          factura_venta_id: string | null
+          fecha_vencimiento: string | null
+          id: string
+          metodo_pago_venta: string
+          motivo_anulacion: string | null
+          nombre_cliente: string | null
+          notas: string | null
+          precio_unitario: number
+          producto_id: string | null
+          producto_nombre: string
+          qr_token: string
+          total_pagado: number
+          updated_at: string
+          vendida_por: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "valeras"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      consumir_valera: {
+        Args: { _cantidad: number; _codigo: string; _factura_id?: string }
+        Returns: {
+          cantidad_total: number
+          cantidad_usada: number
+          cliente_id: string | null
+          codigo: string
+          created_at: string
+          estado: string
+          factura_venta_id: string | null
+          fecha_vencimiento: string | null
+          id: string
+          metodo_pago_venta: string
+          motivo_anulacion: string | null
+          nombre_cliente: string | null
+          notas: string | null
+          precio_unitario: number
+          producto_id: string | null
+          producto_nombre: string
+          qr_token: string
+          total_pagado: number
+          updated_at: string
+          vendida_por: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "valeras"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      generar_codigo_valera: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
