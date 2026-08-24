@@ -537,6 +537,10 @@ export default function AdminReportes() {
           margenMinimo={alertasConfig?.margen_minimo ?? 20}
         />
 
+        {/* Valeras: almuerzos prepagados */}
+        <ReporteValeras fechaInicio={fechaInicio} fechaFin={fechaFin} />
+
+
         {/* Gráfico histórico de margen semanal */}
         <GraficoMargenSemanal />
 
