@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, QrCode } from "lucide-react";
 import { VenderValera } from "@/components/cajero/valeras/VenderValera";
 import { ListaValeras } from "@/components/cajero/valeras/ListaValeras";
+import { ConfigValeras } from "@/components/cajero/valeras/ConfigValeras";
 
 export default function CajeroValeras() {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ export default function CajeroValeras() {
   }
 
   const permitido = roles?.some((r) => ["cajero", "admin_total", "admin_sede"].includes(r));
+  const esAdmin = !!roles?.some((r) => ["admin_total", "admin_sede"].includes(r));
   if (!permitido) return <Navigate to="/" replace />;
 
   return (
@@ -40,7 +42,10 @@ export default function CajeroValeras() {
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <div className="grid gap-6 lg:grid-cols-2">
-          <VenderValera />
+          <div className="space-y-6">
+            <VenderValera />
+            {esAdmin && <ConfigValeras />}
+          </div>
           <div className="lg:col-span-1">
             <ListaValeras />
           </div>

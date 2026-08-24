@@ -30,6 +30,7 @@ export function VenderValera() {
   const [clienteId, setClienteId] = useState<string | null>(null);
   const [metodoPago, setMetodoPago] = useState<string>("efectivo");
   const [notas, setNotas] = useState("");
+  const [fechaVencimiento, setFechaVencimiento] = useState<string>("");
 
   const { data: config } = useQuery({
     queryKey: ["valeras-config"],
@@ -56,6 +57,27 @@ export function VenderValera() {
   useEffect(() => {
     if (!productoId && config?.producto_default_id) setProductoId(config.producto_default_id);
   }, [config, productoId]);
+
+  useEffect(() => {
+    if (!config) return;
+    const vigencia = config.vigencia_dias ?? 0;
+    setFechaVencimiento(vigencia > 0 ? format(addDays(new Date(), vigencia), "yyyy-MM-dd") : "");
+  }, [config]);
+
+  const reglas = useMemo(() => {
+    const r: string[] = [];
+    const c: any = config;
+    if (!c) return r;
+    if (c.max_por_consumo > 0) r.push(`máx ${c.max_por_consumo} por consumo`);
+    if (c.max_por_dia > 0) r.push(`máx ${c.max_por_dia} por día`);
+    const dias: number[] = c.dias_permitidos ?? [];
+    if (dias.length > 0 && dias.length < 7) {
+      const nombres = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+      r.push(`solo ${[...dias].sort().map((d) => nombres[d]).join(", ")}`);
+    }
+    if (c.hora_inicio && c.hora_fin) r.push(`de ${String(c.hora_inicio).slice(0, 5)} a ${String(c.hora_fin).slice(0, 5)}`);
+    return r;
+  }, [config]);
 
   const producto = useMemo(
     () => productos?.find((p) => p.id === productoId),
@@ -148,8 +170,7 @@ export function VenderValera() {
       });
       if (errItem) throw errItem;
 
-      const vigencia = config?.vigencia_dias ?? 90;
-      const vencimiento = vigencia > 0 ? format(addDays(new Date(), vigencia), "yyyy-MM-dd") : null;
+      const vencimiento = fechaVencimiento || null;
 
       const { data: valera, error: errValera } = await supabase
         .from("valeras")
@@ -182,6 +203,9 @@ export function VenderValera() {
       setNombreCliente("");
       setClienteId(null);
       setNotas("");
+      if (config?.vigencia_dias) {
+        setFechaVencimiento(format(addDays(new Date(), config.vigencia_dias), "yyyy-MM-dd"));
+      }
       await imprimirValera({
         codigo: valera.codigo,
         qr_token: valera.qr_token,
@@ -287,6 +311,16 @@ export function VenderValera() {
         </div>
 
         <div className="space-y-2">
+          <Label>Fecha límite de uso</Label>
+          <Input type="date" value={fechaVencimiento} onChange={(e) => setFechaVencimiento(e.target.value)} />
+          <p className="text-xs text-muted-foreground">
+            {config?.vigencia_dias
+              ? `Sugerida por configuración: ${config.vigencia_dias} días. Puedes ajustarla.`
+              : "Déjala vacía para una valera sin vencimiento."}
+          </p>
+        </div>
+
+        <div className="space-y-2">
           <Label>Notas</Label>
           <Input value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Ej. empresa, convenio…" />
         </div>
@@ -306,11 +340,9 @@ export function VenderValera() {
           {vender.isPending ? "Generando…" : "Cobrar y generar valera"}
         </Button>
 
-        {config?.vigencia_dias ? (
-          <p className="text-xs text-muted-foreground text-center">
-            Vigencia: {config.vigencia_dias} días desde hoy
-          </p>
-        ) : null}
+        {reglas.length > 0 && (
+          <p className="text-xs text-muted-foreground text-center">Reglas de uso: {reglas.join(" · ")}</p>
+        )}
       </CardContent>
     </Card>
   );

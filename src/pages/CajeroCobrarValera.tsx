@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -41,13 +41,29 @@ export default function CajeroCobrarValera() {
   const [cantidad, setCantidad] = useState(1);
   const [buscando, setBuscando] = useState(false);
 
+  const { data: config } = useQuery({
+    queryKey: ["valeras-config"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("valeras_config").select("*").maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+
   const disponibles = valera ? valera.cantidad_total - valera.cantidad_usada : 0;
+  const maxConsumo = config?.max_por_consumo > 0 ? Math.min(disponibles, config.max_por_consumo) : disponibles;
+  const diasPermitidos: number[] = config?.dias_permitidos ?? [0, 1, 2, 3, 4, 5, 6];
+  const diaOk = diasPermitidos.includes(new Date().getDay());
+  const horaActual = format(new Date(), "HH:mm:ss");
+  const horaOk =
+    !config?.hora_inicio || !config?.hora_fin || (horaActual >= config.hora_inicio && horaActual <= config.hora_fin);
   const vencida = !!valera?.fecha_vencimiento && new Date(`${valera.fecha_vencimiento}T23:59:59`) < new Date();
-  const utilizable = !!valera && valera.estado === "activa" && disponibles > 0 && !vencida;
+  const utilizable = !!valera && valera.estado === "activa" && disponibles > 0 && !vencida && diaOk && horaOk;
 
   const buscar = async (codigo: string) => {
     setBuscando(true);
     try {
+      await supabase.rpc("marcar_valeras_vencidas");
       const { data, error } = await supabase.rpc("buscar_valera", { _codigo: codigo });
       if (error) throw error;
       const encontrada = (Array.isArray(data) ? data[0] : data) as Valera | null;
@@ -196,6 +212,12 @@ export default function CajeroCobrarValera() {
 
               <div className="space-y-2">
                 <Label>Almuerzos a consumir</Label>
+                {config?.max_por_consumo > 0 && (
+                  <p className="text-xs text-muted-foreground">Máximo {config.max_por_consumo} por consumo</p>
+                )}
+                {config?.max_por_dia > 0 && (
+                  <p className="text-xs text-muted-foreground">Máximo {config.max_por_dia} por día por valera</p>
+                )}
                 <div className="flex items-center gap-3">
                   <Button variant="outline" size="icon" onClick={() => setCantidad((c) => Math.max(1, c - 1))} disabled={!utilizable}>
                     <Minus className="w-4 h-4" />
@@ -203,13 +225,13 @@ export default function CajeroCobrarValera() {
                   <Input
                     type="number"
                     min={1}
-                    max={disponibles}
+                    max={maxConsumo}
                     value={cantidad}
-                    onChange={(e) => setCantidad(Math.min(disponibles, Math.max(1, Number(e.target.value) || 1)))}
+                    onChange={(e) => setCantidad(Math.min(maxConsumo, Math.max(1, Number(e.target.value) || 1)))}
                     className="text-center w-24"
                     disabled={!utilizable}
                   />
-                  <Button variant="outline" size="icon" onClick={() => setCantidad((c) => Math.min(disponibles, c + 1))} disabled={!utilizable}>
+                  <Button variant="outline" size="icon" onClick={() => setCantidad((c) => Math.min(maxConsumo, c + 1))} disabled={!utilizable}>
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
@@ -225,7 +247,15 @@ export default function CajeroCobrarValera() {
 
               {!utilizable && (
                 <p className="text-sm text-destructive text-center">
-                  {vencida ? "Esta valera está vencida." : disponibles === 0 ? "Esta valera ya no tiene almuerzos disponibles." : "Esta valera no se puede usar."}
+                  {vencida
+                    ? `Esta valera venció el ${format(new Date(`${valera.fecha_vencimiento}T00:00:00`), "dd/MM/yyyy")}.`
+                    : disponibles === 0
+                    ? "Esta valera ya no tiene almuerzos disponibles."
+                    : !diaOk
+                    ? "Hoy no es un día permitido para redimir valeras."
+                    : !horaOk
+                    ? `Las valeras solo se redimen entre ${String(config?.hora_inicio).slice(0, 5)} y ${String(config?.hora_fin).slice(0, 5)}.`
+                    : "Esta valera no se puede usar."}
                 </p>
               )}
             </CardContent>

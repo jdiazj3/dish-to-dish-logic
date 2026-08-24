@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatCOP } from "@/utils/formatCurrency";
 import { imprimirValera } from "@/utils/printValera";
-import { format } from "date-fns";
+import { differenceInCalendarDays, format } from "date-fns";
 import { Printer, Search, History } from "lucide-react";
 
 const estadoVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -19,6 +19,12 @@ const estadoVariant: Record<string, "default" | "secondary" | "destructive" | "o
   anulada: "destructive",
 };
 
+const porVencer = (v: any) => {
+  if (!v.fecha_vencimiento || v.estado !== "activa") return false;
+  const dias = differenceInCalendarDays(new Date(`${v.fecha_vencimiento}T00:00:00`), new Date());
+  return dias >= 0 && dias <= 7;
+};
+
 export function ListaValeras() {
   const [busqueda, setBusqueda] = useState("");
   const [detalleId, setDetalleId] = useState<string | null>(null);
@@ -26,6 +32,7 @@ export function ListaValeras() {
   const { data: valeras, isLoading } = useQuery({
     queryKey: ["valeras-lista"],
     queryFn: async () => {
+      await supabase.rpc("marcar_valeras_vencidas");
       const { data, error } = await supabase
         .from("valeras")
         .select("*, clientes(nombre, apellido, cedula)")
@@ -108,7 +115,16 @@ export function ListaValeras() {
                     {v.cantidad_total - v.cantidad_usada} / {v.cantidad_total}
                   </TableCell>
                   <TableCell className="text-right">{formatCOP(Number(v.total_pagado))}</TableCell>
-                  <TableCell>{v.fecha_vencimiento ? format(new Date(`${v.fecha_vencimiento}T00:00:00`), "dd/MM/yyyy") : "—"}</TableCell>
+                  <TableCell>
+                    {v.fecha_vencimiento ? (
+                      <span className={porVencer(v) ? "text-destructive font-medium" : undefined}>
+                        {format(new Date(`${v.fecha_vencimiento}T00:00:00`), "dd/MM/yyyy")}
+                        {porVencer(v) && <span className="block text-xs">Por vencer</span>}
+                      </span>
+                    ) : (
+                      "Sin vencimiento"
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={estadoVariant[v.estado] || "outline"} className="capitalize">{v.estado}</Badge>
                   </TableCell>
