@@ -4,7 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff, ClipboardList, Users, Monitor, Building2, Wallet, ShoppingCart } from "lucide-react";
+import { LogOut, Receipt, DollarSign, TrendingUp, Coins, Calculator, Bell, BellOff, ClipboardList, Users, Monitor, Building2, Wallet, ShoppingCart, Ticket, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -309,6 +309,38 @@ export default function CajeroDashboard() {
                 <Button className="w-full">
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Nueva Venta
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/valeras')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Ticket className="w-5 h-5 text-primary" />
+                  Valeras
+                </CardTitle>
+                <CardDescription>Vende almuerzos prepagados con código QR</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">
+                  <Ticket className="w-4 h-4 mr-2" />
+                  Gestionar Valeras
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/cobrar-valera')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-primary" />
+                  Cobrar con Valera
+                </CardTitle>
+                <CardDescription>Escanea el QR y descuenta almuerzos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full" variant="outline">
+                  <QrCode className="w-4 h-4 mr-2" />
+                  Escanear QR
                 </Button>
               </CardContent>
             </Card>
