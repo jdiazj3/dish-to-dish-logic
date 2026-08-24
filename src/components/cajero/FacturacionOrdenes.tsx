@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet, Printer, ChevronDown, User, Search, Star } from "lucide-react";
+import { FileText, DollarSign, Users, CreditCard, Banknote, Wallet, Printer, ChevronDown, User, Search, Star, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatCOP } from "@/utils/formatCurrency";
@@ -28,7 +28,7 @@ const facturaInputSchema = z.object({
     propina: z.number().min(0).max(100000000),
     total: z.number().min(0).max(100000000),
   }),
-  metodoPago: z.enum(['efectivo', 'debito', 'credito', 'nequi', 'daviplata']),
+  metodoPago: z.enum(['efectivo', 'debito', 'credito', 'nequi', 'daviplata', 'valera']),
   referenciaPago: z.string().max(100).optional(),
   clienteId: z.string().uuid().nullable().optional(),
 });
@@ -48,7 +48,8 @@ export function FacturacionOrdenes() {
   const [tipoFacturacion, setTipoFacturacion] = useState<"completa" | "silla">("completa");
   const [sillasSeleccionadas, setSillasSeleccionadas] = useState<number[]>([]);
   const [propinaPorcentaje, setPropinaPorcentaje] = useState(10);
-  const [metodoPago, setMetodoPago] = useState<"efectivo" | "debito" | "credito" | "nequi" | "daviplata">("efectivo");
+  const [metodoPago, setMetodoPago] = useState<"efectivo" | "debito" | "credito" | "nequi" | "daviplata" | "valera">("efectivo");
+  const [valeraCodigo, setValeraCodigo] = useState("");
   const [referenciaPago, setReferenciaPago] = useState("");
   const [facturaGenerada, setFacturaGenerada] = useState<any>(null);
   const [clienteData, setClienteData] = useState<ClienteData>({ nombre: "", apellido: "", cedula: "", celular: "", correo: "" });
@@ -223,7 +224,7 @@ export function FacturacionOrdenes() {
   }, [queryClient]);
 
   const facturarMutation = useMutation({
-    mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago, sillasFacturadas, clienteId, turnoOrden }: any) => {
+    mutationFn: async ({ ordenId, items, totales, metodoPago, referenciaPago, sillasFacturadas, clienteId, turnoOrden, valera, cantidadValera }: any) => {
       // Validate input before inserting
       const validated = facturaInputSchema.parse({
         ordenId,
@@ -247,8 +248,9 @@ export function FacturacionOrdenes() {
           propina: totales.propina,
           total: totales.total,
           metodo_pago: metodoPago,
-          referencia_pago: referenciaPago || null,
+          referencia_pago: metodoPago === 'valera' ? valera?.codigo : (referenciaPago || null),
           cliente_id: clienteId || null,
+          valera_id: valera?.id ?? null,
         })
         .select()
         .single();
@@ -260,10 +262,12 @@ export function FacturacionOrdenes() {
         factura_id: factura.id,
         orden_producto_id: item.id,
         producto_id: item.producto_id ?? null,
-        producto_nombre: item.productos.nombre,
+        producto_nombre: metodoPago === 'valera'
+          ? `${item.productos.nombre} (valera ${valera?.codigo})`
+          : item.productos.nombre,
         cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario,
-        subtotal: item.subtotal,
+        precio_unitario: metodoPago === 'valera' ? 0 : item.precio_unitario,
+        subtotal: metodoPago === 'valera' ? 0 : item.subtotal,
       }));
 
 
@@ -272,6 +276,16 @@ export function FacturacionOrdenes() {
         .insert(facturaItems);
 
       if (itemsError) throw itemsError;
+
+      // Descontar almuerzos de la valera
+      if (metodoPago === 'valera' && valera) {
+        const { error: valeraError } = await supabase.rpc('consumir_valera', {
+          _codigo: valera.codigo,
+          _cantidad: cantidadValera,
+          _factura_id: factura.id,
+        });
+        if (valeraError) throw valeraError;
+      }
 
       // Calcular y asignar puntos si hay cliente registrado
       let puntosOtorgados = 0;
@@ -557,18 +571,50 @@ export function FacturacionOrdenes() {
       return;
     }
 
+    let valera: any = null;
+    let cantidadValera = 0;
+
+    if (metodoPago === "valera") {
+      if (!valeraCodigo.trim()) {
+        toast.error("Escribe o escanea el código de la valera");
+        return;
+      }
+      const { data, error } = await supabase.rpc("buscar_valera", { _codigo: valeraCodigo.trim() });
+      valera = Array.isArray(data) ? data[0] : data;
+      if (error || !valera) {
+        toast.error("Valera no encontrada");
+        return;
+      }
+      const cubiertos = totales.items.filter((i: any) => i.producto_id === valera.producto_id);
+      const noCubiertos = totales.items.filter((i: any) => i.producto_id !== valera.producto_id);
+      if (noCubiertos.length > 0) {
+        toast.error(`La valera solo cubre "${valera.producto_nombre}". Cobra los demás productos aparte.`);
+        return;
+      }
+      cantidadValera = cubiertos.reduce((sum: number, i: any) => sum + i.cantidad, 0);
+      const disponibles = valera.cantidad_total - valera.cantidad_usada;
+      if (valera.estado !== "activa" || disponibles < cantidadValera) {
+        toast.error(`La valera no tiene saldo suficiente (quedan ${Math.max(disponibles, 0)})`);
+        return;
+      }
+    }
+
     // Guardar cliente si hay datos
     const clienteId = await guardarCliente();
 
     facturarMutation.mutate({
       ordenId: selectedOrden.id,
       items: totales.items,
-      totales: {
-        subtotal: totales.subtotal,
-        impuestos: totales.impuestos,
-        propina: totales.propina,
-        total: totales.total,
-      },
+      totales: metodoPago === "valera"
+        ? { subtotal: 0, impuestos: 0, propina: 0, total: 0 }
+        : {
+            subtotal: totales.subtotal,
+            impuestos: totales.impuestos,
+            propina: totales.propina,
+            total: totales.total,
+          },
+      valera,
+      cantidadValera,
       metodoPago,
       referenciaPago: referenciaPago.trim(),
       sillasFacturadas: tipoFacturacion === "silla" ? sillasSeleccionadas : null,
@@ -1064,9 +1110,31 @@ export function FacturacionOrdenes() {
                       Daviplata
                     </div>
                   </SelectItem>
+                  <SelectItem value="valera">
+                    <div className="flex items-center gap-2">
+                      <Ticket className="w-4 h-4" />
+                      Valera (almuerzos prepagados)
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {metodoPago === "valera" && (
+              <div className="space-y-3">
+                <Label htmlFor="valera-codigo">Código de la valera</Label>
+                <Input
+                  id="valera-codigo"
+                  value={valeraCodigo}
+                  onChange={(e) => setValeraCodigo(e.target.value.toUpperCase().slice(0, 40))}
+                  placeholder="VAL-2026-0001"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Se descontará un almuerzo por cada unidad del producto de la valera y la factura quedará en $0
+                  (el dinero ya se cobró al vender la valera).
+                </p>
+              </div>
+            )}
 
             {(metodoPago === "nequi" || metodoPago === "daviplata") && (
               <div className="space-y-3">
