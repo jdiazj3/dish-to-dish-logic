@@ -1620,7 +1620,12 @@ export type Database = {
       valeras_config: {
         Row: {
           created_at: string
+          dias_permitidos: number[]
+          hora_fin: string | null
+          hora_inicio: string | null
           id: string
+          max_por_consumo: number
+          max_por_dia: number
           prefijo: string
           producto_default_id: string | null
           updated_at: string
@@ -1628,7 +1633,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dias_permitidos?: number[]
+          hora_fin?: string | null
+          hora_inicio?: string | null
           id?: string
+          max_por_consumo?: number
+          max_por_dia?: number
           prefijo?: string
           producto_default_id?: string | null
           updated_at?: string
@@ -1636,7 +1646,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dias_permitidos?: number[]
+          hora_fin?: string | null
+          hora_inicio?: string | null
           id?: string
+          max_por_consumo?: number
+          max_por_dia?: number
           prefijo?: string
           producto_default_id?: string | null
           updated_at?: string
@@ -1757,6 +1772,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      marcar_valeras_vencidas: { Args: never; Returns: number }
       reset_orden_counter: { Args: never; Returns: undefined }
     }
     Enums: {
