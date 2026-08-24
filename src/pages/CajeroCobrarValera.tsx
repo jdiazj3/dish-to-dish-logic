@@ -124,7 +124,7 @@ export default function CajeroCobrarValera() {
     },
   });
 
-  if (isLoading || isFetching) {
+  if (isLoading || isFetching || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando…</div>;
   }
   const permitido = roles?.some((r) => ["cajero", "admin_total", "admin_sede"].includes(r));

@@ -11,7 +11,7 @@ export default function CajeroValeras() {
   const { data: roles, isLoading, isFetching } = useUserRole(user?.id);
   const navigate = useNavigate();
 
-  if (isLoading || isFetching) {
+  if (isLoading || isFetching || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando…</div>;
   }
 
