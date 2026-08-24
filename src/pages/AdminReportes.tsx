@@ -17,6 +17,7 @@ import { AnalisisPorSede } from "@/components/admin/reportes/AnalisisPorSede";
 import { ReporteRentabilidad } from "@/components/admin/reportes/ReporteRentabilidad";
 import { GraficoMargenSemanal } from "@/components/admin/reportes/GraficoMargenSemanal";
 import { RentabilidadPorProducto } from "@/components/admin/reportes/RentabilidadPorProducto";
+import { ReporteValeras } from "@/components/admin/reportes/ReporteValeras";
 import { ConfiguracionAlertasRentabilidad } from "@/components/admin/reportes/ConfiguracionAlertasRentabilidad";
 import { AlertaMargenBajo } from "@/components/admin/reportes/AlertaMargenBajo";
 import { exportToCSV, prepararDatosExportacion } from "@/utils/exportReportes";
