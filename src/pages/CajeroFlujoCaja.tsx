@@ -14,12 +14,14 @@ import { TransferenciasCuentas } from "@/components/cajero/flujocaja/Transferenc
 
 export default function CajeroFlujoCaja() {
   const { user } = useAuth();
-  const { data: roles, isLoading, isFetching } = useUserRole(user?.id);
+  const { data: roles, isLoading } = useUserRole(user?.id);
   const navigate = useNavigate();
+  const [tab, setTab] = useState("registrar");
 
-  if (isLoading || isFetching || roles === undefined) {
+  if (isLoading || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
+
 
   // NOTA DE SEGURIDAD: esta verificación es solo para la interfaz (UX).
   // La seguridad real se aplica en el servidor mediante políticas RLS y las
