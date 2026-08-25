@@ -117,6 +117,8 @@ export function RegistroMovimiento() {
           monto: parseFloat(monto),
           categoria_gasto_id: categoriaId || null,
           cuenta_id: cuentaId || null,
+          proveedor_id: proveedorId || null,
+          fecha_movimiento: fecha,
           descripcion,
           notas: notas || null,
           comprobante_url: comprobanteUrl,
@@ -136,6 +138,8 @@ export function RegistroMovimiento() {
       setMonto("");
       setCategoriaId("");
       setCuentaId("");
+      setProveedorId("");
+      setFecha(new Date().toISOString().slice(0, 10));
       setDescripcion("");
       setNotas("");
       setComprobante(null);
