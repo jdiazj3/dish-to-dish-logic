@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen, BarChart3, Package, Star } from "lucide-react";
+import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen, BarChart3, Package, Star, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { GestionProductos } from "@/components/admin/GestionProductos";
 import { GestionCategorias } from "@/components/admin/GestionCategorias";
@@ -15,6 +15,7 @@ import { ProductosMasVendidos } from "@/components/admin/ProductosMasVendidos";
 import { VentasPorCategoria } from "@/components/admin/VentasPorCategoria";
 import { OrdenesEnTiempoReal } from "@/components/admin/OrdenesEnTiempoReal";
 import { WidgetMargenRentabilidad } from "@/components/admin/WidgetMargenRentabilidad";
+import { GastosRecurrentes } from "@/components/cajero/flujocaja/GastosRecurrentes";
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
@@ -61,7 +62,7 @@ export default function AdminDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="dashboard">
               <LayoutDashboard className="w-4 h-4 mr-2" />
               Dashboard
