@@ -36,6 +36,8 @@ export function RegistroMovimiento() {
   const [monto, setMonto] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [cuentaId, setCuentaId] = useState("");
+  const [proveedorId, setProveedorId] = useState("");
+  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [descripcion, setDescripcion] = useState("");
   const [notas, setNotas] = useState("");
   const [comprobante, setComprobante] = useState<File | null>(null);
