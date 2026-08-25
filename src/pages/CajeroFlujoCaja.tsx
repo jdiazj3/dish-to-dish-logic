@@ -50,7 +50,7 @@ export default function CajeroFlujoCaja() {
         <ResumenFlujoCaja />
 
         {/* Contenido principal con tabs */}
-        <Tabs defaultValue="registrar" className="space-y-4">
+        <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="registrar">Registrar</TabsTrigger>
             <TabsTrigger value="cuentas">Cuentas</TabsTrigger>
