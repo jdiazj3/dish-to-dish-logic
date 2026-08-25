@@ -36,6 +36,8 @@ export function RegistroMovimiento() {
   const [monto, setMonto] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [cuentaId, setCuentaId] = useState("");
+  const [proveedorId, setProveedorId] = useState("");
+  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
   const [descripcion, setDescripcion] = useState("");
   const [notas, setNotas] = useState("");
   const [comprobante, setComprobante] = useState<File | null>(null);
@@ -66,6 +68,19 @@ export function RegistroMovimiento() {
       
       if (error) throw error;
       return data as Cuenta[];
+    }
+  });
+
+  const { data: proveedores = [] } = useQuery({
+    queryKey: ['proveedores-activos'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('proveedores')
+        .select('id, nombre')
+        .eq('activo', true)
+        .order('nombre');
+      if (error) throw error;
+      return data;
     }
   });
 
@@ -102,6 +117,8 @@ export function RegistroMovimiento() {
           monto: parseFloat(monto),
           categoria_gasto_id: categoriaId || null,
           cuenta_id: cuentaId || null,
+          proveedor_id: proveedorId || null,
+          fecha_movimiento: fecha,
           descripcion,
           notas: notas || null,
           comprobante_url: comprobanteUrl,
@@ -121,6 +138,8 @@ export function RegistroMovimiento() {
       setMonto("");
       setCategoriaId("");
       setCuentaId("");
+      setProveedorId("");
+      setFecha(new Date().toISOString().slice(0, 10));
       setDescripcion("");
       setNotas("");
       setComprobante(null);
@@ -213,23 +232,50 @@ export function RegistroMovimiento() {
             </Select>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Fecha del movimiento</Label>
+              <Input
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+              />
+            </div>
+            {tipo === "salida" && (
+              <div className="space-y-2">
+                <Label>Categoría</Label>
+                <Select value={categoriaId} onValueChange={setCategoriaId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categorias.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
           {tipo === "salida" && (
             <div className="space-y-2">
-              <Label>Categoría</Label>
-              <Select value={categoriaId} onValueChange={setCategoriaId}>
+              <Label>Proveedor (opcional)</Label>
+              <Select value={proveedorId} onValueChange={setProveedorId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar categoría" />
+                  <SelectValue placeholder="Seleccionar proveedor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categorias.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.nombre}
-                    </SelectItem>
+                  {proveedores.map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           )}
+
 
           <div className="space-y-2">
             <Label>Descripción *</Label>
