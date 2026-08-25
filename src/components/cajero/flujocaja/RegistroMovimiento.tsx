@@ -71,6 +71,19 @@ export function RegistroMovimiento() {
     }
   });
 
+  const { data: proveedores = [] } = useQuery({
+    queryKey: ['proveedores-activos'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('proveedores')
+        .select('id, nombre')
+        .eq('activo', true)
+        .order('nombre');
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const registrarMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error("No autenticado");
