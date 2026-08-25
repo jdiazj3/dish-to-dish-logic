@@ -485,11 +485,20 @@ export function GastosRecurrentes() {
                           <Button variant="ghost" size="sm" title="Historial de pagos" onClick={() => setHistorialGasto(gasto)}>
                             <History className="h-4 w-4" />
                           </Button>
+                          {puedeGestionar && (
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(gasto)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {isAdmin && (
+                            <></>
+                          )}
+                          {isAdmin && (
+                            <></>
+                          )}
                           {isAdmin && (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(gasto)}>
-                                <Pencil className="h-4 w-4" />
-                              </Button>
+
                               <Button
                                 variant="ghost"
                                 size="sm"
