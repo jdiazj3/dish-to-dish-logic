@@ -977,6 +977,67 @@ export type Database = {
           },
         ]
       }
+      pagos_gastos_programados: {
+        Row: {
+          created_at: string
+          cuenta_id: string | null
+          fecha_pago: string
+          gasto_recurrente_id: string
+          id: string
+          monto_pagado: number
+          movimiento_caja_id: string | null
+          notas: string | null
+          pagado_por: string | null
+          periodo: string | null
+        }
+        Insert: {
+          created_at?: string
+          cuenta_id?: string | null
+          fecha_pago?: string
+          gasto_recurrente_id: string
+          id?: string
+          monto_pagado: number
+          movimiento_caja_id?: string | null
+          notas?: string | null
+          pagado_por?: string | null
+          periodo?: string | null
+        }
+        Update: {
+          created_at?: string
+          cuenta_id?: string | null
+          fecha_pago?: string
+          gasto_recurrente_id?: string
+          id?: string
+          monto_pagado?: number
+          movimiento_caja_id?: string | null
+          notas?: string | null
+          pagado_por?: string | null
+          periodo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_gastos_programados_cuenta_id_fkey"
+            columns: ["cuenta_id"]
+            isOneToOne: false
+            referencedRelation: "cuentas_flujo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_gastos_programados_gasto_recurrente_id_fkey"
+            columns: ["gasto_recurrente_id"]
+            isOneToOne: false
+            referencedRelation: "gastos_recurrentes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagos_gastos_programados_movimiento_caja_id_fkey"
+            columns: ["movimiento_caja_id"]
+            isOneToOne: false
+            referencedRelation: "movimientos_caja"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       premios: {
         Row: {
           activo: boolean | null
@@ -1773,6 +1834,17 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       marcar_valeras_vencidas: { Args: never; Returns: number }
+      pagar_gasto_programado: {
+        Args: {
+          _comprobante_url?: string
+          _cuenta_id?: string
+          _fecha_pago?: string
+          _gasto_id: string
+          _monto: number
+          _notas?: string
+        }
+        Returns: string
+      }
       reset_orden_counter: { Args: never; Returns: undefined }
     }
     Enums: {
