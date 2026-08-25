@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen, BarChart3, Package, Star, Wallet } from "lucide-react";
+import { LogOut, Users, UtensilsCrossed, Settings, LayoutDashboard, DoorOpen, BarChart3, Package, Star, Wallet, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { GestionProductos } from "@/components/admin/GestionProductos";
 import { GestionCategorias } from "@/components/admin/GestionCategorias";
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="reportes">
+          <TabsContent value="reportes" className="space-y-4">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/reportes')}>
               <CardHeader>
                 <CardTitle>Reportes y Analytics</CardTitle>
@@ -137,6 +137,22 @@ export default function AdminDashboard() {
                 <Button className="w-full">
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Ver Reportes
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/cajero/valeras')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Ticket className="w-5 h-5 text-primary" />
+                  Valeras (almuerzos prepagados)
+                </CardTitle>
+                <CardDescription>Vende, consulta y configura las valeras del restaurante</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  <Ticket className="w-4 h-4 mr-2" />
+                  Ir a Valeras
                 </Button>
               </CardContent>
             </Card>
