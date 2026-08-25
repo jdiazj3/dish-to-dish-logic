@@ -86,11 +86,30 @@ export default function AdminDashboard() {
               <DoorOpen className="w-4 h-4 mr-2" />
               Mesas
             </TabsTrigger>
+            <TabsTrigger value="gastos">
+              <Wallet className="w-4 h-4 mr-2" />
+              Gastos / Flujo de Caja
+            </TabsTrigger>
             <TabsTrigger value="config">
               <Settings className="w-4 h-4 mr-2" />
               Configuración
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="gastos" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gastos Programados</CardTitle>
+                <CardDescription>
+                  Crea, edita y consulta el historial de pagos de todos los gastos recurrentes.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GastosRecurrentes />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
           <TabsContent value="dashboard" className="space-y-4">
             <EstadisticasVentas />
