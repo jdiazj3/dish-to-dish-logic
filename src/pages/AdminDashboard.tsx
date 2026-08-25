@@ -19,11 +19,11 @@ import { GastosRecurrentes } from "@/components/cajero/flujocaja/GastosRecurrent
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
-  const { data: roles, isLoading, isFetching } = useUserRole(user?.id);
+  const { data: roles, isLoading } = useUserRole(user?.id);
   const navigate = useNavigate();
 
   // Esperar a que terminen de cargar los roles completamente
-  if (isLoading || isFetching || roles === undefined) {
+  if (isLoading || roles === undefined) {
     return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   }
 
