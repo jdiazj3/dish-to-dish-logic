@@ -45,6 +45,7 @@ export function GastosRecurrentes() {
   const { data: roles } = useUserRole(user?.id);
   const isAdmin = roles?.includes('admin_total') || roles?.includes('admin_sede');
   const puedePagar = isAdmin || roles?.includes('cajero');
+  const puedeGestionar = puedePagar;
 
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -317,12 +318,12 @@ export function GastosRecurrentes() {
             <div>
               <CardTitle>Gastos Programados</CardTitle>
               <CardDescription>
-                {isAdmin
+                {puedeGestionar
                   ? "Programa pagos periódicos, regístralos al pagarlos y la próxima fecha se calcula sola"
                   : "Puedes registrar el pago de los gastos programados por el administrador"}
               </CardDescription>
             </div>
-            {isAdmin && (
+            {puedeGestionar && (
               <Dialog open={dialogOpen} onOpenChange={(open) => {
                 setDialogOpen(open);
                 if (!open) resetForm();
