@@ -807,6 +807,7 @@ export type Database = {
           id: string
           monto: number
           notas: string | null
+          proveedor_id: string | null
           registrado_por: string
           tipo: Database["public"]["Enums"]["tipo_movimiento_caja"]
           updated_at: string
@@ -823,6 +824,7 @@ export type Database = {
           id?: string
           monto: number
           notas?: string | null
+          proveedor_id?: string | null
           registrado_por: string
           tipo: Database["public"]["Enums"]["tipo_movimiento_caja"]
           updated_at?: string
@@ -839,6 +841,7 @@ export type Database = {
           id?: string
           monto?: number
           notas?: string | null
+          proveedor_id?: string | null
           registrado_por?: string
           tipo?: Database["public"]["Enums"]["tipo_movimiento_caja"]
           updated_at?: string
@@ -856,6 +859,20 @@ export type Database = {
             columns: ["cuenta_id"]
             isOneToOne: false
             referencedRelation: "cuentas_flujo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_caja_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "proveedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_caja_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1513,6 +1530,13 @@ export type Database = {
             columns: ["cuenta_origen_id"]
             isOneToOne: false
             referencedRelation: "cuentas_flujo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_cuentas_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
