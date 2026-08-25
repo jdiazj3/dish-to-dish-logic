@@ -232,23 +232,50 @@ export function RegistroMovimiento() {
             </Select>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Fecha del movimiento</Label>
+              <Input
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+              />
+            </div>
+            {tipo === "salida" && (
+              <div className="space-y-2">
+                <Label>Categoría</Label>
+                <Select value={categoriaId} onValueChange={setCategoriaId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categorias.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
           {tipo === "salida" && (
             <div className="space-y-2">
-              <Label>Categoría</Label>
-              <Select value={categoriaId} onValueChange={setCategoriaId}>
+              <Label>Proveedor (opcional)</Label>
+              <Select value={proveedorId} onValueChange={setProveedorId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar categoría" />
+                  <SelectValue placeholder="Seleccionar proveedor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categorias.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.nombre}
-                    </SelectItem>
+                  {proveedores.map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           )}
+
 
           <div className="space-y-2">
             <Label>Descripción *</Label>
