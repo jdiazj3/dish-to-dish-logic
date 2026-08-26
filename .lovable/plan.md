@@ -1,6 +1,19 @@
 # Dashboard financiero para el dueño: rentabilidad y punto de equilibrio
 
-Objetivo: que al abrir `/admin` el dueño vea en 10 segundos si el negocio gana o pierde plata este mes, cuánto le falta para el punto de equilibrio y qué está drenando el margen.
+## Qué ya existe hoy (en /admin/reportes)
+
+| Ya lo tenemos | Dónde | Observación |
+|---|---|---|
+| Inversión vs ventas y margen del período + PDF | `ReporteRentabilidad` | Usa **compras de inventario** del período como "costo", no el costo de lo realmente vendido (CMV). Distorsiona el margen en meses con compras grandes. |
+| Margen real por producto (receta de insumos / costo promedio) | `RentabilidadPorProducto` | Base sólida; ya trae unidades, ventas, costo y margen por plato. |
+| Tendencia de margen 12 semanas | `GraficoMargenSemanal` | Mismo criterio de compras, no CMV. |
+| Alerta de margen bajo + umbral configurable | `AlertaMargenBajo`, `ConfiguracionAlertasRentabilidad` | Se conserva tal cual. |
+| Ventas por período, productos más/menos vendidos, ranking de empleados, turno, sede, valeras | varios | Se conservan. |
+| Widget de margen en el dashboard | `WidgetMargenRentabilidad` | Único indicador financiero del tab Dashboard hoy. |
+
+**Lo que NO existe:** ningún reporte cruza las ventas con el **flujo de caja** (`movimientos_caja`, `gastos_recurrentes`). Por eso hoy no hay utilidad operativa real ni punto de equilibrio.
+
+## Lo nuevo a construir
 
 ## 1. Nuevo bloque superior: "Semáforo del mes"
 
@@ -38,7 +51,7 @@ Se muestra como:
 
 ## 4. Matriz de menú (menu engineering)
 
-Cuadrante clásico sobre los productos del período — popularidad (unidades) vs. margen unitario:
+Nuevo, pero **reutiliza los datos que ya calcula `RentabilidadPorProducto`** (unidades, costo real, margen): en vez de solo una tabla, se grafican los cuadrantes popularidad vs. margen:
 
 - **Estrellas** (alta venta, alto margen) → promover.
 - **Caballos de batalla** (alta venta, bajo margen) → subir precio o rebajar receta.
@@ -46,6 +59,7 @@ Cuadrante clásico sobre los productos del período — popularidad (unidades) v
 - **Perros** (baja venta, bajo margen) → sacar del menú.
 
 Con lista accionable por cuadrante y export a PDF.
+
 
 ## 5. Flujo de caja proyectado (30 días)
 
@@ -61,3 +75,9 @@ Línea con saldo actual de `cuentas_flujo` + ventas proyectadas − gastos progr
 - El tab **Dashboard** de `/admin` pasa a: semáforo → punto de equilibrio → estructura de costos + matriz de menú → órdenes en tiempo real (se conserva). Los gráficos actuales de ventas se mantienen más abajo.
 - Selector de período (mes actual / mes anterior / rango) reutilizando `FiltrosReportes`.
 - Todos los valores con `formatCOP()`.
+
+## Qué se corrige de lo existente
+
+- `ReporteRentabilidad` y `GraficoMargenSemanal` pasan a usar **CMV** (costo de lo vendido) en vez de compras del período; las compras quedan como dato aparte de "inversión en inventario / caja". Así el margen del reporte y el del dashboard dan lo mismo.
+- `RentabilidadPorProducto` se mantiene y alimenta también la matriz de menú.
+- El resto de reportes (ventas, ranking, turno, sede, valeras, alertas) no se toca.
