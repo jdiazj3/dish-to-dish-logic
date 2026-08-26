@@ -1,6 +1,19 @@
 # Dashboard financiero para el dueño: rentabilidad y punto de equilibrio
 
-Objetivo: que al abrir `/admin` el dueño vea en 10 segundos si el negocio gana o pierde plata este mes, cuánto le falta para el punto de equilibrio y qué está drenando el margen.
+## Qué ya existe hoy (en /admin/reportes)
+
+| Ya lo tenemos | Dónde | Observación |
+|---|---|---|
+| Inversión vs ventas y margen del período + PDF | `ReporteRentabilidad` | Usa **compras de inventario** del período como "costo", no el costo de lo realmente vendido (CMV). Distorsiona el margen en meses con compras grandes. |
+| Margen real por producto (receta de insumos / costo promedio) | `RentabilidadPorProducto` | Base sólida; ya trae unidades, ventas, costo y margen por plato. |
+| Tendencia de margen 12 semanas | `GraficoMargenSemanal` | Mismo criterio de compras, no CMV. |
+| Alerta de margen bajo + umbral configurable | `AlertaMargenBajo`, `ConfiguracionAlertasRentabilidad` | Se conserva tal cual. |
+| Ventas por período, productos más/menos vendidos, ranking de empleados, turno, sede, valeras | varios | Se conservan. |
+| Widget de margen en el dashboard | `WidgetMargenRentabilidad` | Único indicador financiero del tab Dashboard hoy. |
+
+**Lo que NO existe:** ningún reporte cruza las ventas con el **flujo de caja** (`movimientos_caja`, `gastos_recurrentes`). Por eso hoy no hay utilidad operativa real ni punto de equilibrio.
+
+## Lo nuevo a construir
 
 ## 1. Nuevo bloque superior: "Semáforo del mes"
 
