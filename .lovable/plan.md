@@ -75,3 +75,9 @@ Línea con saldo actual de `cuentas_flujo` + ventas proyectadas − gastos progr
 - El tab **Dashboard** de `/admin` pasa a: semáforo → punto de equilibrio → estructura de costos + matriz de menú → órdenes en tiempo real (se conserva). Los gráficos actuales de ventas se mantienen más abajo.
 - Selector de período (mes actual / mes anterior / rango) reutilizando `FiltrosReportes`.
 - Todos los valores con `formatCOP()`.
+
+## Qué se corrige de lo existente
+
+- `ReporteRentabilidad` y `GraficoMargenSemanal` pasan a usar **CMV** (costo de lo vendido) en vez de compras del período; las compras quedan como dato aparte de "inversión en inventario / caja". Así el margen del reporte y el del dashboard dan lo mismo.
+- `RentabilidadPorProducto` se mantiene y alimenta también la matriz de menú.
+- El resto de reportes (ventas, ranking, turno, sede, valeras, alertas) no se toca.
