@@ -51,7 +51,7 @@ Se muestra como:
 
 ## 4. Matriz de menú (menu engineering)
 
-Cuadrante clásico sobre los productos del período — popularidad (unidades) vs. margen unitario:
+Nuevo, pero **reutiliza los datos que ya calcula `RentabilidadPorProducto`** (unidades, costo real, margen): en vez de solo una tabla, se grafican los cuadrantes popularidad vs. margen:
 
 - **Estrellas** (alta venta, alto margen) → promover.
 - **Caballos de batalla** (alta venta, bajo margen) → subir precio o rebajar receta.
@@ -59,6 +59,7 @@ Cuadrante clásico sobre los productos del período — popularidad (unidades) v
 - **Perros** (baja venta, bajo margen) → sacar del menú.
 
 Con lista accionable por cuadrante y export a PDF.
+
 
 ## 5. Flujo de caja proyectado (30 días)
 
