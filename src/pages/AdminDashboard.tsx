@@ -16,6 +16,8 @@ import { VentasPorCategoria } from "@/components/admin/VentasPorCategoria";
 import { OrdenesEnTiempoReal } from "@/components/admin/OrdenesEnTiempoReal";
 import { WidgetMargenRentabilidad } from "@/components/admin/WidgetMargenRentabilidad";
 import { GastosRecurrentes } from "@/components/cajero/flujocaja/GastosRecurrentes";
+import { PanelFinanciero } from "@/components/admin/dashboard/PanelFinanciero";
+
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
@@ -112,20 +114,26 @@ export default function AdminDashboard() {
           </TabsContent>
 
 
-          <TabsContent value="dashboard" className="space-y-4">
-            <EstadisticasVentas />
-            
-            <div className="grid gap-4 md:grid-cols-2">
-              <GraficoVentasPorDia />
-              <ProductosMasVendidos />
-            </div>
+          <TabsContent value="dashboard" className="space-y-6">
+            <PanelFinanciero />
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <VentasPorCategoria />
-              <OrdenesEnTiempoReal />
-              <WidgetMargenRentabilidad />
+            <div className="space-y-4 border-t pt-6">
+              <h2 className="text-lg font-semibold">Actividad y ventas</h2>
+              <EstadisticasVentas />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <GraficoVentasPorDia />
+                <ProductosMasVendidos />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <VentasPorCategoria />
+                <OrdenesEnTiempoReal />
+                <WidgetMargenRentabilidad />
+              </div>
             </div>
           </TabsContent>
+
 
           <TabsContent value="reportes" className="space-y-4">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/reportes')}>
