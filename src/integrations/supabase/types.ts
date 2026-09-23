@@ -152,6 +152,7 @@ export type Database = {
           activa: boolean | null
           created_at: string
           descripcion: string | null
+          es_fijo: boolean
           id: string
           nombre: string
           tipo: string
@@ -160,6 +161,7 @@ export type Database = {
           activa?: boolean | null
           created_at?: string
           descripcion?: string | null
+          es_fijo?: boolean
           id?: string
           nombre: string
           tipo?: string
@@ -168,6 +170,7 @@ export type Database = {
           activa?: boolean | null
           created_at?: string
           descripcion?: string | null
+          es_fijo?: boolean
           id?: string
           nombre?: string
           tipo?: string
@@ -534,6 +537,13 @@ export type Database = {
             referencedRelation: "categorias_gastos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "gastos_recurrentes_categoria_gasto_id_fkey"
+            columns: ["categoria_gasto_id"]
+            isOneToOne: false
+            referencedRelation: "vista_gastos_mensuales"
+            referencedColumns: ["categoria_id"]
+          },
         ]
       }
       insumos_restaurante: {
@@ -853,6 +863,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "categorias_gastos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimientos_caja_categoria_gasto_id_fkey"
+            columns: ["categoria_gasto_id"]
+            isOneToOne: false
+            referencedRelation: "vista_gastos_mensuales"
+            referencedColumns: ["categoria_id"]
           },
           {
             foreignKeyName: "movimientos_caja_cuenta_id_fkey"
@@ -1781,6 +1798,25 @@ export type Database = {
           origen_costo: string | null
           precio: number | null
           producto_id: string | null
+        }
+        Relationships: []
+      }
+      vista_gastos_mensuales: {
+        Row: {
+          categoria: string | null
+          categoria_id: string | null
+          es_fijo: boolean | null
+          mes: string | null
+          total: number | null
+        }
+        Relationships: []
+      }
+      vista_rentabilidad_diaria: {
+        Row: {
+          cmv: number | null
+          dia: string | null
+          num_facturas: number | null
+          ventas: number | null
         }
         Relationships: []
       }
