@@ -338,25 +338,18 @@ export default function AdminReportes() {
       // Obtener facturas (ventas)
       const { data: facturas, error: errorFacturas } = await supabase
         .from("facturas")
-        .select("total, created_at");
+        .select("total, created_at, ordenes(mesas(salones(sede_id)))");
 
       if (errorFacturas) throw errorFacturas;
 
-      // Filtrar por rango de fechas
-      const productosFiltered = (entradasProductos || []).filter((item: any) => {
-        const fecha = new Date(item.fecha_ingreso);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      // Filtrar por rango de fechas (y sede en el caso de las ventas)
+      const productosFiltered = (entradasProductos || []).filter((item: any) => enRango(item.fecha_ingreso));
 
-      const insumosFiltered = (entradasInsumos || []).filter((item: any) => {
-        const fecha = new Date(item.fecha_compra);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const insumosFiltered = (entradasInsumos || []).filter((item: any) => enRango(item.fecha_compra));
 
-      const facturasFiltered = (facturas || []).filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const facturasFiltered = (facturas || []).filter((item: any) =>
+        enRango(item.created_at) && pasaSede(item)
+      );
 
       // Calcular totales
       const totalProductos = productosFiltered.reduce(
