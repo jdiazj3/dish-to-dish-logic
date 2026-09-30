@@ -286,7 +286,7 @@ export default function AdminReportes() {
 
   // Análisis por sede
   const { data: analisisSedes = [] } = useQuery({
-    queryKey: ["analisis-sedes", fechaInicio, fechaFin],
+    queryKey: ["analisis-sedes", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
       let query = supabase
         .from("ordenes")
@@ -295,10 +295,7 @@ export default function AdminReportes() {
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) => enRango(item.created_at) && pasaSede(item));
 
       const sedesPorId = dataFiltrada.reduce((acc: any, orden: any) => {
         const sede = orden.mesas?.salones?.sedes?.nombre;
@@ -322,7 +319,7 @@ export default function AdminReportes() {
 
   // Reporte de Rentabilidad - Inventario vs Ventas
   const { data: reporteRentabilidad } = useQuery({
-    queryKey: ["reporte-rentabilidad", fechaInicio, fechaFin],
+    queryKey: ["reporte-rentabilidad", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
       // Obtener entradas de productos (inventario_entradas)
       const { data: entradasProductos, error: errorProductos } = await supabase
