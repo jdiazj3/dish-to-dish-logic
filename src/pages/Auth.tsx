@@ -65,7 +65,7 @@ export default function Auth() {
           }
           
           // Sesión válida, redirigir al dashboard
-          navigate("/");
+          navigate("/app");
           return;
         }
       } catch (err) {
@@ -108,7 +108,7 @@ export default function Auth() {
     }
 
     toast.success("¡Bienvenido a Ancestrale!");
-    navigate("/");
+    navigate("/app");
   };
 
   const handleSignup = async (data: SignupForm) => {

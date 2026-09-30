@@ -1,0 +1,3 @@
+- [x] Add a public Ancestrale Cloud homepage with product information and uploaded video.
+- [x] Add WhatsApp purchase link and information request form.
+- [ ] Verify the contact email sender domain and end-to-end delivery (blocked until the sending domain is verified).
