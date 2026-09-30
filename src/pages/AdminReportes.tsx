@@ -21,7 +21,7 @@ import { ReporteValeras } from "@/components/admin/reportes/ReporteValeras";
 import { ConfiguracionAlertasRentabilidad } from "@/components/admin/reportes/ConfiguracionAlertasRentabilidad";
 import { AlertaMargenBajo } from "@/components/admin/reportes/AlertaMargenBajo";
 import { exportToCSV, prepararDatosExportacion } from "@/utils/exportReportes";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 
 export default function AdminReportes() {
   const { user } = useAuth();
@@ -33,6 +33,20 @@ export default function AdminReportes() {
   const [sedeId, setSedeId] = useState<string>("all");
 
   const isAdmin = roles?.includes("admin_total") || roles?.includes("admin_sede");
+
+  // Normalizar rango de fechas: inicio a las 00:00 y fin a las 23:59:59
+  const fechaInicioD = fechaInicio ? startOfDay(fechaInicio) : undefined;
+  const fechaFinD = fechaFin ? endOfDay(fechaFin) : undefined;
+
+  const enRango = (f: string | Date) => {
+    const d = new Date(f);
+    return (!fechaInicioD || d >= fechaInicioD) && (!fechaFinD || d <= fechaFinD);
+  };
+
+  // La sede llega por la relación orden -> mesa -> salón (o factura -> orden -> ...)
+  const sedeDeRegistro = (o: any) =>
+    o?.mesas?.salones?.sede_id ?? o?.ordenes?.mesas?.salones?.sede_id ?? null;
+  const pasaSede = (o: any) => sedeId === "all" || sedeDeRegistro(o) === sedeId;
 
   // Obtener sedes
   const { data: sedes = [] } = useQuery({
