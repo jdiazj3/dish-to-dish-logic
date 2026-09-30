@@ -67,18 +67,18 @@ export default function AdminReportes() {
         .from("facturas")
         .select("created_at, total, orden_id, ordenes(mesa_id, mesas(salon_id, salones(sede_id)))");
 
-      if (fechaInicio) {
-        query = query.gte("created_at", fechaInicio.toISOString());
+      if (fechaInicioD) {
+        query = query.gte("created_at", fechaInicioD.toISOString());
       }
-      if (fechaFin) {
-        query = query.lte("created_at", fechaFin.toISOString());
+      if (fechaFinD) {
+        query = query.lte("created_at", fechaFinD.toISOString());
       }
 
       const { data, error } = await query;
       if (error) throw error;
 
-      // Agrupar por fecha
-      const ventasPorDia = data.reduce((acc: any, factura: any) => {
+      // Agrupar por fecha (filtrando por sede si aplica)
+      const ventasPorDia = data.filter(pasaSede).reduce((acc: any, factura: any) => {
         const fecha = format(new Date(factura.created_at), "yyyy-MM-dd");
         if (!acc[fecha]) {
           acc[fecha] = { fecha, ventas: 0, ordenes: 0 };
@@ -103,16 +103,15 @@ export default function AdminReportes() {
     queryFn: async () => {
       let query = supabase
         .from("factura_items")
-        .select("producto_nombre, cantidad, subtotal, factura_id, facturas(created_at)");
+        .select("producto_nombre, cantidad, subtotal, factura_id, facturas(created_at, ordenes(mesas(salones(sede_id))))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      // Filtrar por fecha
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.facturas.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      // Filtrar por fecha y sede
+      const dataFiltrada = data.filter((item: any) =>
+        enRango(item.facturas.created_at) && pasaSede(item.facturas)
+      );
 
       // Agrupar por producto
       const productosPorNombre = dataFiltrada.reduce((acc: any, item: any) => {
