@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import videoAsset from "@/assets/ancestrale-pos-light.mp4.asset.json";
+import webmAsset from "@/assets/ancestrale-pos-web.webm.asset.json";
 import posterAsset from "@/assets/ancestrale-poster.jpg.asset.json";
 
 const schema = z.object({
@@ -129,7 +130,10 @@ export default function Home() {
               <p className="text-muted-foreground max-w-md">Un recorrido por los módulos de administración, meseros, cocina y caja.</p>
             </div>
             <div className="relative aspect-[16/9] overflow-hidden bg-foreground shadow-lg">
-              <video ref={videoRef} className="w-full h-full object-contain" controls={started} playsInline preload="none" poster={assetUrl(posterAsset.url)} src={assetUrl(videoAsset.url)} aria-label="Video de presentación de Ancestrale Cloud" />
+              <video ref={videoRef} className="w-full h-full object-contain" controls={started} playsInline preload="none" poster={assetUrl(posterAsset.url)} aria-label="Video de presentación de Ancestrale Cloud">
+                <source src={assetUrl(webmAsset.url)} type="video/webm" />
+                <source src={assetUrl(videoAsset.url)} type="video/mp4" />
+              </video>
               {!started && <Button type="button" size="icon" onClick={() => { setStarted(true); void videoRef.current?.play(); }} aria-label="Reproducir video" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-16 rounded-full shadow-lg"><Play className="size-7 ml-1" /></Button>}
             </div>
           </div>
