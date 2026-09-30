@@ -18,6 +18,10 @@ const schema = z.object({
 });
 
 const whatsapp = "https://wa.me/573025848474?text=" + encodeURIComponent("Hola, quiero conocer Ancestrale Cloud y probar el producto.");
+// Local Vite preview does not proxy CDN asset paths; the hosted preview does.
+const assetUrl = (path: string) => window.location.hostname === "localhost"
+  ? `https://id-preview--10b72c64-ac48-437b-93d8-ec9afc000221.lovable.app${path}`
+  : path;
 
 const features = [
   { icon: ClipboardList, title: "Pedidos sin perder el ritmo", description: "Meseros y cocina comparten el estado de cada orden, desde la mesa hasta la preparación." },
@@ -80,7 +84,7 @@ export default function Home() {
 
       <main>
         <section id="inicio" className="relative min-h-[610px] sm:min-h-[650px] flex items-center overflow-hidden bg-foreground text-background">
-          <img src={posterAsset.url} alt="Vista del panel de Ancestrale Cloud" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+          <img src={assetUrl(posterAsset.url)} alt="Vista del panel de Ancestrale Cloud" className="absolute inset-0 w-full h-full object-cover opacity-30" />
           <div className="absolute inset-0 bg-foreground/75" />
           <div className="relative z-10 mx-auto max-w-6xl w-full px-5 py-20 sm:py-28">
             <div className="max-w-2xl">
@@ -123,10 +127,10 @@ export default function Home() {
             </div>
             <div className="relative aspect-[16/9] overflow-hidden bg-foreground shadow-lg">
               {started ? (
-                <video className="w-full h-full object-contain" controls autoPlay playsInline preload="metadata" poster={posterAsset.url} src={videoAsset.url} aria-label="Video de presentación de Ancestrale Cloud" />
+                <video className="w-full h-full object-contain" controls autoPlay playsInline preload="metadata" poster={assetUrl(posterAsset.url)} src={assetUrl(videoAsset.url)} aria-label="Video de presentación de Ancestrale Cloud" />
               ) : (
                 <>
-                  <img src={posterAsset.url} className="w-full h-full object-cover" alt="Presentación en video de Ancestrale Cloud" />
+                  <img src={assetUrl(posterAsset.url)} className="w-full h-full object-cover" alt="Presentación en video de Ancestrale Cloud" />
                   <Button type="button" size="icon" onClick={() => setStarted(true)} aria-label="Reproducir video" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-16 rounded-full shadow-lg"><Play className="size-7 ml-1" /></Button>
                 </>
               )}
