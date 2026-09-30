@@ -214,19 +214,16 @@ export default function AdminReportes() {
 
   // Ranking de cocineros
   const { data: rankingCocineros = [] } = useQuery({
-    queryKey: ["ranking-cocineros", fechaInicio, fechaFin],
+    queryKey: ["ranking-cocineros", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
       let query = supabase
         .from("ordenes")
-        .select("cocinero_id, total, created_at, profiles!ordenes_cocinero_id_fkey(nombre, apellido)");
+        .select("cocinero_id, total, created_at, profiles!ordenes_cocinero_id_fkey(nombre, apellido), mesas(salones(sede_id))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) => enRango(item.created_at) && pasaSede(item));
 
       const cocinerosPorId = dataFiltrada.reduce((acc: any, orden: any) => {
         const id = orden.cocinero_id;
@@ -258,17 +255,14 @@ export default function AdminReportes() {
 
   // Análisis por turno
   const { data: analisisTurnos = [] } = useQuery({
-    queryKey: ["analisis-turnos", fechaInicio, fechaFin],
+    queryKey: ["analisis-turnos", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
-      let query = supabase.from("ordenes").select("turno, total, created_at");
+      let query = supabase.from("ordenes").select("turno, total, created_at, mesas(salones(sede_id))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) => enRango(item.created_at) && pasaSede(item));
 
       const turnosPorNombre = dataFiltrada.reduce((acc: any, orden: any) => {
         const turno = orden.turno;
