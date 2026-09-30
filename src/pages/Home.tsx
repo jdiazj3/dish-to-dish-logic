@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, ChartNoAxesCombined, ChefHat, ClipboardList, Mail, MessageCircle, PackageCheck, Play, ShieldCheck, UtensilsCrossed, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,11 @@ const schema = z.object({
   email: z.string().trim().email("Escribe un correo válido").max(255),
 });
 
+const loginSchema = z.object({
+  email: z.string().trim().email("Correo electrónico inválido").max(255),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+});
+
 const whatsapp = "https://wa.me/573025848474?text=" + encodeURIComponent("Hola, quiero conocer Ancestrale Cloud y probar el producto.");
 // Local Vite preview does not proxy CDN asset paths; the hosted preview does.
 const assetUrl = (path: string) => window.location.hostname === "localhost"
@@ -32,7 +39,9 @@ const features = [
 ];
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, signIn } = useAuth();
+  const navigate = useNavigate();
+  const loginForm = useForm<z.infer<typeof loginSchema>>({ resolver: zodResolver(loginSchema) });
   const [nombre, setNombre] = useState("");
   const [celular, setCelular] = useState("");
   const [email, setEmail] = useState("");
@@ -42,6 +51,19 @@ export default function Home() {
   const [started, setStarted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [website, setWebsite] = useState("");
+
+  const login = async (values: z.infer<typeof loginSchema>) => {
+    const { error } = await signIn(values.email, values.password);
+    if (error) {
+      toast.error("Error al iniciar sesión", {
+        description: error.message === "Invalid login credentials"
+          ? "Credenciales inválidas. Verifica tu correo y contraseña."
+          : error.message,
+      });
+      return;
+    }
+    navigate("/app");
+  };
 
   const send = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,7 +102,7 @@ export default function Home() {
           <nav className="flex shrink-0 items-center gap-1 sm:gap-5 text-sm">
             <a href="#plataforma" className="hidden sm:inline hover:text-primary">La plataforma</a>
             <a href="#video" className="hidden sm:inline hover:text-primary">Video</a>
-            <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild><Link to={user ? "/app" : "/auth"}>{user ? "Mi panel" : "Ingresar"}</Link></Button>
+            <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild><a href="#ingresar">Ingresar</a></Button>
             <Button size="sm" className="px-2 sm:px-3" asChild><a href="#contacto"><span className="sm:hidden">Contacto</span><span className="hidden sm:inline">Solicitar información</span></a></Button>
           </nav>
         </div>
@@ -102,6 +124,33 @@ export default function Home() {
             </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
+        </section>
+
+        <section id="ingresar" className="scroll-mt-16 border-b border-border bg-secondary py-14 sm:py-18">
+          <div className="mx-auto max-w-6xl px-5 grid gap-8 md:grid-cols-[1fr_1fr] md:items-center lg:gap-20">
+            <div>
+              <p className="text-primary font-semibold uppercase text-xs tracking-widest">Para tu equipo</p>
+              <h2 className="mt-3 text-3xl sm:text-4xl font-bold">Ingresa a Ancestrale Cloud.</h2>
+              <p className="mt-4 text-muted-foreground text-lg">Continúa con la gestión de tu restaurante.</p>
+            </div>
+            <form onSubmit={loginForm.handleSubmit(login)} className="grid gap-4" aria-label="Ingresar a Ancestrale Cloud" noValidate>
+              <div className="space-y-2">
+                <Label htmlFor="login-email">Correo electrónico</Label>
+                <Input id="login-email" type="email" autoComplete="username" maxLength={255} placeholder="tu@email.com" aria-invalid={!!loginForm.formState.errors.email} {...loginForm.register("email")} />
+                {loginForm.formState.errors.email && <p role="alert" className="text-sm text-destructive">{loginForm.formState.errors.email.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Contraseña</Label>
+                <Input id="login-password" type="password" autoComplete="current-password" placeholder="Tu contraseña" aria-invalid={!!loginForm.formState.errors.password} {...loginForm.register("password")} />
+                {loginForm.formState.errors.password && <p role="alert" className="text-sm text-destructive">{loginForm.formState.errors.password.message}</p>}
+              </div>
+              <Button type="submit" disabled={loginForm.formState.isSubmitting} className="w-full">{loginForm.formState.isSubmitting ? "Ingresando..." : "Ingresar"} <ArrowRight /></Button>
+              <div className="flex flex-wrap justify-between gap-2 text-sm">
+                <Link to="/auth" className="text-primary hover:underline">Registrarse</Link>
+                <Link to="/auth" className="text-primary hover:underline">¿Olvidaste tu contraseña?</Link>
+              </div>
+            </form>
+          </div>
         </section>
 
         <section id="plataforma" className="py-20 sm:py-28">
