@@ -141,15 +141,14 @@ export default function AdminReportes() {
     queryFn: async () => {
       let query = supabase
         .from("factura_items")
-        .select("producto_nombre, cantidad, subtotal, factura_id, facturas(created_at)");
+        .select("producto_nombre, cantidad, subtotal, factura_id, facturas(created_at, ordenes(mesas(salones(sede_id))))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.facturas.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) =>
+        enRango(item.facturas.created_at) && pasaSede(item.facturas)
+      );
 
       const productosPorNombre = dataFiltrada.reduce((acc: any, item: any) => {
         const nombre = item.producto_nombre;
@@ -174,19 +173,16 @@ export default function AdminReportes() {
 
   // Ranking de meseros
   const { data: rankingMeseros = [] } = useQuery({
-    queryKey: ["ranking-meseros", fechaInicio, fechaFin],
+    queryKey: ["ranking-meseros", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
       let query = supabase
         .from("ordenes")
-        .select("mesero_id, total, created_at, profiles!ordenes_mesero_id_fkey(nombre, apellido)");
+        .select("mesero_id, total, created_at, profiles!ordenes_mesero_id_fkey(nombre, apellido), mesas(salones(sede_id))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) => enRango(item.created_at) && pasaSede(item));
 
       const meserosPorId = dataFiltrada.reduce((acc: any, orden: any) => {
         const id = orden.mesero_id;
