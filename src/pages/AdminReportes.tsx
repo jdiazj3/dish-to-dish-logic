@@ -21,7 +21,7 @@ import { ReporteValeras } from "@/components/admin/reportes/ReporteValeras";
 import { ConfiguracionAlertasRentabilidad } from "@/components/admin/reportes/ConfiguracionAlertasRentabilidad";
 import { AlertaMargenBajo } from "@/components/admin/reportes/AlertaMargenBajo";
 import { exportToCSV, prepararDatosExportacion } from "@/utils/exportReportes";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 
 export default function AdminReportes() {
   const { user } = useAuth();
@@ -33,6 +33,20 @@ export default function AdminReportes() {
   const [sedeId, setSedeId] = useState<string>("all");
 
   const isAdmin = roles?.includes("admin_total") || roles?.includes("admin_sede");
+
+  // Normalizar rango de fechas: inicio a las 00:00 y fin a las 23:59:59
+  const fechaInicioD = fechaInicio ? startOfDay(fechaInicio) : undefined;
+  const fechaFinD = fechaFin ? endOfDay(fechaFin) : undefined;
+
+  const enRango = (f: string | Date) => {
+    const d = new Date(f);
+    return (!fechaInicioD || d >= fechaInicioD) && (!fechaFinD || d <= fechaFinD);
+  };
+
+  // La sede llega por la relación orden -> mesa -> salón (o factura -> orden -> ...)
+  const sedeDeRegistro = (o: any) =>
+    o?.mesas?.salones?.sede_id ?? o?.ordenes?.mesas?.salones?.sede_id ?? null;
+  const pasaSede = (o: any) => sedeId === "all" || sedeDeRegistro(o) === sedeId;
 
   // Obtener sedes
   const { data: sedes = [] } = useQuery({
@@ -53,18 +67,18 @@ export default function AdminReportes() {
         .from("facturas")
         .select("created_at, total, orden_id, ordenes(mesa_id, mesas(salon_id, salones(sede_id)))");
 
-      if (fechaInicio) {
-        query = query.gte("created_at", fechaInicio.toISOString());
+      if (fechaInicioD) {
+        query = query.gte("created_at", fechaInicioD.toISOString());
       }
-      if (fechaFin) {
-        query = query.lte("created_at", fechaFin.toISOString());
+      if (fechaFinD) {
+        query = query.lte("created_at", fechaFinD.toISOString());
       }
 
       const { data, error } = await query;
       if (error) throw error;
 
-      // Agrupar por fecha
-      const ventasPorDia = data.reduce((acc: any, factura: any) => {
+      // Agrupar por fecha (filtrando por sede si aplica)
+      const ventasPorDia = data.filter(pasaSede).reduce((acc: any, factura: any) => {
         const fecha = format(new Date(factura.created_at), "yyyy-MM-dd");
         if (!acc[fecha]) {
           acc[fecha] = { fecha, ventas: 0, ordenes: 0 };
@@ -89,16 +103,15 @@ export default function AdminReportes() {
     queryFn: async () => {
       let query = supabase
         .from("factura_items")
-        .select("producto_nombre, cantidad, subtotal, factura_id, facturas(created_at)");
+        .select("producto_nombre, cantidad, subtotal, factura_id, facturas(created_at, ordenes(mesas(salones(sede_id))))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      // Filtrar por fecha
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.facturas.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      // Filtrar por fecha y sede
+      const dataFiltrada = data.filter((item: any) =>
+        enRango(item.facturas.created_at) && pasaSede(item.facturas)
+      );
 
       // Agrupar por producto
       const productosPorNombre = dataFiltrada.reduce((acc: any, item: any) => {
@@ -128,15 +141,14 @@ export default function AdminReportes() {
     queryFn: async () => {
       let query = supabase
         .from("factura_items")
-        .select("producto_nombre, cantidad, subtotal, factura_id, facturas(created_at)");
+        .select("producto_nombre, cantidad, subtotal, factura_id, facturas(created_at, ordenes(mesas(salones(sede_id))))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.facturas.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) =>
+        enRango(item.facturas.created_at) && pasaSede(item.facturas)
+      );
 
       const productosPorNombre = dataFiltrada.reduce((acc: any, item: any) => {
         const nombre = item.producto_nombre;
@@ -161,19 +173,16 @@ export default function AdminReportes() {
 
   // Ranking de meseros
   const { data: rankingMeseros = [] } = useQuery({
-    queryKey: ["ranking-meseros", fechaInicio, fechaFin],
+    queryKey: ["ranking-meseros", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
       let query = supabase
         .from("ordenes")
-        .select("mesero_id, total, created_at, profiles!ordenes_mesero_id_fkey(nombre, apellido)");
+        .select("mesero_id, total, created_at, profiles!ordenes_mesero_id_fkey(nombre, apellido), mesas(salones(sede_id))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) => enRango(item.created_at) && pasaSede(item));
 
       const meserosPorId = dataFiltrada.reduce((acc: any, orden: any) => {
         const id = orden.mesero_id;
@@ -205,19 +214,16 @@ export default function AdminReportes() {
 
   // Ranking de cocineros
   const { data: rankingCocineros = [] } = useQuery({
-    queryKey: ["ranking-cocineros", fechaInicio, fechaFin],
+    queryKey: ["ranking-cocineros", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
       let query = supabase
         .from("ordenes")
-        .select("cocinero_id, total, created_at, profiles!ordenes_cocinero_id_fkey(nombre, apellido)");
+        .select("cocinero_id, total, created_at, profiles!ordenes_cocinero_id_fkey(nombre, apellido), mesas(salones(sede_id))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) => enRango(item.created_at) && pasaSede(item));
 
       const cocinerosPorId = dataFiltrada.reduce((acc: any, orden: any) => {
         const id = orden.cocinero_id;
@@ -249,17 +255,14 @@ export default function AdminReportes() {
 
   // Análisis por turno
   const { data: analisisTurnos = [] } = useQuery({
-    queryKey: ["analisis-turnos", fechaInicio, fechaFin],
+    queryKey: ["analisis-turnos", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
-      let query = supabase.from("ordenes").select("turno, total, created_at");
+      let query = supabase.from("ordenes").select("turno, total, created_at, mesas(salones(sede_id))");
 
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) => enRango(item.created_at) && pasaSede(item));
 
       const turnosPorNombre = dataFiltrada.reduce((acc: any, orden: any) => {
         const turno = orden.turno;
@@ -283,7 +286,7 @@ export default function AdminReportes() {
 
   // Análisis por sede
   const { data: analisisSedes = [] } = useQuery({
-    queryKey: ["analisis-sedes", fechaInicio, fechaFin],
+    queryKey: ["analisis-sedes", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
       let query = supabase
         .from("ordenes")
@@ -292,10 +295,7 @@ export default function AdminReportes() {
       const { data, error } = await query;
       if (error) throw error;
 
-      const dataFiltrada = data.filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const dataFiltrada = data.filter((item: any) => enRango(item.created_at) && pasaSede(item));
 
       const sedesPorId = dataFiltrada.reduce((acc: any, orden: any) => {
         const sede = orden.mesas?.salones?.sedes?.nombre;
@@ -319,7 +319,7 @@ export default function AdminReportes() {
 
   // Reporte de Rentabilidad - Inventario vs Ventas
   const { data: reporteRentabilidad } = useQuery({
-    queryKey: ["reporte-rentabilidad", fechaInicio, fechaFin],
+    queryKey: ["reporte-rentabilidad", fechaInicio, fechaFin, sedeId],
     queryFn: async () => {
       // Obtener entradas de productos (inventario_entradas)
       const { data: entradasProductos, error: errorProductos } = await supabase
@@ -338,25 +338,18 @@ export default function AdminReportes() {
       // Obtener facturas (ventas)
       const { data: facturas, error: errorFacturas } = await supabase
         .from("facturas")
-        .select("total, created_at");
+        .select("total, created_at, ordenes(mesas(salones(sede_id)))");
 
       if (errorFacturas) throw errorFacturas;
 
-      // Filtrar por rango de fechas
-      const productosFiltered = (entradasProductos || []).filter((item: any) => {
-        const fecha = new Date(item.fecha_ingreso);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      // Filtrar por rango de fechas (y sede en el caso de las ventas)
+      const productosFiltered = (entradasProductos || []).filter((item: any) => enRango(item.fecha_ingreso));
 
-      const insumosFiltered = (entradasInsumos || []).filter((item: any) => {
-        const fecha = new Date(item.fecha_compra);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const insumosFiltered = (entradasInsumos || []).filter((item: any) => enRango(item.fecha_compra));
 
-      const facturasFiltered = (facturas || []).filter((item: any) => {
-        const fecha = new Date(item.created_at);
-        return (!fechaInicio || fecha >= fechaInicio) && (!fechaFin || fecha <= fechaFin);
-      });
+      const facturasFiltered = (facturas || []).filter((item: any) =>
+        enRango(item.created_at) && pasaSede(item)
+      );
 
       // Calcular totales
       const totalProductos = productosFiltered.reduce(
