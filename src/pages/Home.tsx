@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { z } from "zod";
 import { ArrowRight, ChartNoAxesCombined, ChefHat, ClipboardList, Mail, MessageCircle, PackageCheck, Play, ShieldCheck, UtensilsCrossed, Wallet } from "lucide-react";
@@ -39,6 +39,7 @@ export default function Home() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [started, setStarted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [website, setWebsite] = useState("");
 
   const send = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -126,14 +127,8 @@ export default function Home() {
               <p className="text-muted-foreground max-w-md">Un recorrido por los módulos de administración, meseros, cocina y caja.</p>
             </div>
             <div className="relative aspect-[16/9] overflow-hidden bg-foreground shadow-lg">
-              {started ? (
-                <video className="w-full h-full object-contain" controls autoPlay playsInline preload="metadata" poster={assetUrl(posterAsset.url)} src={assetUrl(videoAsset.url)} aria-label="Video de presentación de Ancestrale Cloud" />
-              ) : (
-                <>
-                  <img src={assetUrl(posterAsset.url)} className="w-full h-full object-cover" alt="Presentación en video de Ancestrale Cloud" />
-                  <Button type="button" size="icon" onClick={() => setStarted(true)} aria-label="Reproducir video" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-16 rounded-full shadow-lg"><Play className="size-7 ml-1" /></Button>
-                </>
-              )}
+              <video ref={videoRef} className="w-full h-full object-contain" controls={started} playsInline preload="none" poster={assetUrl(posterAsset.url)} src={assetUrl(videoAsset.url)} aria-label="Video de presentación de Ancestrale Cloud" />
+              {!started && <Button type="button" size="icon" onClick={() => { setStarted(true); void videoRef.current?.play(); }} aria-label="Reproducir video" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-16 rounded-full shadow-lg"><Play className="size-7 ml-1" /></Button>}
             </div>
           </div>
         </section>
