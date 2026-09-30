@@ -33,6 +33,7 @@ import UserProfile from "./pages/UserProfile";
 import Logout from "./pages/Logout";
 import NotFound from "./pages/NotFound";
 import PantallaTurnos from "./pages/PantallaTurnos";
+import Home from "./pages/Home";
 
 const queryClient = new QueryClient();
 
@@ -44,7 +45,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={
+          <Route path="/" element={<Home />} />
+          <Route path="/app" element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
