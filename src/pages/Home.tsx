@@ -69,11 +69,11 @@ export default function Home() {
             <span className="size-8 bg-primary text-primary-foreground grid place-items-center rounded-sm"><UtensilsCrossed className="size-5" /></span>
             <span>Ancestrale <span className="text-primary">Cloud</span></span>
           </a>
-          <nav className="flex items-center gap-2 sm:gap-5 text-sm">
+          <nav className="flex shrink-0 items-center gap-1 sm:gap-5 text-sm">
             <a href="#plataforma" className="hidden sm:inline hover:text-primary">La plataforma</a>
             <a href="#video" className="hidden sm:inline hover:text-primary">Video</a>
-            <Button variant="ghost" size="sm" asChild><Link to={user ? "/app" : "/auth"}>{user ? "Mi panel" : "Ingresar"}</Link></Button>
-            <Button size="sm" asChild><a href="#contacto">Solicitar información</a></Button>
+            <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild><Link to={user ? "/app" : "/auth"}>{user ? "Mi panel" : "Ingresar"}</Link></Button>
+            <Button size="sm" className="px-2 sm:px-3" asChild><a href="#contacto"><span className="sm:hidden">Contacto</span><span className="hidden sm:inline">Solicitar información</span></a></Button>
           </nav>
         </div>
       </header>
