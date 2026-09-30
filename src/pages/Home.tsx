@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import videoAsset from "@/assets/video_ancestrale_pos.mp4.asset.json";
+import videoAsset from "@/assets/ancestrale-pos-web.mp4.asset.json";
 import posterAsset from "@/assets/ancestrale-poster.jpg.asset.json";
 
 const schema = z.object({
