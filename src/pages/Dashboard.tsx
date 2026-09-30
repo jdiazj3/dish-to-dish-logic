@@ -87,5 +87,5 @@ export default function Dashboard() {
     cajero: '/cajero',
   };
 
-  return <Navigate to={roleRoutes[primaryRole] || '/'} replace />;
+  return <Navigate to={roleRoutes[primaryRole] || '/auth'} replace />;
 }
