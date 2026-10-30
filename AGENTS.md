@@ -1,3 +1,4 @@
 - Keep `/` as the public Ancestrale Cloud homepage and `/app` as the authenticated role router; this makes product information publicly accessible without disrupting the POS role dashboards.
 - Handle lead email in the `solicitar-informacion` edge function with server validation and a fixed recipient; the email provider credential must remain server-side.
 - Serve uploaded promotional videos through Lovable Assets pointers; large media must not be committed as application source.
+- Public marketing module content lives in one shared data file used by the Home section and /soluciones pages; keeps copy consistent in one place.
