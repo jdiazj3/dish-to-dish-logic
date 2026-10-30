@@ -16,7 +16,7 @@ export default function HeroSlider() {
 
   return (
     <div className="mt-10 max-w-xl border-l-4 border-primary bg-background/10 backdrop-blur-sm p-5" onMouseEnter={() => setPausa(true)} onMouseLeave={() => setPausa(false)} aria-roledescription="carrusel" aria-label="Funcionalidades diferenciales">
-      <div key={m.slug} className="animate-fade-in" aria-live="polite">
+      <div key={m.slug} className="animate-in fade-in slide-in-from-bottom-2 duration-500" aria-live="polite">
         <div className="flex items-center gap-2 text-accent text-xs uppercase tracking-widest font-semibold">
           <Icon className="size-4 text-primary" aria-hidden="true" /> {m.nombre}
         </div>
