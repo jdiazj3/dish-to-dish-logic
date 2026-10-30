@@ -50,7 +50,7 @@ export default function SolucionModulo() {
         <div className="mx-auto max-w-6xl px-5 grid lg:grid-cols-2 gap-14">
           <div>
             <h2 className="text-3xl font-bold">Otros sistemas vs Ancestrale Cloud</h2>
-            <table className="mt-8 w-full text-left">
+            <div className="mt-8 rounded-table bg-card px-4"><table className="w-full text-left">
               <thead><tr className="border-b border-border text-sm text-muted-foreground"><th className="py-3 font-medium">Función</th><th className="py-3 font-medium text-center">Otros</th><th className="py-3 font-medium text-center">Ancestrale</th></tr></thead>
               <tbody>
                 {m.comparativa.map(c => (
@@ -61,7 +61,7 @@ export default function SolucionModulo() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
           <div>
             <h2 className="text-3xl font-bold">Preguntas frecuentes</h2>
