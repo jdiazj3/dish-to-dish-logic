@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import HeroSlider from "@/components/home/HeroSlider";
 import ZonaDiferenciales from "@/components/home/ZonaDiferenciales";
 import videoAsset from "@/assets/ancestrale-pos-light.mp4.asset.json";
 import webmAsset from "@/assets/ancestrale-pos-web.webm.asset.json";
@@ -123,6 +124,7 @@ export default function Home() {
                 <Button size="lg" asChild><a href="#contacto">Quiero probarlo <ArrowRight /></a></Button>
                 <Button size="lg" variant="outline" className="bg-background/10 text-background border-background/50 hover:bg-background hover:text-foreground" asChild><a href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle /> Comprar aquí</a></Button>
               </div>
+              <HeroSlider />
             </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
