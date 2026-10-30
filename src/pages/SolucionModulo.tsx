@@ -17,7 +17,7 @@ export default function SolucionModulo() {
           <Link to="/soluciones" className="text-sm text-accent hover:underline">← Soluciones</Link>
           <div className="mt-6 flex items-center gap-3 text-accent"><Icon className="size-7 text-primary" /><span className="uppercase tracking-widest text-xs font-semibold">{m.nombre}</span></div>
           <h1 className="mt-5 text-4xl sm:text-6xl font-bold leading-tight">{m.problema}</h1>
-          <p className="mt-6 text-xl text-background/80">{m.promesa}</p>
+          <p className="mt-6 text-xl text-muted-foreground">{m.promesa}</p>
         </div>
       </section>
 

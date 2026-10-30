@@ -119,10 +119,10 @@ export default function Home() {
             <div className="max-w-2xl">
               <span className="inline-block text-sm font-semibold uppercase text-accent">Para restaurantes que quieren crecer</span>
               <h1 className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.05]">Ancestrale Cloud</h1>
-              <p className="mt-6 text-xl sm:text-2xl leading-relaxed text-background/85 max-w-xl">Tu restaurante, en una sola plataforma. Pedidos, cocina, caja, inventario y rentabilidad conectados.</p>
+              <p className="mt-6 text-xl sm:text-2xl leading-relaxed text-muted-foreground max-w-xl">Tu restaurante, en una sola plataforma. Pedidos, cocina, caja, inventario y rentabilidad conectados.</p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <Button size="lg" asChild><a href="#contacto">Quiero probarlo <ArrowRight /></a></Button>
-                <Button size="lg" variant="outline" className="bg-background/10 text-background border-background/50 hover:bg-background hover:text-background" asChild><a href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle /> Comprar aquí</a></Button>
+                <Button size="lg" variant="outline" className="bg-transparent text-foreground border-border hover:bg-muted hover:text-foreground" asChild><a href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle /> Comprar aquí</a></Button>
               </div>
               <HeroSlider />
             </div>
@@ -223,7 +223,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="bg-card text-card-foreground py-9"><div className="mx-auto max-w-6xl px-5 flex flex-wrap justify-between gap-4 text-sm"><span className="font-semibold flex items-center gap-2"><ChefHat className="size-5 text-accent" /> Ancestrale Cloud</span><span className="text-background/70">Gestión para restaurantes · <a href="mailto:info@ancestralecloud.top" className="hover:underline">info@ancestralecloud.top</a></span></div></footer>
+      <footer className="bg-card text-card-foreground py-9"><div className="mx-auto max-w-6xl px-5 flex flex-wrap justify-between gap-4 text-sm"><span className="font-semibold flex items-center gap-2"><ChefHat className="size-5 text-accent" /> Ancestrale Cloud</span><span className="text-muted-foreground">Gestión para restaurantes · <a href="mailto:info@ancestralecloud.top" className="hover:underline">info@ancestralecloud.top</a></span></div></footer>
     </div>
   );
 }

@@ -30,7 +30,7 @@ export default function Soluciones() {
       <section className="bg-secondary py-20">
         <div className="mx-auto max-w-6xl px-5">
           <h2 className="text-3xl font-bold">Comparativa completa</h2>
-          <div className="mt-8 overflow-x-auto bg-background border border-border">
+          <div className="mt-8 overflow-x-auto bg-background rounded-table">
             <table className="w-full text-left min-w-[520px]">
               <thead><tr className="border-b border-border text-sm text-muted-foreground"><th className="p-4 font-medium">Módulo</th><th className="p-4 font-medium">Función</th><th className="p-4 font-medium text-center">Otros</th><th className="p-4 font-medium text-center">Ancestrale</th></tr></thead>
               <tbody>
