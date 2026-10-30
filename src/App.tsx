@@ -33,6 +33,8 @@ import UserProfile from "./pages/UserProfile";
 import Logout from "./pages/Logout";
 import NotFound from "./pages/NotFound";
 import PantallaTurnos from "./pages/PantallaTurnos";
+import Soluciones from "./pages/Soluciones";
+import SolucionModulo from "./pages/SolucionModulo";
 import Home from "./pages/Home";
 
 const queryClient = new QueryClient();
@@ -46,6 +48,8 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Home />} />
+          <Route path="/soluciones" element={<Soluciones />} />
+          <Route path="/soluciones/:slug" element={<SolucionModulo />} />
           <Route path="/app" element={
             <ProtectedRoute>
               <Dashboard />
