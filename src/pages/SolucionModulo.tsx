@@ -76,7 +76,7 @@ export default function SolucionModulo() {
         <div className="mx-auto max-w-6xl px-5">
           <p className="text-sm uppercase tracking-widest text-muted-foreground">Otros módulos</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            {otros.map(o => <Link key={o.slug} to={`/soluciones/${o.slug}`} className="border border-border px-4 py-2 hover:bg-muted hover:text-primary">{o.nombre}</Link>)}
+            {otros.map(o => <Link key={o.slug} to={`/soluciones/${o.slug}`} className="bg-card rounded-md px-4 py-2 hover:bg-muted hover:text-primary">{o.nombre}</Link>)}
           </div>
         </div>
       </section>

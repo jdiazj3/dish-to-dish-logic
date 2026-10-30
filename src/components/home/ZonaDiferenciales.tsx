@@ -15,7 +15,7 @@ export default function ZonaDiferenciales() {
 
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {modulos.map(({ slug, icon: Icon, nombre, titular, resumen }) => (
-            <Link key={slug} to={`/soluciones/${slug}`} className="group bg-foreground p-7 flex flex-col hover:bg-background/5 transition-colors">
+            <Link key={slug} to={`/soluciones/${slug}`} className="group bg-muted rounded-md overflow-hidden p-7 flex flex-col hover:bg-muted/70 transition-colors">
               <Icon className="size-8 text-primary" aria-hidden="true" />
               <p className="mt-5 text-xs uppercase tracking-widest text-accent">{nombre}</p>
               <h3 className="mt-2 text-xl font-semibold">{titular}</h3>
