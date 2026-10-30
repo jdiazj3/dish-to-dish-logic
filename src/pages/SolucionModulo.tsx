@@ -12,7 +12,7 @@ export default function SolucionModulo() {
 
   return (
     <PublicShell title={`${m.nombre} | Ancestrale Cloud`}>
-      <section className="bg-foreground text-background py-20 sm:py-28 border-b-8 border-primary">
+      <section className="bg-card text-card-foreground py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-5 max-w-3xl">
           <Link to="/soluciones" className="text-sm text-accent hover:underline">← Soluciones</Link>
           <div className="mt-6 flex items-center gap-3 text-accent"><Icon className="size-7 text-primary" /><span className="uppercase tracking-widest text-xs font-semibold">{m.nombre}</span></div>
@@ -24,7 +24,7 @@ export default function SolucionModulo() {
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-5 grid md:grid-cols-3 gap-10">
           {m.beneficios.map(b => (
-            <div key={b.titulo} className="border-t-2 border-primary pt-5">
+            <div key={b.titulo} className="pt-5">
               <h2 className="text-xl font-semibold">{b.titulo}</h2>
               <p className="mt-3 text-muted-foreground leading-relaxed">{b.texto}</p>
             </div>
@@ -76,7 +76,7 @@ export default function SolucionModulo() {
         <div className="mx-auto max-w-6xl px-5">
           <p className="text-sm uppercase tracking-widest text-muted-foreground">Otros módulos</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            {otros.map(o => <Link key={o.slug} to={`/soluciones/${o.slug}`} className="border border-border px-4 py-2 hover:border-primary hover:text-primary">{o.nombre}</Link>)}
+            {otros.map(o => <Link key={o.slug} to={`/soluciones/${o.slug}`} className="border border-border px-4 py-2 hover:bg-muted hover:text-primary">{o.nombre}</Link>)}
           </div>
         </div>
       </section>

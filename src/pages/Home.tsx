@@ -94,7 +94,7 @@ export default function Home() {
   if (user) return <Navigate to="/app" replace />;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="public-theme min-h-screen bg-background text-foreground">
       <header className="border-b border-border bg-background/95 sticky top-0 z-20 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-5 h-16 flex items-center justify-between gap-4">
           <a href="#inicio" className="flex items-center gap-2 font-bold text-lg" aria-label="Ancestrale Cloud, inicio">
@@ -112,17 +112,17 @@ export default function Home() {
       </header>
 
       <main>
-        <section id="inicio" className="relative min-h-[610px] sm:min-h-[650px] flex items-center overflow-hidden bg-foreground text-background">
+        <section id="inicio" className="relative min-h-[610px] sm:min-h-[650px] flex items-center overflow-hidden bg-card text-card-foreground">
           <img src={assetUrl(posterAsset.url)} alt="Vista del panel de Ancestrale Cloud" className="absolute inset-0 w-full h-full object-cover opacity-30" />
           <div className="absolute inset-0 bg-foreground/75" />
           <div className="relative z-10 mx-auto max-w-6xl w-full px-5 py-20 sm:py-28">
             <div className="max-w-2xl">
-              <span className="inline-block border-l-2 border-primary pl-3 text-sm font-semibold uppercase text-accent">Para restaurantes que quieren crecer</span>
+              <span className="inline-block text-sm font-semibold uppercase text-accent">Para restaurantes que quieren crecer</span>
               <h1 className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.05]">Ancestrale Cloud</h1>
               <p className="mt-6 text-xl sm:text-2xl leading-relaxed text-background/85 max-w-xl">Tu restaurante, en una sola plataforma. Pedidos, cocina, caja, inventario y rentabilidad conectados.</p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <Button size="lg" asChild><a href="#contacto">Quiero probarlo <ArrowRight /></a></Button>
-                <Button size="lg" variant="outline" className="bg-background/10 text-background border-background/50 hover:bg-background hover:text-foreground" asChild><a href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle /> Comprar aquí</a></Button>
+                <Button size="lg" variant="outline" className="bg-background/10 text-background border-background/50 hover:bg-background hover:text-background" asChild><a href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle /> Comprar aquí</a></Button>
               </div>
               <HeroSlider />
             </div>
@@ -166,7 +166,7 @@ export default function Home() {
             </div>
             <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10">
               {features.map(({ icon: Icon, title, description }) => (
-                <div key={title} className="border-t-2 border-primary pt-5">
+                <div key={title} className="pt-5">
                   <Icon className="size-7 text-primary" aria-hidden="true" />
                   <h3 className="mt-5 text-lg font-semibold">{title}</h3>
                   <p className="mt-3 text-muted-foreground leading-relaxed">{description}</p>
@@ -210,7 +210,7 @@ export default function Home() {
               <a href="mailto:info@ancestralecloud.top" className="inline-flex items-center gap-2 mt-8 text-primary hover:underline"><Mail className="size-5" /> info@ancestralecloud.top</a>
             </div>
             {sent ? (
-              <div className="border-t-2 border-primary pt-6" role="status"><ShieldCheck className="size-9 text-success" /><h3 className="mt-4 text-2xl font-semibold">Recibimos tu solicitud</h3><p className="mt-3 text-muted-foreground">Pronto nos pondremos en contacto contigo.</p><Button variant="outline" className="mt-6" onClick={() => setSent(false)}>Enviar otra solicitud</Button></div>
+              <div className="pt-6" role="status"><ShieldCheck className="size-9 text-success" /><h3 className="mt-4 text-2xl font-semibold">Recibimos tu solicitud</h3><p className="mt-3 text-muted-foreground">Pronto nos pondremos en contacto contigo.</p><Button variant="outline" className="mt-6" onClick={() => setSent(false)}>Enviar otra solicitud</Button></div>
             ) : (
               <form onSubmit={send} noValidate className="space-y-5" aria-label="Solicitar información">
                 <div className="space-y-2"><Label htmlFor="lead-nombre">Nombre</Label><Input id="lead-nombre" autoComplete="name" maxLength={100} value={nombre} onChange={e => setNombre(e.target.value)} aria-invalid={!!errors.nombre} /><p className="text-sm text-destructive" role="alert">{errors.nombre}</p></div>
@@ -223,7 +223,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="bg-foreground text-background py-9"><div className="mx-auto max-w-6xl px-5 flex flex-wrap justify-between gap-4 text-sm"><span className="font-semibold flex items-center gap-2"><ChefHat className="size-5 text-accent" /> Ancestrale Cloud</span><span className="text-background/70">Gestión para restaurantes · <a href="mailto:info@ancestralecloud.top" className="hover:underline">info@ancestralecloud.top</a></span></div></footer>
+      <footer className="bg-card text-card-foreground py-9"><div className="mx-auto max-w-6xl px-5 flex flex-wrap justify-between gap-4 text-sm"><span className="font-semibold flex items-center gap-2"><ChefHat className="size-5 text-accent" /> Ancestrale Cloud</span><span className="text-background/70">Gestión para restaurantes · <a href="mailto:info@ancestralecloud.top" className="hover:underline">info@ancestralecloud.top</a></span></div></footer>
     </div>
   );
 }

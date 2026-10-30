@@ -5,7 +5,7 @@ import { modulos, diaAdministrador, WHATSAPP_URL } from "@/data/modulosDiferenci
 
 export default function ZonaDiferenciales() {
   return (
-    <section id="diferenciales" className="scroll-mt-16 bg-foreground text-background py-20 sm:py-28">
+    <section id="diferenciales" className="scroll-mt-16 bg-card text-card-foreground py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-5">
         <div className="max-w-3xl">
           <p className="text-accent font-semibold uppercase text-xs tracking-widest">Lo que otros sistemas no tienen</p>
@@ -29,7 +29,7 @@ export default function ZonaDiferenciales() {
           <h3 className="text-2xl sm:text-3xl font-bold">Un día del administrador con Ancestrale</h3>
           <ol className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {diaAdministrador.map(({ hora, texto }) => (
-              <li key={hora} className="border-t-2 border-primary pt-4">
+              <li key={hora} className="pt-4">
                 <p className="text-primary font-bold text-lg">{hora}</p>
                 <p className="mt-2 text-background/80">{texto}</p>
               </li>
@@ -37,7 +37,7 @@ export default function ZonaDiferenciales() {
           </ol>
           <div className="mt-10 flex flex-wrap gap-3">
             <Button size="lg" asChild><a href="/#contacto">Quiero probarlo <ArrowRight /></a></Button>
-            <Button size="lg" variant="outline" className="bg-background/10 text-background border-background/50 hover:bg-background hover:text-foreground" asChild>
+            <Button size="lg" variant="outline" className="bg-background/10 text-background border-background/50 hover:bg-background hover:text-background" asChild>
               <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><MessageCircle /> Comprar aquí</a>
             </Button>
             <Button size="lg" variant="ghost" className="text-background hover:bg-background/10 hover:text-background" asChild><Link to="/soluciones">Ver comparativa completa</Link></Button>
