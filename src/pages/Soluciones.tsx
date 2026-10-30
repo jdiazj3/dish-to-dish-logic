@@ -6,7 +6,7 @@ import { modulos } from "@/data/modulosDiferenciales";
 export default function Soluciones() {
   return (
     <PublicShell title="Soluciones | Ancestrale Cloud">
-      <section className="bg-foreground text-background py-20 sm:py-28 border-b-8 border-primary">
+      <section className="bg-card text-card-foreground py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-5">
           <p className="text-accent uppercase tracking-widest text-xs font-semibold">Lo que otros sistemas no tienen</p>
           <h1 className="mt-4 text-4xl sm:text-6xl font-bold max-w-3xl leading-tight">Todo para administrar tu restaurante, en un solo lugar.</h1>
@@ -16,7 +16,7 @@ export default function Soluciones() {
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {modulos.map(({ slug, icon: Icon, nombre, titular, resumen }) => (
-            <Link key={slug} to={`/soluciones/${slug}`} className="group border border-border p-7 hover:border-primary transition-colors">
+            <Link key={slug} to={`/soluciones/${slug}`} className="group bg-card rounded-md p-7 hover:bg-muted transition-colors">
               <Icon className="size-8 text-primary" />
               <p className="mt-4 text-xs uppercase tracking-widest text-muted-foreground">{nombre}</p>
               <h2 className="mt-2 text-xl font-semibold">{titular}</h2>
@@ -27,10 +27,10 @@ export default function Soluciones() {
         </div>
       </section>
 
-      <section className="bg-secondary py-20">
+      <section className="bg-muted py-20">
         <div className="mx-auto max-w-6xl px-5">
           <h2 className="text-3xl font-bold">Comparativa completa</h2>
-          <div className="mt-8 overflow-x-auto bg-background border border-border">
+          <div className="mt-8 overflow-x-auto bg-background rounded-table">
             <table className="w-full text-left min-w-[520px]">
               <thead><tr className="border-b border-border text-sm text-muted-foreground"><th className="p-4 font-medium">Módulo</th><th className="p-4 font-medium">Función</th><th className="p-4 font-medium text-center">Otros</th><th className="p-4 font-medium text-center">Ancestrale</th></tr></thead>
               <tbody>

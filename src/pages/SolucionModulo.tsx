@@ -12,19 +12,19 @@ export default function SolucionModulo() {
 
   return (
     <PublicShell title={`${m.nombre} | Ancestrale Cloud`}>
-      <section className="bg-foreground text-background py-20 sm:py-28 border-b-8 border-primary">
+      <section className="bg-card text-card-foreground py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-5 max-w-3xl">
           <Link to="/soluciones" className="text-sm text-accent hover:underline">← Soluciones</Link>
           <div className="mt-6 flex items-center gap-3 text-accent"><Icon className="size-7 text-primary" /><span className="uppercase tracking-widest text-xs font-semibold">{m.nombre}</span></div>
           <h1 className="mt-5 text-4xl sm:text-6xl font-bold leading-tight">{m.problema}</h1>
-          <p className="mt-6 text-xl text-background/80">{m.promesa}</p>
+          <p className="mt-6 text-xl text-muted-foreground">{m.promesa}</p>
         </div>
       </section>
 
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-5 grid md:grid-cols-3 gap-10">
           {m.beneficios.map(b => (
-            <div key={b.titulo} className="border-t-2 border-primary pt-5">
+            <div key={b.titulo} className="pt-5">
               <h2 className="text-xl font-semibold">{b.titulo}</h2>
               <p className="mt-3 text-muted-foreground leading-relaxed">{b.texto}</p>
             </div>
@@ -32,7 +32,7 @@ export default function SolucionModulo() {
         </div>
       </section>
 
-      <section className="bg-secondary py-20">
+      <section className="bg-muted py-20">
         <div className="mx-auto max-w-6xl px-5">
           <h2 className="text-3xl font-bold">Cómo funciona</h2>
           <ol className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -50,7 +50,7 @@ export default function SolucionModulo() {
         <div className="mx-auto max-w-6xl px-5 grid lg:grid-cols-2 gap-14">
           <div>
             <h2 className="text-3xl font-bold">Otros sistemas vs Ancestrale Cloud</h2>
-            <table className="mt-8 w-full text-left">
+            <div className="mt-8 rounded-table bg-card px-4"><table className="w-full text-left">
               <thead><tr className="border-b border-border text-sm text-muted-foreground"><th className="py-3 font-medium">Función</th><th className="py-3 font-medium text-center">Otros</th><th className="py-3 font-medium text-center">Ancestrale</th></tr></thead>
               <tbody>
                 {m.comparativa.map(c => (
@@ -61,7 +61,7 @@ export default function SolucionModulo() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
           <div>
             <h2 className="text-3xl font-bold">Preguntas frecuentes</h2>
@@ -76,7 +76,7 @@ export default function SolucionModulo() {
         <div className="mx-auto max-w-6xl px-5">
           <p className="text-sm uppercase tracking-widest text-muted-foreground">Otros módulos</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            {otros.map(o => <Link key={o.slug} to={`/soluciones/${o.slug}`} className="border border-border px-4 py-2 hover:border-primary hover:text-primary">{o.nombre}</Link>)}
+            {otros.map(o => <Link key={o.slug} to={`/soluciones/${o.slug}`} className="bg-card rounded-md px-4 py-2 hover:bg-muted hover:text-primary">{o.nombre}</Link>)}
           </div>
         </div>
       </section>
