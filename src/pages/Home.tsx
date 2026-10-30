@@ -127,7 +127,6 @@ export default function Home() {
               <HeroSlider />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
         </section>
 
         <section id="ingresar" className="scroll-mt-16 border-b border-border bg-muted py-14 sm:py-18">
@@ -184,7 +183,7 @@ export default function Home() {
               <div><p className="text-primary font-semibold uppercase text-xs tracking-widest">Conoce Ancestrale Cloud</p><h2 className="mt-3 text-3xl sm:text-4xl font-bold">Míralo en acción.</h2></div>
               <p className="text-muted-foreground max-w-md">Un recorrido por los módulos de administración, meseros, cocina y caja.</p>
             </div>
-            <div className="relative aspect-[16/9] overflow-hidden bg-foreground shadow-lg">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-md bg-background shadow-lg">
               <video ref={videoRef} className="w-full h-full object-contain" controls={started} playsInline preload="none" poster={assetUrl(posterAsset.url)} aria-label="Video de presentación de Ancestrale Cloud">
                 <source src={assetUrl(webmAsset.url)} type="video/webm" />
                 <source src={assetUrl(videoAsset.url)} type="video/mp4" />
