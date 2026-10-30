@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import ZonaDiferenciales from "@/components/home/ZonaDiferenciales";
 import videoAsset from "@/assets/ancestrale-pos-light.mp4.asset.json";
 import webmAsset from "@/assets/ancestrale-pos-web.webm.asset.json";
 import posterAsset from "@/assets/ancestrale-poster.jpg.asset.json";
@@ -101,7 +102,8 @@ export default function Home() {
           </a>
           <nav className="flex shrink-0 items-center gap-1 sm:gap-5 text-sm">
             <a href="#plataforma" className="hidden sm:inline hover:text-primary">La plataforma</a>
-            <a href="#video" className="hidden sm:inline hover:text-primary">Video</a>
+            <a href="#diferenciales" className="hidden md:inline hover:text-primary">Diferenciales</a>
+            <Link to="/soluciones" className="hidden lg:inline hover:text-primary">Soluciones</Link>
             <Button variant="ghost" size="sm" className="px-2 sm:px-3" asChild><a href="#ingresar">Ingresar</a></Button>
             <Button size="sm" className="px-2 sm:px-3" asChild><a href="#contacto"><span className="sm:hidden">Contacto</span><span className="hidden sm:inline">Solicitar información</span></a></Button>
           </nav>
@@ -171,6 +173,8 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <ZonaDiferenciales />
 
         <section id="video" className="bg-secondary py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5">
