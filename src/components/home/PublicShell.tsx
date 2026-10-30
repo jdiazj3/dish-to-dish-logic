@@ -22,7 +22,7 @@ export default function PublicShell({ title, children }: { title: string; childr
         </div>
       </header>
       <main>{children}</main>
-      <section className="border-t border-border bg-secondary py-16">
+      <section className="border-t border-border bg-muted py-16">
         <div className="mx-auto max-w-6xl px-5 flex flex-wrap items-center justify-between gap-6">
           <div><h2 className="text-2xl sm:text-3xl font-bold">¿Listo para conocerlo?</h2><p className="text-muted-foreground mt-2">Déjanos tus datos o escríbenos por WhatsApp.</p></div>
           <div className="flex flex-wrap gap-3">

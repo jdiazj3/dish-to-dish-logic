@@ -13,7 +13,7 @@ export default function ZonaDiferenciales() {
           <p className="mt-4 text-muted-foreground text-lg">Ancestrale Cloud incluye módulos que normalmente pagas aparte o llevas en Excel.</p>
         </div>
 
-        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-background/15 border border-background/15">
+        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {modulos.map(({ slug, icon: Icon, nombre, titular, resumen }) => (
             <Link key={slug} to={`/soluciones/${slug}`} className="group bg-foreground p-7 flex flex-col hover:bg-background/5 transition-colors">
               <Icon className="size-8 text-primary" aria-hidden="true" />

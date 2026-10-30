@@ -32,7 +32,7 @@ export default function SolucionModulo() {
         </div>
       </section>
 
-      <section className="bg-secondary py-20">
+      <section className="bg-muted py-20">
         <div className="mx-auto max-w-6xl px-5">
           <h2 className="text-3xl font-bold">Cómo funciona</h2>
           <ol className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">

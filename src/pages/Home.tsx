@@ -114,7 +114,7 @@ export default function Home() {
       <main>
         <section id="inicio" className="relative min-h-[610px] sm:min-h-[650px] flex items-center overflow-hidden bg-card text-card-foreground">
           <img src={assetUrl(posterAsset.url)} alt="Vista del panel de Ancestrale Cloud" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-          <div className="absolute inset-0 bg-foreground/75" />
+          <div className="absolute inset-0 bg-background/80" />
           <div className="relative z-10 mx-auto max-w-6xl w-full px-5 py-20 sm:py-28">
             <div className="max-w-2xl">
               <span className="inline-block text-sm font-semibold uppercase text-accent">Para restaurantes que quieren crecer</span>
@@ -130,7 +130,7 @@ export default function Home() {
           <div className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
         </section>
 
-        <section id="ingresar" className="scroll-mt-16 border-b border-border bg-secondary py-14 sm:py-18">
+        <section id="ingresar" className="scroll-mt-16 border-b border-border bg-muted py-14 sm:py-18">
           <div className="mx-auto max-w-6xl px-5 grid gap-8 md:grid-cols-[1fr_1fr] md:items-center lg:gap-20">
             <div>
               <p className="text-primary font-semibold uppercase text-xs tracking-widest">Para tu equipo</p>
@@ -178,7 +178,7 @@ export default function Home() {
 
         <ZonaDiferenciales />
 
-        <section id="video" className="bg-secondary py-20 sm:py-28">
+        <section id="video" className="bg-muted py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5">
             <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
               <div><p className="text-primary font-semibold uppercase text-xs tracking-widest">Conoce Ancestrale Cloud</p><h2 className="mt-3 text-3xl sm:text-4xl font-bold">Míralo en acción.</h2></div>

@@ -27,7 +27,7 @@ export default function Soluciones() {
         </div>
       </section>
 
-      <section className="bg-secondary py-20">
+      <section className="bg-muted py-20">
         <div className="mx-auto max-w-6xl px-5">
           <h2 className="text-3xl font-bold">Comparativa completa</h2>
           <div className="mt-8 overflow-x-auto bg-background rounded-table">
